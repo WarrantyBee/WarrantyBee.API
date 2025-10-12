@@ -1,0 +1,31 @@
+name: WarrantyBee.API Build & Test
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build and Verify WarrantyBee.API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout WarrantyBee.API repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test WarrantyBee.API
+        run: mvn -B clean verify
