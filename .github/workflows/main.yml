@@ -1,4 +1,4 @@
-name: WarrantyBee.API Build & Test
+name: build
 
 on:
   pull_request:
@@ -6,8 +6,29 @@ on:
 
 jobs:
   build:
-    name: Build and Verify WarrantyBee.API
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/test_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
 
     steps:
       - name: Checkout WarrantyBee.API repository
@@ -27,5 +48,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build and Test WarrantyBee.API
+      - name: Check MySQL Status
+        run: |
+          echo "Waiting for MySQL to start..."
+          for i in {1..30}; do
+            if mysqladmin ping -h "127.0.0.1" -uroot -proot --silent; then
+              echo "✅ MySQL is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 2
+          done
+
+      - name: Build
         run: mvn -B clean verify
