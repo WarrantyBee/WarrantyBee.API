@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users")
-public class UsersController {
-    @PostMapping
+@RequestMapping("/api/auth")
+public class AuthController {
+    @PostMapping("/login")
     public ResponseEntity<APIResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         return null;
     }
