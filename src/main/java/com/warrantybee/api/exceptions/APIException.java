@@ -12,7 +12,7 @@ public class APIException extends RuntimeException {
         this.error = ErrorDefinition.INTERNAL_SERVER_ERROR.getError();
     }
 
-    protected APIException(APIError error) {
+    public APIException(APIError error) {
         this.error = error;
     }
 }
