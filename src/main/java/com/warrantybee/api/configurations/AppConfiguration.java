@@ -32,4 +32,7 @@ public class AppConfiguration {
 
     /** JWT token settings. */
     private JwtTokenConfiguration jwtTokenConfiguration;
+
+    /** reCaptcha settings. */
+    private ReCaptchaConfiguration reCaptchaConfiguration;
 }
