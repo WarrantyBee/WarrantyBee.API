@@ -2,6 +2,8 @@ package com.warrantybee.api.services;
 
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.BetterStackConfiguration;
+import com.warrantybee.api.exceptions.ConfigurationException;
+import com.warrantybee.api.exceptions.TelemetryServiceException;
 import com.warrantybee.api.services.interfaces.ITelemetryService;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,7 @@ public class BetterStackTelemetryService implements ITelemetryService {
         this.httpClient = HttpClient.newHttpClient();
 
         if (host == null || accessToken == null) {
-            throw new IllegalStateException("Better Stack host or access token is not configured");
+            throw new ConfigurationException("Better Stack host or access token is not configured");
         }
     }
 
@@ -98,10 +100,10 @@ public class BetterStackTelemetryService implements ITelemetryService {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
-                System.err.println("Failed to send telemetry: " + response.body());
+                throw new TelemetryServiceException("Failed to send telemetry: " + response.body());
             }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            throw new TelemetryServiceException("Failed to send telemetry data", e);
         }
     }
 }

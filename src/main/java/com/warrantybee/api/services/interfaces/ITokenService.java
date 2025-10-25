@@ -1,5 +1,8 @@
 package com.warrantybee.api.services.interfaces;
 
+import com.warrantybee.api.exceptions.InvalidTokenException;
+import com.warrantybee.api.exceptions.JwtGenerationException;
+
 import java.util.Map;
 
 /**
@@ -12,15 +15,16 @@ public interface ITokenService {
      *
      * @param claims a map of claims to include in the token
      * @return the generated JWT token as a string
+     * @throws JwtGenerationException if the token generation fails
      */
-    String generate(Map<String, Object> claims);
+    String generate(Map<String, Object> claims) throws JwtGenerationException;
 
     /**
      * Validates a JWT token and returns the claims if valid.
      *
      * @param token the JWT token to validate
      * @return a map of claims if the token is valid
-     * @throws Exception if the token is invalid or expired
+     * @throws InvalidTokenException if the token is invalid or expired
      */
-    Map<String, Object> validate(String token) throws Exception;
+    Map<String, Object> validate(String token) throws InvalidTokenException;
 }

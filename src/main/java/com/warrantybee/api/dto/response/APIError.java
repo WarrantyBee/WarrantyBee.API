@@ -1,20 +1,16 @@
 package com.warrantybee.api.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /** Represents an API error response */
 @Getter
+@AllArgsConstructor
 public class APIError {
 
     /** Error code */
-    public final int code;
+    private final int code;
 
     /** Error message */
-    public final String message;
-
-    /** Constructs an APIError with code and message */
-    public APIError(int code, String message) {
-        this.code = code;
-        this.message = message;
-    }
+    private final String message;
 }

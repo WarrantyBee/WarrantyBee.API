@@ -3,10 +3,8 @@ package com.warrantybee.api.services;
 import com.warrantybee.api.dto.request.LoginRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.UserResponse;
-import com.warrantybee.api.enumerations.ErrorDefinition;
-import com.warrantybee.api.exceptions.APIException;
+import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.models.User;
-import com.warrantybee.api.repositories.DBContext;
 import com.warrantybee.api.services.interfaces.IAuthService;
 import com.warrantybee.api.services.interfaces.ICacheService;
 import com.warrantybee.api.services.interfaces.ITelemetryService;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,11 +40,11 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) throws Exception {
+    public LoginResponse login(LoginRequest request) throws UserNotFoundException, InvalidCredentialsException, InvalidTokenException, CacheException, JwtGenerationException {
         User user = _fetchUserByEmail(request.getEmail());
 
         if (!_passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new APIException(ErrorDefinition.INVALID_CREDENTIALS.getError());
+            throw new InvalidCredentialsException();
         }
 
         String token = _getCachedToken(user);
@@ -68,7 +65,7 @@ public class AuthService implements IAuthService {
                     .setParameter("email", email)
                     .getSingleResult();
         } catch (NoResultException e) {
-            throw new APIException(ErrorDefinition.USER_NOT_FOUND.getError());
+            throw new UserNotFoundException();
         }
     }
 
@@ -79,7 +76,7 @@ public class AuthService implements IAuthService {
                 _tokenService.validate(cachedToken);
                 return cachedToken;
             }
-        } catch (Exception e) {
+        } catch (CacheException | InvalidTokenException e) {
             _telemetryService.logError(e, Map.of("user", user.getEmail()));
         }
         return null;
@@ -95,7 +92,7 @@ public class AuthService implements IAuthService {
     private void _cacheToken(User user, String token) {
         try {
             _cacheService.set("token:" + user.getEmail(), token, 3600);
-        } catch (IOException | InterruptedException e) {
+        } catch (CacheException e) {
             _telemetryService.logError(e, Map.of("user", user.getEmail()));
         }
     }

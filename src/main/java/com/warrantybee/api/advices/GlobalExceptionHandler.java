@@ -1,9 +1,8 @@
 package com.warrantybee.api.advices;
 
-import com.warrantybee.api.mappers.ValidationErrorMapper;
 import com.warrantybee.api.dto.response.APIError;
 import com.warrantybee.api.dto.response.APIResponse;
-import com.warrantybee.api.enumerations.ErrorDefinition;
+import com.warrantybee.api.enumerations.Error;
 import com.warrantybee.api.exceptions.APIException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +11,16 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Global exception handler that intercepts exceptions thrown by controllers
+ * and returns standardized API responses with proper HTTP status codes.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles validation errors for request payloads annotated with @Valid.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<APIResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
 
@@ -24,37 +30,35 @@ public class GlobalExceptionHandler {
                 .orElse(null);
 
         APIError error;
+        HttpStatus status;
         if (fieldError == null) {
-            error = ErrorDefinition.INTERNAL_SERVER_ERROR.getError();
+            error = new APIError(Error.INTERNAL_SERVER_ERROR.getCode(), "Validation failed for one of the fields.");
+            status = Error.INTERNAL_SERVER_ERROR.getStatus();
         } else {
-            // Use centralized mapper
-            error = ValidationErrorMapper.getError(fieldError.getField(), fieldError.getCode());
+            error = new APIError(Error.INVALID_INPUT.getCode(), "Validation failed for one of the fields.");
+            status = Error.INVALID_INPUT.getStatus();
         }
 
-        HttpStatus status = getHttpStatusCode(error);
         return ResponseEntity.status(status).body(new APIResponse<>(error));
     }
 
+    /**
+     * Handles all custom API exceptions defined via APIException and its subclasses.
+     */
     @ExceptionHandler(APIException.class)
     public ResponseEntity<APIResponse<Void>> handleAPIException(APIException ex) {
-        HttpStatus status = getHttpStatusCode(ex.getError());
-        return ResponseEntity.status(status).body(new APIResponse<>(ex.getError()));
+        Error error = ex.getError();
+        APIError apiError = new APIError(error.getCode(), ex.getMessage());
+        return ResponseEntity.status(error.getStatus()).body(new APIResponse<>(apiError));
     }
 
+    /**
+     * Handles all other unhandled exceptions.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<APIResponse<Void>> handleOtherExceptions(Exception ex) {
-        APIError error = ErrorDefinition.INTERNAL_SERVER_ERROR.getError();
-        HttpStatus status = getHttpStatusCode(error);
-        return ResponseEntity.status(status).body(new APIResponse<>(error));
-    }
-
-    private HttpStatus getHttpStatusCode(APIError error) {
-        if (error == null) return HttpStatus.INTERNAL_SERVER_ERROR;
-
-        return switch (error.getCode()) {
-            case 500 -> HttpStatus.INTERNAL_SERVER_ERROR;
-            case 1000, 1001, 1002 -> HttpStatus.BAD_REQUEST;
-            default -> HttpStatus.INTERNAL_SERVER_ERROR;
-        };
+        Error defaultError = Error.INTERNAL_SERVER_ERROR;
+        APIError error = new APIError(defaultError.getCode(), "An unexpected error occurred.");
+        return ResponseEntity.status(defaultError.getStatus()).body(new APIResponse<>(error));
     }
 }

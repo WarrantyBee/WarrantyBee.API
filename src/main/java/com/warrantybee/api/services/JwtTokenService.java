@@ -1,17 +1,18 @@
 package com.warrantybee.api.services;
 
-import com.warrantybee.api.configurations.AppConfiguration;
-import com.warrantybee.api.services.interfaces.ITokenService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.warrantybee.api.configurations.AppConfiguration;
+import com.warrantybee.api.exceptions.ConfigurationException;
+import com.warrantybee.api.exceptions.InvalidTokenException;
+import com.warrantybee.api.exceptions.JwtGenerationException;
+import com.warrantybee.api.services.interfaces.ITokenService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class JwtTokenService implements ITokenService {
         var jwtConfig = appConfiguration.getJwtTokenConfiguration();
 
         if (jwtConfig.getSecret() == null || jwtConfig.getSecret().isEmpty()) {
-            throw new IllegalStateException("JWT secret is not configured.");
+            throw new ConfigurationException("JWT secret is not configured.");
         }
 
         this.algorithm = Algorithm.HMAC256(jwtConfig.getSecret());
@@ -54,42 +55,46 @@ public class JwtTokenService implements ITokenService {
     /** {@inheritDoc} */
     @Override
     public String generate(Map<String, Object> claims) {
-        Instant nowUtc = Instant.now();
-        Instant expiryUtc = nowUtc.plusMillis(expirationMs);
+        try {
+            Instant nowUtc = Instant.now();
+            Instant expiryUtc = nowUtc.plusMillis(expirationMs);
 
-        Date now = Date.from(nowUtc);
-        Date expiry = Date.from(expiryUtc);
+            Date now = Date.from(nowUtc);
+            Date expiry = Date.from(expiryUtc);
 
-        var builder = JWT.create()
-                .withIssuer(issuer)
-                .withAudience(audience)
-                .withIssuedAt(now)
-                .withExpiresAt(expiry);
+            var builder = JWT.create()
+                    .withIssuer(issuer)
+                    .withAudience(audience)
+                    .withIssuedAt(now)
+                    .withExpiresAt(expiry);
 
-        claims.forEach((k, v) -> builder.withClaim(k, v.toString()));
+            claims.forEach((k, v) -> builder.withClaim(k, v.toString()));
 
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
-        System.out.println("IssuedAt UTC: " + formatter.format(nowUtc));
-        System.out.println("ExpiresAt UTC: " + formatter.format(expiryUtc));
-
-        return builder.sign(algorithm);
+            return builder.sign(algorithm);
+        } catch (Exception e) {
+            throw new JwtGenerationException("Could not generate JWT token", e);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
-    public Map<String, Object> validate(String token) throws JWTVerificationException {
-        DecodedJWT decoded = verifier.verify(token);
-        Map<String, Object> claims = new HashMap<>();
+    public Map<String, Object> validate(String token) {
+        try {
+            DecodedJWT decoded = verifier.verify(token);
+            Map<String, Object> claims = new HashMap<>();
 
-        decoded.getClaims().forEach((k, v) -> claims.put(k, v.asString()));
+            decoded.getClaims().forEach((k, v) -> claims.put(k, v.asString()));
 
-        if (decoded.getIssuedAt() != null) {
-            claims.put("iat", decoded.getIssuedAt().getTime());
+            if (decoded.getIssuedAt() != null) {
+                claims.put("iat", decoded.getIssuedAt().getTime());
+            }
+            if (decoded.getExpiresAt() != null) {
+                claims.put("exp", decoded.getExpiresAt().getTime());
+            }
+
+            return claims;
+        } catch (JWTVerificationException e) {
+            throw new InvalidTokenException("Invalid JWT token", e);
         }
-        if (decoded.getExpiresAt() != null) {
-            claims.put("exp", decoded.getExpiresAt().getTime());
-        }
-
-        return claims;
     }
 }

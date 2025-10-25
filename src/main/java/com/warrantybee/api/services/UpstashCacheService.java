@@ -12,6 +12,7 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.warrantybee.api.configurations.AppConfiguration;
+import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.services.interfaces.ICacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,97 +30,123 @@ public class UpstashCacheService implements ICacheService {
     private final String upstashBaseUrl;
     private final String upstashToken;
     private final HttpClient httpClient;
-    private final ObjectMapper objectMapper; // <-- ADDED: For safe JSON handling
+    private final ObjectMapper objectMapper;
 
     /**
      * Constructs the service with Upstash configuration.
      *
      * @param appConfig    application configuration
-     * @param objectMapper Spring's injected Jackson mapper
+     * @param objectMapper Jackson object mapper
      */
-    public UpstashCacheService(AppConfiguration appConfig, ObjectMapper objectMapper) { // <-- UPDATED
+    public UpstashCacheService(AppConfiguration appConfig, ObjectMapper objectMapper) {
         var cfg = appConfig.getUpstashConfiguration();
         this.upstashBaseUrl = cfg.getHost();
         this.upstashToken = cfg.getAccessToken();
+        System.out.println("Upstash Host: " + this.upstashBaseUrl);
+        System.out.println("Upstash Token: " + this.upstashToken);
         this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = objectMapper; // <-- ADDED
+        this.objectMapper = objectMapper;
 
         if (upstashBaseUrl == null || upstashToken == null) {
-            throw new IllegalStateException("Upstash URL or token not set in configuration");
+            throw new ConfigurationException("Upstash configuration (URL or token) is missing.");
         }
     }
 
     /** {@inheritDoc} */
     @Override
-    public void set(String key, String value) throws IOException, InterruptedException {
+    public void set(String key, String value) {
         set(key, value, 0);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void set(String key, String value, int expirySeconds) throws IOException, InterruptedException {
-        String url = upstashBaseUrl;
-        List<Object> command = new ArrayList<>();
-        command.add("SET");
-        command.add(key);
-        command.add(value);
-
-        if (expirySeconds > 0) {
-            command.add("EX");
-            command.add(expirySeconds);
+    public void set(String key, String value, int expirySeconds) {
+        if (key == null || key.isBlank()) {
+            throw new InvalidInputException("Cache key cannot be null or blank.");
+        }
+        if (value == null) {
+            throw new InvalidInputException("Cache value cannot be null.");
         }
 
-        String body = objectMapper.writeValueAsString(command);
-        sendRequest(url, body);
+        try {
+            List<Object> command = new ArrayList<>();
+            command.add("SET");
+            command.add(key);
+            command.add(value);
+
+            if (expirySeconds > 0) {
+                command.add("EX");
+                command.add(expirySeconds);
+            }
+
+            String body = objectMapper.writeValueAsString(command);
+            sendRequest(upstashBaseUrl, body);
+
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CacheException("Failed to set cache value for key: " + key, e);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
-    public String get(String key) throws IOException, InterruptedException {
-        String url = upstashBaseUrl;
-
-        List<Object> command = List.of("GET", key);
-        String body = objectMapper.writeValueAsString(command);
-
-        HttpResponse<String> response = sendRequest(url, body);
-        String responseBody = response.body();
+    public String get(String key) {
+        if (key == null || key.isBlank()) {
+            throw new InvalidInputException("Cache key cannot be null or blank.");
+        }
 
         try {
+            List<Object> command = List.of("GET", key);
+            String body = objectMapper.writeValueAsString(command);
+
+            HttpResponse<String> response = sendRequest(upstashBaseUrl, body);
+            String responseBody = response.body();
+
             Map<String, Object> responseMap = objectMapper.readValue(responseBody, new TypeReference<>() {});
 
             if (responseMap.containsKey("error")) {
                 logger.error("Upstash error for GET key '{}': {}", key, responseMap.get("error"));
-                return null;
+                throw new CacheException("Upstash error: " + responseMap.get("error"));
             }
 
             Object result = responseMap.get("result");
             return (result != null) ? result.toString() : null;
 
-        } catch (Exception e) {
-            logger.error("Failed to parse Upstash response: {}", responseBody, e);
-            throw new IOException("Failed to parse Upstash response", e);
+        } catch (IOException e) {
+            throw new CacheException("Failed to parse Upstash response for key: " + key, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CacheException("Cache retrieval interrupted for key: " + key, e);
         }
     }
 
     /** {@inheritDoc} */
     @Override
-    public void delete(String key) throws IOException, InterruptedException {
-        String url = upstashBaseUrl;
+    public void delete(String key) {
+        if (key == null || key.isBlank()) {
+            throw new InvalidInputException("Cache key cannot be null or blank.");
+        }
 
-        List<Object> command = List.of("DEL", key);
-        String body = objectMapper.writeValueAsString(command);
-
-        sendRequest(url, body);
+        try {
+            List<Object> command = List.of("DEL", key);
+            String body = objectMapper.writeValueAsString(command);
+            sendRequest(upstashBaseUrl, body);
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CacheException("Failed to delete cache key: " + key, e);
+        }
     }
 
     /**
      * Sends an HTTP POST request to Upstash.
      *
-     * @param url  Endpoint URL (should be the base URL)
-     * @param body JSON body as string
+     * @param url  the Upstash endpoint
+     * @param body the JSON request body
      * @return HttpResponse from Upstash
      */
-    private HttpResponse<String> sendRequest(String url, String body) throws IOException, InterruptedException {
+    private HttpResponse<String> sendRequest(String url, String body)
+            throws IOException, InterruptedException {
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Authorization", "Bearer " + upstashToken)
@@ -129,9 +156,15 @@ public class UpstashCacheService implements ICacheService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() != 200) {
-            logger.warn("Upstash request to {} with body {} returned status {}: {}",
-                    url, body, response.statusCode(), response.body());
+        int status = response.statusCode();
+        if (status == 401) {
+            throw new UnauthorizedAccessException("Invalid Upstash credentials or expired token.");
+        } else if (status == 500) {
+            throw new InternalServerErrorException("Upstash internal error: " + response.body());
+        } else if (status >= 503) {
+            throw new ServiceUnavailableException("Upstash service unavailable: " + response.body());
+        } else if (status != 200) {
+            throw new CacheException("Unexpected Upstash response (status " + status + "): " + response.body());
         }
 
         return response;

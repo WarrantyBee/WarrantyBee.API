@@ -1,6 +1,6 @@
 package com.warrantybee.api.services.interfaces;
 
-import java.io.IOException;
+import com.warrantybee.api.exceptions.CacheException;
 
 /**
  * Interface representing a generic cache service.
@@ -13,10 +13,9 @@ public interface ICacheService {
      *
      * @param key   The key under which the value will be stored.
      * @param value The value to store in the cache.
-     * @throws IOException          If an I/O error occurs during the operation.
-     * @throws InterruptedException If the operation is interrupted.
+     * @throws CacheException If an error occurs during the cache operation.
      */
-    void set(String key, String value) throws IOException, InterruptedException;
+    void set(String key, String value) throws CacheException;
 
     /**
      * Sets a value in the cache for the specified key with an expiration time.
@@ -24,27 +23,24 @@ public interface ICacheService {
      * @param key           The key under which the value will be stored.
      * @param value         The value to store in the cache.
      * @param expirySeconds The expiration time in seconds after which the key will be removed.
-     * @throws IOException          If an I/O error occurs during the operation.
-     * @throws InterruptedException If the operation is interrupted.
+     * @throws CacheException If an error occurs during the cache operation.
      */
-    void set(String key, String value, int expirySeconds) throws IOException, InterruptedException;
+    void set(String key, String value, int expirySeconds) throws CacheException;
 
     /**
      * Retrieves the value associated with the specified key from the cache.
      *
      * @param key The key whose value needs to be retrieved.
      * @return The value associated with the key, or null if the key does not exist.
-     * @throws IOException          If an I/O error occurs during the operation.
-     * @throws InterruptedException If the operation is interrupted.
+     * @throws CacheException If an error occurs during the cache operation.
      */
-    String get(String key) throws IOException, InterruptedException;
+    String get(String key) throws CacheException;
 
     /**
      * Deletes the value associated with the specified key from the cache.
      *
      * @param key The key whose value needs to be deleted.
-     * @throws IOException          If an I/O error occurs during the operation.
-     * @throws InterruptedException If the operation is interrupted.
+     * @throws CacheException If an error occurs during the cache operation.
      */
-    void delete(String key) throws IOException, InterruptedException;
+    void delete(String key) throws CacheException;
 }

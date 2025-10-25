@@ -1,12 +1,16 @@
 package com.warrantybee.api.services;
 
 import com.warrantybee.api.configurations.ReCaptchaConfiguration;
+import com.warrantybee.api.exceptions.CaptchaServiceException;
+import com.warrantybee.api.exceptions.ConfigurationException;
+import com.warrantybee.api.exceptions.InvalidInputException;
 import com.warrantybee.api.services.interfaces.ICaptchaService;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpEntity;
+
 import java.util.Map;
 
 /**
@@ -21,6 +25,10 @@ public class ReCaptchaService implements ICaptchaService {
     public ReCaptchaService(ReCaptchaConfiguration reCaptchaConfiguration) {
         this.reCaptchaConfiguration = reCaptchaConfiguration;
         this.restTemplate = new RestTemplate();
+
+        if (reCaptchaConfiguration.getVerifyUrl() == null || reCaptchaConfiguration.getSecret() == null) {
+            throw new ConfigurationException("ReCaptcha verify URL or secret is not configured");
+        }
     }
 
     /**
@@ -41,7 +49,7 @@ public class ReCaptchaService implements ICaptchaService {
 
             Map<String, Object> body = response.getBody();
             if (body == null || !Boolean.TRUE.equals(body.get("success"))) {
-                return false;
+                throw new InvalidInputException("Invalid captcha response");
             }
 
             if (body.containsKey("score")) {
@@ -51,7 +59,7 @@ public class ReCaptchaService implements ICaptchaService {
 
             return true;
         } catch (Exception e) {
-            return false;
+            throw new CaptchaServiceException("Failed to validate captcha", e);
         }
     }
 }
