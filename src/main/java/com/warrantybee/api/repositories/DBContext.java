@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DBContext {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private EntityManager _entityManager;
 
     /**
      * Inserts a new entity into the database.
@@ -23,8 +23,8 @@ public class DBContext {
      * @return persisted entity
      */
     public <T> T insert(T entity) {
-        entityManager.persist(entity);
-        entityManager.flush();
+        _entityManager.persist(entity);
+        _entityManager.flush();
         return entity;
     }
 
@@ -36,7 +36,7 @@ public class DBContext {
      * @return merged entity
      */
     public <T> T update(T entity) {
-        return entityManager.merge(entity);
+        return _entityManager.merge(entity);
     }
 
     /**
@@ -46,8 +46,8 @@ public class DBContext {
      * @param <T>    entity type
      */
     public <T> void delete(T entity) {
-        entityManager.remove(
-                entityManager.contains(entity) ? entity : entityManager.merge(entity)
+        _entityManager.remove(
+                _entityManager.contains(entity) ? entity : _entityManager.merge(entity)
         );
     }
 
@@ -60,6 +60,6 @@ public class DBContext {
      * @return found entity or null
      */
     public <T> T findById(Class<T> cls, Object id) {
-        return entityManager.find(cls, id);
+        return _entityManager.find(cls, id);
     }
 }

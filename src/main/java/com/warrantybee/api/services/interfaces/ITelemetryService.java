@@ -1,5 +1,7 @@
 package com.warrantybee.api.services.interfaces;
 
+import com.warrantybee.api.enumerations.LogLevel;
+
 import java.util.Map;
 
 /**
@@ -16,12 +18,22 @@ public interface ITelemetryService {
     void trackEvent(String eventName, Map<String, Object> properties);
 
     /**
-     * Logs an exception or error.
+     * Logs a message with a specific log level and context.
      *
+     * @param level the log level
+     * @param message the message to log
+     * @param context additional context information
+     */
+    void log(LogLevel level, String message, Map<String, Object> context);
+
+    /**
+     * Logs an exception or error with a specific log level and context.
+     *
+     * @param level the log level
      * @param throwable the exception to log
      * @param context additional context information
      */
-    void logError(Throwable throwable, Map<String, Object> context);
+    void log(LogLevel level, Throwable throwable, Map<String, Object> context);
 
     /**
      * Records a metric with a numeric value.

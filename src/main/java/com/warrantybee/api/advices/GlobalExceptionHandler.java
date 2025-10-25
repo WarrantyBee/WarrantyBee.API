@@ -3,7 +3,11 @@ package com.warrantybee.api.advices;
 import com.warrantybee.api.dto.response.APIError;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.enumerations.Error;
+import com.warrantybee.api.enumerations.LogLevel;
 import com.warrantybee.api.exceptions.APIException;
+import com.warrantybee.api.exceptions.CacheException;
+import com.warrantybee.api.exceptions.InvalidTokenException;
+import com.warrantybee.api.services.interfaces.ITelemetryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,6 +21,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final ITelemetryService _telemetryService;
+
+    public GlobalExceptionHandler(ITelemetryService telemetryService) {
+        this._telemetryService = telemetryService;
+    }
 
     /**
      * Handles validation errors for request payloads annotated with @Valid.
@@ -47,6 +57,22 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(APIException.class)
     public ResponseEntity<APIResponse<Void>> handleAPIException(APIException ex) {
+        Error error = ex.getError();
+        APIError apiError = new APIError(error.getCode(), ex.getMessage());
+        return ResponseEntity.status(error.getStatus()).body(new APIResponse<>(apiError));
+    }
+
+    @ExceptionHandler(CacheException.class)
+    public ResponseEntity<APIResponse<Void>> handleCacheException(CacheException ex) {
+        _telemetryService.log(LogLevel.ERROR, ex, null);
+        Error error = ex.getError();
+        APIError apiError = new APIError(error.getCode(), ex.getMessage());
+        return ResponseEntity.status(error.getStatus()).body(new APIResponse<>(apiError));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<APIResponse<Void>> handleInvalidTokenException(InvalidTokenException ex) {
+        _telemetryService.log(LogLevel.ERROR, ex, null);
         Error error = ex.getError();
         APIError apiError = new APIError(error.getCode(), ex.getMessage());
         return ResponseEntity.status(error.getStatus()).body(new APIResponse<>(apiError));

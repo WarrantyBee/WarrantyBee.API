@@ -1,4 +1,4 @@
-package com.warrantybee.api.services;
+package com.warrantybee.api.services.implementations;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,8 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.services.interfaces.ICacheService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,12 +23,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpstashCacheService implements ICacheService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UpstashCacheService.class);
-
-    private final String upstashBaseUrl;
-    private final String upstashToken;
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
+    private final String _upstashBaseUrl;
+    private final String _upstashToken;
+    private final HttpClient _httpClient;
+    private final ObjectMapper _objectMapper;
 
     /**
      * Constructs the service with Upstash configuration.
@@ -40,14 +36,12 @@ public class UpstashCacheService implements ICacheService {
      */
     public UpstashCacheService(AppConfiguration appConfig, ObjectMapper objectMapper) {
         var cfg = appConfig.getUpstashConfiguration();
-        this.upstashBaseUrl = cfg.getHost();
-        this.upstashToken = cfg.getAccessToken();
-        System.out.println("Upstash Host: " + this.upstashBaseUrl);
-        System.out.println("Upstash Token: " + this.upstashToken);
-        this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = objectMapper;
+        this._upstashBaseUrl = cfg.getHost();
+        this._upstashToken = cfg.getAccessToken();
+        this._httpClient = HttpClient.newHttpClient();
+        this._objectMapper = objectMapper;
 
-        if (upstashBaseUrl == null || upstashToken == null) {
+        if (_upstashBaseUrl == null || _upstashToken == null) {
             throw new ConfigurationException("Upstash configuration (URL or token) is missing.");
         }
     }
@@ -79,8 +73,8 @@ public class UpstashCacheService implements ICacheService {
                 command.add(expirySeconds);
             }
 
-            String body = objectMapper.writeValueAsString(command);
-            sendRequest(upstashBaseUrl, body);
+            String body = _objectMapper.writeValueAsString(command);
+            _send(_upstashBaseUrl, body);
 
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -97,15 +91,14 @@ public class UpstashCacheService implements ICacheService {
 
         try {
             List<Object> command = List.of("GET", key);
-            String body = objectMapper.writeValueAsString(command);
+            String body = _objectMapper.writeValueAsString(command);
 
-            HttpResponse<String> response = sendRequest(upstashBaseUrl, body);
+            HttpResponse<String> response = _send(_upstashBaseUrl, body);
             String responseBody = response.body();
 
-            Map<String, Object> responseMap = objectMapper.readValue(responseBody, new TypeReference<>() {});
+            Map<String, Object> responseMap = _objectMapper.readValue(responseBody, new TypeReference<>() {});
 
             if (responseMap.containsKey("error")) {
-                logger.error("Upstash error for GET key '{}': {}", key, responseMap.get("error"));
                 throw new CacheException("Upstash error: " + responseMap.get("error"));
             }
 
@@ -129,8 +122,8 @@ public class UpstashCacheService implements ICacheService {
 
         try {
             List<Object> command = List.of("DEL", key);
-            String body = objectMapper.writeValueAsString(command);
-            sendRequest(upstashBaseUrl, body);
+            String body = _objectMapper.writeValueAsString(command);
+            _send(_upstashBaseUrl, body);
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new CacheException("Failed to delete cache key: " + key, e);
@@ -144,17 +137,17 @@ public class UpstashCacheService implements ICacheService {
      * @param body the JSON request body
      * @return HttpResponse from Upstash
      */
-    private HttpResponse<String> sendRequest(String url, String body)
+    private HttpResponse<String> _send(String url, String body)
             throws IOException, InterruptedException {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("Authorization", "Bearer " + upstashToken)
+                .header("Authorization", "Bearer " + _upstashToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = _httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         int status = response.statusCode();
         if (status == 401) {

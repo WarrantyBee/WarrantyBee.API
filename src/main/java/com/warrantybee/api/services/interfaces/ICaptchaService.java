@@ -11,5 +11,5 @@ public interface ICaptchaService {
      * @param captchaResponse the CAPTCHA response token from client
      * @return true if the CAPTCHA is valid, false otherwise
      */
-    boolean validateCaptcha(String captchaResponse);
+    boolean validate(String captchaResponse);
 }

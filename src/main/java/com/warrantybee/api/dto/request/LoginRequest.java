@@ -16,4 +16,8 @@ public class LoginRequest {
     /** User password */
     @NotBlank
     private String password;
+
+    /** Captcha response */
+    @NotBlank
+    private String captchaResponse;
 }

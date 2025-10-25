@@ -1,4 +1,4 @@
-package com.warrantybee.api.services;
+package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.configurations.ReCaptchaConfiguration;
 import com.warrantybee.api.exceptions.CaptchaServiceException;
@@ -19,12 +19,20 @@ import java.util.Map;
 @Service
 public class ReCaptchaService implements ICaptchaService {
 
-    private final ReCaptchaConfiguration reCaptchaConfiguration;
-    private final RestTemplate restTemplate;
+    private final ReCaptchaConfiguration _reCaptchaConfiguration;
+    private final RestTemplate _restTemplate;
 
+    /**
+     * Constructs a new {@code ReCaptchaService} with the specified configuration.
+     * Initializes a {@link RestTemplate} instance and validates that the
+     * reCAPTCHA verification URL and secret key are properly configured.
+     *
+     * @param reCaptchaConfiguration the configuration settings for reCAPTCHA verification
+     * @throws ConfigurationException if the verification URL or secret key is missing
+     */
     public ReCaptchaService(ReCaptchaConfiguration reCaptchaConfiguration) {
-        this.reCaptchaConfiguration = reCaptchaConfiguration;
-        this.restTemplate = new RestTemplate();
+        this._reCaptchaConfiguration = reCaptchaConfiguration;
+        this._restTemplate = new RestTemplate();
 
         if (reCaptchaConfiguration.getVerifyUrl() == null || reCaptchaConfiguration.getSecret() == null) {
             throw new ConfigurationException("ReCaptcha verify URL or secret is not configured");
@@ -38,13 +46,13 @@ public class ReCaptchaService implements ICaptchaService {
      * @return true if valid, false otherwise
      */
     @Override
-    public boolean validateCaptcha(String captchaResponse) {
+    public boolean validate(String captchaResponse) {
         try {
-            String verifyUrl = reCaptchaConfiguration.getVerifyUrl() +
-                    "?secret=" + reCaptchaConfiguration.getSecret() +
+            String verifyUrl = _reCaptchaConfiguration.getVerifyUrl() +
+                    "?secret=" + _reCaptchaConfiguration.getSecret() +
                     "&response=" + captchaResponse;
 
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map> response = _restTemplate.exchange(
                     verifyUrl, HttpMethod.POST, HttpEntity.EMPTY, Map.class);
 
             Map<String, Object> body = response.getBody();
@@ -54,7 +62,7 @@ public class ReCaptchaService implements ICaptchaService {
 
             if (body.containsKey("score")) {
                 double score = ((Number) body.get("score")).doubleValue();
-                return score >= reCaptchaConfiguration.getMinimumScore();
+                return score >= _reCaptchaConfiguration.getMinimumScore();
             }
 
             return true;

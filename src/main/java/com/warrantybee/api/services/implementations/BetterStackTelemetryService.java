@@ -1,7 +1,8 @@
-package com.warrantybee.api.services;
+package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.BetterStackConfiguration;
+import com.warrantybee.api.enumerations.LogLevel;
 import com.warrantybee.api.exceptions.ConfigurationException;
 import com.warrantybee.api.exceptions.TelemetryServiceException;
 import com.warrantybee.api.services.interfaces.ITelemetryService;
@@ -22,9 +23,9 @@ import java.util.Map;
 @Service
 public class BetterStackTelemetryService implements ITelemetryService {
 
-    private final String host;
-    private final String accessToken;
-    private final HttpClient httpClient;
+    private final String _host;
+    private final String _accessToken;
+    private final HttpClient _httpClient;
 
     /**
      * Initializes the service using the application configuration.
@@ -33,11 +34,11 @@ public class BetterStackTelemetryService implements ITelemetryService {
      */
     public BetterStackTelemetryService(AppConfiguration appConfig) {
         BetterStackConfiguration cfg = appConfig.getBetterStackConfiguration();
-        this.host = cfg.getHost();
-        this.accessToken = cfg.getAccessToken();
-        this.httpClient = HttpClient.newHttpClient();
+        this._host = cfg.getHost();
+        this._accessToken = cfg.getAccessToken();
+        this._httpClient = HttpClient.newHttpClient();
 
-        if (host == null || accessToken == null) {
+        if (_host == null || _accessToken == null) {
             throw new ConfigurationException("Better Stack host or access token is not configured");
         }
     }
@@ -50,19 +51,30 @@ public class BetterStackTelemetryService implements ITelemetryService {
         payload.put("name", eventName);
         payload.put("properties", properties);
 
-        sendTelemetry(payload);
+        _send(payload);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void logError(Throwable throwable, Map<String, Object> context) {
+    public void log(LogLevel level, String message, Map<String, Object> context) {
         JSONObject payload = new JSONObject();
-        payload.put("type", "error");
+        payload.put("level", level.toString());
+        payload.put("message", message);
+        payload.put("context", context);
+
+        _send(payload);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void log(LogLevel level, Throwable throwable, Map<String, Object> context) {
+        JSONObject payload = new JSONObject();
+        payload.put("level", level.toString());
         payload.put("message", throwable.getMessage());
         payload.put("stackTrace", throwable.getStackTrace());
         payload.put("context", context);
 
-        sendTelemetry(payload);
+        _send(payload);
     }
 
     /** {@inheritDoc} */
@@ -74,14 +86,7 @@ public class BetterStackTelemetryService implements ITelemetryService {
         payload.put("value", value);
         payload.put("properties", properties);
 
-        sendTelemetry(payload);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void flush() {
-        // Placeholder: Better Stack might not require flush; implement if needed
-        System.out.println("Flushing telemetry data to Better Stack");
+        _send(payload);
     }
 
     /**
@@ -89,16 +94,21 @@ public class BetterStackTelemetryService implements ITelemetryService {
      *
      * @param payload JSON payload containing telemetry data
      */
-    private void sendTelemetry(JSONObject payload) {
+    @Override
+    public void flush() {
+
+    }
+
+    private void _send(JSONObject payload) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(host))
-                .header("Authorization", "Bearer " + accessToken)
+                .uri(URI.create(_host))
+                .header("Authorization", "Bearer " + _accessToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
                 .build();
 
         try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = _httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
                 throw new TelemetryServiceException("Failed to send telemetry: " + response.body());
             }

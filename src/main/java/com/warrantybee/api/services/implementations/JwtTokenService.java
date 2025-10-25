@@ -1,4 +1,4 @@
-package com.warrantybee.api.services;
+package com.warrantybee.api.services.implementations;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -23,11 +23,11 @@ import java.util.Map;
 @Service
 public class JwtTokenService implements ITokenService {
 
-    private final Algorithm algorithm;
-    private final JWTVerifier verifier;
-    private final long expirationMs;
-    private final String issuer;
-    private final String audience;
+    private final Algorithm _algorithm;
+    private final JWTVerifier _verifier;
+    private final long _expirationMs;
+    private final String _issuer;
+    private final String _audience;
 
     /**
      * Initializes JWT service using AppConfiguration.
@@ -41,14 +41,14 @@ public class JwtTokenService implements ITokenService {
             throw new ConfigurationException("JWT secret is not configured.");
         }
 
-        this.algorithm = Algorithm.HMAC256(jwtConfig.getSecret());
-        this.issuer = jwtConfig.getIssuer();
-        this.audience = jwtConfig.getAudience();
-        this.expirationMs = jwtConfig.getExpiration() * 60_000L;
+        this._algorithm = Algorithm.HMAC256(jwtConfig.getSecret());
+        this._issuer = jwtConfig.getIssuer();
+        this._audience = jwtConfig.getAudience();
+        this._expirationMs = jwtConfig.getExpiration() * 60_000L;
 
-        this.verifier = JWT.require(algorithm)
-                .withIssuer(issuer)
-                .withAudience(audience)
+        this._verifier = JWT.require(_algorithm)
+                .withIssuer(_issuer)
+                .withAudience(_audience)
                 .build();
     }
 
@@ -57,20 +57,20 @@ public class JwtTokenService implements ITokenService {
     public String generate(Map<String, Object> claims) {
         try {
             Instant nowUtc = Instant.now();
-            Instant expiryUtc = nowUtc.plusMillis(expirationMs);
+            Instant expiryUtc = nowUtc.plusMillis(_expirationMs);
 
             Date now = Date.from(nowUtc);
             Date expiry = Date.from(expiryUtc);
 
             var builder = JWT.create()
-                    .withIssuer(issuer)
-                    .withAudience(audience)
+                    .withIssuer(_issuer)
+                    .withAudience(_audience)
                     .withIssuedAt(now)
                     .withExpiresAt(expiry);
 
             claims.forEach((k, v) -> builder.withClaim(k, v.toString()));
 
-            return builder.sign(algorithm);
+            return builder.sign(_algorithm);
         } catch (Exception e) {
             throw new JwtGenerationException("Could not generate JWT token", e);
         }
@@ -80,7 +80,7 @@ public class JwtTokenService implements ITokenService {
     @Override
     public Map<String, Object> validate(String token) {
         try {
-            DecodedJWT decoded = verifier.verify(token);
+            DecodedJWT decoded = _verifier.verify(token);
             Map<String, Object> claims = new HashMap<>();
 
             decoded.getClaims().forEach((k, v) -> claims.put(k, v.asString()));

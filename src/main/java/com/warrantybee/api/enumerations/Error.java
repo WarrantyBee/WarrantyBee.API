@@ -52,7 +52,13 @@ public enum Error {
     INVALID_TOKEN(1013, "The provided token is invalid.", HttpStatus.UNAUTHORIZED),
 
     /** Could not generate JWT token. */
-    JWT_GENERATION_ERROR(1014, "Could not generate JWT token.", HttpStatus.INTERNAL_SERVER_ERROR);
+    JWT_GENERATION_ERROR(1014, "Could not generate JWT token.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The provided captcha is invalid. */
+    INVALID_CAPTCHA(1015, "Invalid captcha.", HttpStatus.BAD_REQUEST),
+
+    /** The specified user is not registered. */
+    USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
