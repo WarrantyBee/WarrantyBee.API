@@ -43,9 +43,4 @@ public interface ITelemetryService {
      * @param properties additional properties to associate with the metric
      */
     void trackMetric(String metricName, double value, Map<String, Object> properties);
-
-    /**
-     * Flushes any buffered telemetry data to the telemetry backend.
-     */
-    void flush();
 }

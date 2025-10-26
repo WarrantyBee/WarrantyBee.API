@@ -89,16 +89,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
-    /**
-     * Sends telemetry payload to Better Stack API.
-     *
-     * @param payload JSON payload containing telemetry data
-     */
-    @Override
-    public void flush() {
-
-    }
-
     private void _send(JSONObject payload) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(_host))

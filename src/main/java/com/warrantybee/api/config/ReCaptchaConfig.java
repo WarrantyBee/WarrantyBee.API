@@ -16,6 +16,6 @@ public class ReCaptchaConfig {
 
     @Bean
     public ReCaptchaConfiguration reCaptchaConfiguration() {
-        return appConfiguration.getReCaptchaConfiguration();
+        return appConfiguration.getRecaptchaConfiguration();
     }
 }
