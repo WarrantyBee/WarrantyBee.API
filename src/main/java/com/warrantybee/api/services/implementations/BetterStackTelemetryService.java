@@ -89,6 +89,13 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void flush() {
+        // The HTTP client sends requests synchronously, so there's no buffer to flush.
+        // This method is implemented to satisfy the interface contract.
+    }
+
     private void _send(JSONObject payload) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(_host))

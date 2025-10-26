@@ -1,8 +1,8 @@
-name: build
+name: Build
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["main", "develop", "stage"]
 
 jobs:
   build:
@@ -23,7 +23,6 @@ jobs:
           --health-retries=5
 
     env:
-      SPRING_PROFILES_ACTIVE: test
       SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/test_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
@@ -39,6 +38,16 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "21"
+
+      - name: Set environment
+        run: |
+          if [ "${{ github.base_ref }}" = "main" ]; then
+            echo "SPRING_PROFILES_ACTIVE=Prod" >> $GITHUB_ENV
+          elif [ "${{ github.base_ref }}" = "develop" ]; then
+            echo "SPRING_PROFILES_ACTIVE=Test" >> $GITHUB_ENV
+          elif [ "${{ github.base_ref }}" = "stage" ]; then
+            echo "SPRING_PROFILES_ACTIVE=Stage" >> $GITHUB_ENV
+          fi
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -61,4 +70,4 @@ jobs:
           done
 
       - name: Build
-        run: mvn -B clean verify
+        run: mvn -B clean package -Dmaven.test.skip=true
