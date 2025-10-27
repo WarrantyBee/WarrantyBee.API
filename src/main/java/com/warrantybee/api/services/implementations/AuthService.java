@@ -1,6 +1,10 @@
 package com.warrantybee.api.services.implementations;
+
+import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
+import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.models.User;
@@ -70,7 +74,8 @@ public class AuthService implements IAuthService {
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
-            User user = _userRepository.findByEmail(request.getEmail());
+            UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
+            User user = _userRepository.get(searchFilter);
 
             if (user != null) {
                 if (!_passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -133,5 +138,40 @@ public class AuthService implements IAuthService {
     private void _cacheToken(User user, String token) throws CacheException {
         String cacheKey = "token:" + user.getEmail();
         _cacheService.set(cacheKey, token, 3600);
+    }
+
+
+    @Override
+    public SignUpResponse signUp(SignUpRequest request) throws Exception {
+        var hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+
+        if (!hasValidCaptcha) {
+            throw new InvalidCaptchaException();
+        }
+
+        User user = _userRepository.findByEmail(request.getEmail());
+
+        if (user == null) {
+            String encodedPassword = _passwordEncoder.encode(request.getPassword());
+
+            user.setEmail(request.getEmail());
+            user.setFirstname(request.getFirstname());
+            user.setLastname(request.getLastname());
+            user.setPassword(encodedPassword);
+        }
+
+
+        String token = _getCachedToken(user);
+        if (token == null) {
+            token = _generateToken(user);
+            _cacheToken(user, token);
+        }
+
+        return new SignUpResponse(
+            user.getId(),
+            user.getFirstname(),
+            user.getLastname(),
+            user.getEmail()
+        );
     }
 }

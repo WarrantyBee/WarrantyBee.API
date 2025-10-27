@@ -1,20 +1,29 @@
 package com.warrantybee.api.repositories.interfaces;
 
+import com.warrantybee.api.dto.internal.UserCreationRequest;
+import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.models.User;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for User entity.
- * Extends IBaseRepository to inherit standard CRUD operations.
+ * Repository interface for performing user-related database operations.
  */
 @Repository
-public interface IUserRepository extends IBaseRepository<User, Long> {
+public interface IUserRepository {
 
     /**
-     * Retrieves a user by email.
+     * Creates a new user record in the database.
      *
-     * @param email The email to search for.
+     * @param request The user details for account creation.
+     * @return The generated user ID.
+     */
+    Long create(UserCreationRequest request);
+
+    /**
+     * Retrieves user details based on the provided search filter.
+     *
+     * @param filter The search criteria containing user ID or email.
      * @return The matching user, or {@code null} if not found.
      */
-    User findByEmail(String email);
+    User get(UserSearchFilter filter);
 }
