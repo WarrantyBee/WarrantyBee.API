@@ -1,12 +1,15 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.exceptions.*;
+import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.models.User;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
@@ -56,58 +59,155 @@ public class AuthService implements IAuthService {
         this._passwordEncoder = new BCryptPasswordEncoder(12);
     }
 
-    /**
-     * Authenticates a user based on the provided login credentials and CAPTCHA.
-     * Generates and caches a JWT token upon successful authentication.
-     *
-     * @param request the login request containing user credentials and CAPTCHA response
-     * @return a {@link LoginResponse} containing the JWT token and user details
-     * @throws UserNotFoundException       if the user does not exist
-     * @throws InvalidCredentialsException if the password is incorrect
-     * @throws InvalidTokenException       if a cached token is invalid
-     * @throws CacheException              if an error occurs while accessing the cache
-     * @throws JwtGenerationException      if token generation fails
-     */
     @Override
-    public LoginResponse login(LoginRequest request) throws UserNotFoundException, InvalidCredentialsException,
-            InvalidTokenException, CacheException, JwtGenerationException {
+    public LoginResponse login(LoginRequest request) {
+        _validate(request);
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
             UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
-            User user = _userRepository.get(searchFilter);
+            UserResponse user = _userRepository.get(searchFilter);
 
             if (user != null) {
                 if (!_passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                     throw new InvalidCredentialsException();
                 }
 
-                String token = _getCachedToken(user);
+                String token = _getAccessTokenFromCache(user.getEmail());
                 if (token == null) {
-                    token = _generateToken(user);
-                    _cacheToken(user, token);
+                    token = _generateAccessToken(user);
+                    _cacheToken(user.getEmail(), token);
                 }
 
                 Map<String, Object> claims = _tokenService.validate(token);
-                UserResponse userResponse = new UserResponse(user.getId(), user.getFirstname(), user.getLastname(), user.getEmail());
-
-                return new LoginResponse(token, claims.get("iat").toString(), claims.get("exp").toString(), userResponse);
-            } else {
+                return new LoginResponse(token, claims.get("iat").toString(), claims.get("exp").toString(), user);
+            }
+            else {
                 throw new UserNotRegisteredException();
             }
-        } else {
-            throw new InvalidCaptchaException();
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
+        }
+    }
+
+    @Override
+    public SignUpResponse signUp(SignUpRequest request) {
+        _validate(request);
+        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+
+        if (hasValidCaptcha) {
+            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(filter);
+
+            if (user != null) {
+                UserCreationRequest userCreationRequest = new UserCreationRequest(
+                    request.getFirstname(),
+                    request.getLastname(),
+                    request.getEmail(),
+                    request.getPassword(),
+                    request.getGender(),
+                    request.getDateOfBirth(),
+                    request.getPhoneNumber(),
+                    request.getAddressLine1(),
+                    request.getAddressLine2(),
+                    request.getCity(),
+                    request.getRegionId(),
+                    request.getCountryId(),
+                    request.getPostalCode(),
+                    request.getAvatarUrl()
+                );
+                Long userId = _userRepository.create(userCreationRequest);
+                return new SignUpResponse(userId);
+            }
+            else {
+                throw new UserAlreadyRegisteredException();
+            }
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
         }
     }
 
     /**
-     * Retrieves a valid cached token for the specified user if available.
-     *
-     * @param user the user whose cached token is requested
-     * @return the cached JWT token, or {@code null} if none exists or is invalid
+     * Validates the login request for required fields and non-empty values.
+     * @param request the login request to validate
      */
-    private String _getCachedToken(User user) throws CacheException, InvalidTokenException {
-        String cacheKey = "token:" + user.getEmail();
+    private void _validate(LoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the given sign-up request for required and valid user details.
+     * @param request the sign-up request to validate
+     */
+    private void _validate(SignUpRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getFirstname())) {
+                throw new FirstnameRequiredException();
+            }
+            if (Validator.isBlank(request.getLastname())) {
+                throw new LastnameRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (Validator.isStrongPassword(request.getPassword())) {
+                throw new StrongPasswordRequiredException();
+            }
+            if (Validator.isEnum(request.getGender(), Gender.class)) {
+                throw new InvalidGenderValueException();
+            }
+            if (Validator.hasLegalAge(request.getDateOfBirth())) {
+                throw new UserIsMinorException();
+            }
+            if (Validator.isBlank(request.getPhoneNumber())) {
+                throw new PhoneNumberRequiredException();
+            }
+            if (Validator.isBlank(request.getAddressLine1())) {
+                throw new AddressRequiredException();
+            }
+            if (Validator.isBlank(request.getCity())) {
+                throw new CityRequiredException();
+            }
+            if (Validator.isBlank(request.getPostalCode())) {
+                throw new PostalCodeRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Retrieves and validates an access token from the cache for the specified email.
+     * @param email the user's email address used to generate the cache key
+     * @return the valid cached access token, or {@code null} if no valid token exists
+     */
+    private String _getAccessTokenFromCache(String email) {
+        String cacheKey = String.format("token:%s", email);
         String cachedToken = _cacheService.get(cacheKey);
         if (cachedToken != null) {
             _tokenService.validate(cachedToken);
@@ -117,61 +217,24 @@ public class AuthService implements IAuthService {
     }
 
     /**
-     * Generates a new JWT token for the specified user.
-     *
-     * @param user the user for whom the token is generated
-     * @return the generated JWT token
+     * Generates a new access token for the specified user with user ID and email as claims.
+     * @param user the user details used to create token claims
+     * @return the generated access token as a string
      */
-    private String _generateToken(User user) {
+    private String _generateAccessToken(UserResponse user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", user.getEmail());
         claims.put("userId", user.getId().toString());
+        claims.put("email", user.getEmail());
         return _tokenService.generate(claims);
     }
 
     /**
-     * Caches the given token for the specified user.
-     *
-     * @param user  the user associated with the token
-     * @param token the token to cache
+     * Caches the given token for the specified email with a 1-hour expiry.
+     * @param email the user's email associated with the token
+     * @param token the access token to be cached
      */
-    private void _cacheToken(User user, String token) throws CacheException {
-        String cacheKey = "token:" + user.getEmail();
+    private void _cacheToken(String email, String token) {
+        String cacheKey = String.format("token:%s", email);
         _cacheService.set(cacheKey, token, 3600);
-    }
-
-
-    @Override
-    public SignUpResponse signUp(SignUpRequest request) throws Exception {
-        var hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
-
-        if (!hasValidCaptcha) {
-            throw new InvalidCaptchaException();
-        }
-
-        User user = _userRepository.findByEmail(request.getEmail());
-
-        if (user == null) {
-            String encodedPassword = _passwordEncoder.encode(request.getPassword());
-
-            user.setEmail(request.getEmail());
-            user.setFirstname(request.getFirstname());
-            user.setLastname(request.getLastname());
-            user.setPassword(encodedPassword);
-        }
-
-
-        String token = _getCachedToken(user);
-        if (token == null) {
-            token = _generateToken(user);
-            _cacheToken(user, token);
-        }
-
-        return new SignUpResponse(
-                user.getId(),
-                user.getFirstname(),
-                user.getLastname(),
-                user.getEmail()
-        );
     }
 }

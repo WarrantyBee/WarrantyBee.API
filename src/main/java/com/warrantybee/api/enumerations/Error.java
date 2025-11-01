@@ -55,7 +55,7 @@ public enum Error {
     JWT_GENERATION_ERROR(1014, "Could not generate JWT token.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The provided captcha is invalid. */
-    INVALID_CAPTCHA(1015, "Invalid captcha.", HttpStatus.BAD_REQUEST),
+    INVALID_CAPTCHA(1015, "Given captcha is expired.", HttpStatus.BAD_REQUEST),
 
     /** The specified user is not registered. */
     USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND),
