@@ -168,10 +168,10 @@ public class AuthService implements IAuthService {
         }
 
         return new SignUpResponse(
-            user.getId(),
-            user.getFirstname(),
-            user.getLastname(),
-            user.getEmail()
+                user.getId(),
+                user.getFirstname(),
+                user.getLastname(),
+                user.getEmail()
         );
     }
 }

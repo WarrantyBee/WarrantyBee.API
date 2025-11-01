@@ -16,59 +16,47 @@ import java.time.LocalDate;
 public class SignUpRequest {
 
     /** User's first name */
-    @NotBlank
     private String firstname;
 
     /** User's last name/surname */
-    @NotBlank
     private String lastname;
 
     /** User's email address */
-    @NotBlank
-    @Email
     private String email;
 
     /** User's password */
-    @NotBlank
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&+=])(?=\\S+$).{12,}$")
     private String password;
 
     /** user address line 1 */
-    @NotBlank
     private String addressLine1;
 
     /** User  address line 2*/
     private String addressLine2;
 
     /** User date of birth */
-    @NotBlank
-    private LocalDate dob;
+    private LocalDate dateOfBirth;
+
+    /** User phone number */
+    private String phoneNumber;
 
     /** User gender */
-    @NotBlank
-    private Gender gender;
+    private Byte gender;
 
-    /** User state ID */
-    @NotBlank
-    private Long stateId;
+    /** User region ID */
+    private Long regionId;
 
     /** User country ID */
-    @NotBlank
     private Long countryId;
 
     /** User city */
-    @NotBlank
     private String city;
 
     /** User postal code */
-    @NotBlank
     private String postalCode;
 
     /** User avatar URL */
     private String avatarUrl;
 
     /** Captcha response. */
-    @NotBlank
     private String captchaResponse;
 }

@@ -11,7 +11,7 @@ import lombok.Setter;
 @Table(name = "tblStates")
 @Getter
 @Setter
-public class State extends BaseEntity<State> {
+public class Region extends BaseEntity<Region> {
 
     /** Name of the state */
     @Column(name = "name", nullable = false, length = 255, insertable = false, updatable = false)
