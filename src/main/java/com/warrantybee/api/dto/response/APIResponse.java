@@ -9,16 +9,19 @@ import lombok.Getter;
 @Getter
 public class APIResponse<T> {
 
-    /** The data returned in case of a successful response. */
+    /** The data returned in case of a successful response. This is {@code null} on failure. */
     private final T data;
 
-    /** The error details returned in case of a failed response. */
+    /** The error details returned in case of a failed response. This is {@code null} on success. */
     private final APIError error;
 
-    /** Indicates whether the response represents a success or failure. */
+    /** Indicates whether the response represents a success (true) or failure (false). */
     private final boolean success;
 
-    /** Private default constructor for internal use only. */
+    /**
+     * Private default constructor for internal use only.
+     * Initializes data and error to null, and success to false.
+     */
     private APIResponse() {
         this.data = null;
         this.error = null;
@@ -27,6 +30,8 @@ public class APIResponse<T> {
 
     /**
      * Constructs a successful API response with the specified data.
+     * The {@code success} flag is set to {@code true} and {@code error} is {@code null}.
+     *
      * @param data the response data to include
      */
     public APIResponse(T data) {
@@ -37,6 +42,8 @@ public class APIResponse<T> {
 
     /**
      * Constructs an error API response with the specified error details.
+     * The {@code success} flag is set to {@code false} and {@code data} is {@code null}.
+     *
      * @param error the error details to include
      */
     public APIResponse(APIError error) {

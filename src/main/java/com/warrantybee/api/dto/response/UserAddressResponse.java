@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents a user's address details, including city, postal code,
- * region, and country information.
+ * Data Transfer Object (DTO) for conveying a user's complete mailing and geographical address.
  */
 @Getter
 @Setter
@@ -15,21 +14,33 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserAddressResponse {
 
-    /** First line of the address. */
+    /**
+     * The first line of the street address.
+     */
     private String addressLine1;
 
-    /** Second line of the address (optional). */
+    /**
+     * The second line of the street address (optional, e.g., apartment or suite number).
+     */
     private String addressLine2;
 
-    /** Name of the city. */
+    /**
+     * The city or municipality name.
+     */
     private String city;
 
-    /** Postal or ZIP code of the address. */
+    /**
+     * The postal code, ZIP code, or equivalent area code.
+     */
     private String postalCode;
 
-    /** Region or state information associated with the address. */
+    /**
+     * The region or state information, provided as a nested {@link RegionResponse} DTO.
+     */
     private RegionResponse region;
 
-    /** Country information associated with the address. */
+    /**
+     * The country information, provided as a nested {@link CountryResponse} DTO.
+     */
     private CountryResponse country;
 }

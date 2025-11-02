@@ -8,7 +8,8 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 /**
- * Represents user profile details returned in API responses.
+ * Data Transfer Object (DTO) containing comprehensive user profile details.
+ * This object is used to return a user's full contact, biographical, and preference information.
  */
 @Getter
 @Setter
@@ -16,24 +17,38 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class UserProfileResponse {
 
-    /** User's phone number. */
+    /**
+     * The user's primary phone number, typically in E.164 format.
+     */
     private String phoneNumber;
 
-    /** Gender of the user. */
+    /**
+     * The user's gender, represented by the {@link Gender} enumeration.
+     */
     private Gender gender;
 
-    /** Date of birth of the user. */
+    /**
+     * The user's date of birth.
+     */
     private LocalDate dateOfBirth;
 
-    /** Address details of the user. */
+    /**
+     * Detailed address information for the user, provided as a {@link UserAddressResponse} DTO.
+     */
     private UserAddressResponse address;
 
-    /** Timezone information associated with the user. */
+    /**
+     * The user's preferred timezone details, provided as a {@link TimeZoneResponse} DTO.
+     */
     private TimeZoneResponse timezone;
 
-    /** Preferred currency of the user. */
+    /**
+     * The user's preferred currency settings, provided as a {@link CurrencyResponse} DTO.
+     */
     private CurrencyResponse currency;
 
-    /** URL of the user's avatar or profile picture. */
+    /**
+     * The public URL pointing to the user's avatar or profile picture image.
+     */
     private String avatarUrl;
 }

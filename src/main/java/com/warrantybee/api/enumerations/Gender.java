@@ -4,27 +4,34 @@ import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 import lombok.Getter;
 
 /**
- * Enumeration representing user gender options.
+ * Enumeration representing the possible gender options for a user profile.
+ * It implements {@link IEnumeration} to provide a unique integer code for each option.
  */
 @Getter
 public enum Gender implements IEnumeration {
 
-    /** Gender not specified */
+    /** The gender of the user is not specified (Code: 0). */
     NONE(0),
 
-    /** Male gender */
+    /** The user identifies as Male (Code: 1). */
     MALE(1),
 
-    /** Female gender */
+    /** The user identifies as Female (Code: 2). */
     FEMALE(2),
 
-    /** Prefer not to disclose gender */
+    /** The user has opted not to disclose their gender (Code: 3). */
     PREFER_NOT_TO_SAY(3);
 
-    /** Integer code for the gender */
+    /**
+     * The unique, persistent integer code associated with this gender option.
+     */
     private final int code;
 
-    /** Constructor */
+    /**
+     * Constructs a {@code Gender} enum constant with the specified code.
+     *
+     * @param code The unique integer code.
+     */
     Gender(int code) {
         this.code = code;
     }

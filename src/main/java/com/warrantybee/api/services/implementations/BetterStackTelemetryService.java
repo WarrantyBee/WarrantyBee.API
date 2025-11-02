@@ -43,7 +43,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trackEvent(String eventName, Map<String, Object> properties) {
         JSONObject payload = new JSONObject();
@@ -54,7 +53,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void log(LogLevel level, String message, Map<String, Object> context) {
         JSONObject payload = new JSONObject();
@@ -65,7 +63,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void log(LogLevel level, Throwable throwable, Map<String, Object> context) {
         JSONObject payload = new JSONObject();
@@ -77,7 +74,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trackMetric(String metricName, double value, Map<String, Object> properties) {
         JSONObject payload = new JSONObject();
@@ -89,7 +85,6 @@ public class BetterStackTelemetryService implements ITelemetryService {
         _send(payload);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void flush() {
         // The HTTP client sends requests synchronously, so there's no buffer to flush.

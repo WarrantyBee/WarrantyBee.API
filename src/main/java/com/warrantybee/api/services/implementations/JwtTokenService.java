@@ -52,7 +52,6 @@ public class JwtTokenService implements ITokenService {
                 .build();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String generate(Map<String, Object> claims) {
         try {
@@ -76,7 +75,6 @@ public class JwtTokenService implements ITokenService {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Map<String, Object> validate(String token) {
         try {

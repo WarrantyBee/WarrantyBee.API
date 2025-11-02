@@ -11,24 +11,18 @@ import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.PasswordHelper;
 import com.warrantybee.api.helpers.Validator;
-import com.warrantybee.api.models.User;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Service responsible for handling authentication-related operations
- * such as user login, token generation, caching, and CAPTCHA validation.
- *
- * <p>This service integrates with token, cache, telemetry, and CAPTCHA services
- * to provide a secure login flow.</p>
+ * Service responsible for handling authentication-related operations.
  */
 @Service
 public class AuthService implements IAuthService {

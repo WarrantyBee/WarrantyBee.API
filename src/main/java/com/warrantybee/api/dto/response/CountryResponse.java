@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents country details returned in API responses.
+ * Data Transfer Object (DTO) representing detailed country information
+ * for API responses.
  */
 @Getter
 @Setter
@@ -14,27 +15,27 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CountryResponse {
 
-    /** unique identifier of the country. */
+    /** The unique database identifier of the country. */
     private Long id;
 
-    /** Common name of the country. */
+    /** The common, standard name of the country (e.g., "United States"). */
     private String name;
 
-    /** Two-letter ISO 3166-1 alpha-2 country code. */
+    /** The two-letter ISO 3166-1 alpha-2 country code (e.g., "US"). */
     private String iso2;
 
-    /** Three-letter ISO 3166-1 alpha-3 country code. */
+    /** The three-letter ISO 3166-1 alpha-3 country code (e.g., "USA"). */
     private String iso3;
 
-    /** Numeric or internal country code. */
+    /** A numeric or alternative internal country code, if applicable. */
     private String code;
 
-    /** Official full name of the country. */
+    /** The official full name of the country (e.g., "United States of America"). */
     private String officialName;
 
-    /** Capital city of the country. */
+    /** The capital city of the country. */
     private String capital;
 
-    /** International phone dialing code (e.g., +91, +1). */
+    /** The international phone dialing code (e.g., "+91", "+1"). */
     private String phoneCode;
 }

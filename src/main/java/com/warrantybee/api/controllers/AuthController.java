@@ -13,24 +13,45 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for managing user authentication and authorization endpoints,
+ * including login and sign-up operations.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final IAuthService authService;
 
+    /**
+     * Constructs the AuthController and injects the authentication service.
+     *
+     * @param authService The service providing core authentication logic.
+     */
     public AuthController(IAuthService authService) {
         this.authService = authService;
     }
 
+    /**
+     * Handles user login by validating credentials and returning an authentication token.
+     *
+     * @param request The user's login credentials.
+     * @return A {@link ResponseEntity} containing a token and user details upon successful login.
+     * @throws Exception if an authentication or unexpected error occurs.
+     */
     @PostMapping("/login")
     public ResponseEntity<APIResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) throws Exception {
         return ResponseEntity.ok(new APIResponse<LoginResponse>(authService.login(request)));
     }
 
+    /**
+     * Handles new user registration by creating a new account.
+     *
+     * @param request The details required for signing up a new user.
+     * @return A {@link ResponseEntity} containing confirmation details upon successful registration.
+     * @throws Exception if a registration or unexpected error occurs.
+     */
     @PostMapping("/signup")
     public ResponseEntity<APIResponse<SignUpResponse>> signUp(@Valid @RequestBody SignUpRequest request) throws Exception {
         return ResponseEntity.ok(new APIResponse<SignUpResponse>(authService.signUp(request)));
     }
 }
-
-
