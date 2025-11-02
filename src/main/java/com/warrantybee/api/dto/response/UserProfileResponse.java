@@ -1,42 +1,39 @@
 package com.warrantybee.api.dto.response;
 
 import com.warrantybee.api.enumerations.Gender;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
 
-/** DTO representing user profile details in responses */
+/**
+ * Represents user profile details returned in API responses.
+ */
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserProfileResponse {
 
-    /** Phone number */
+    /** User's phone number. */
     private String phoneNumber;
 
-    /** Gender of the user */
+    /** Gender of the user. */
     private Gender gender;
 
-    /** Date of birth */
+    /** Date of birth of the user. */
     private LocalDate dateOfBirth;
 
-    /** Address line 1 */
-    private String addressLine1;
+    /** Address details of the user. */
+    private UserAddressResponse address;
 
-    /** Address line 2 */
-    private String addressLine2;
+    /** Timezone information associated with the user. */
+    private TimeZoneResponse timezone;
 
-    /** State name */
-    private String state;
+    /** Preferred currency of the user. */
+    private CurrencyResponse currency;
 
-    /** Country name */
-    private String country;
-
-    /** City */
-    private String city;
-
-    /** Postal code */
-    private String postalCode;
-
-    /** Avatar URL */
+    /** URL of the user's avatar or profile picture. */
     private String avatarUrl;
 }

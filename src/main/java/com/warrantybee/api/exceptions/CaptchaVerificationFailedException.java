@@ -3,15 +3,15 @@ package com.warrantybee.api.exceptions;
 import com.warrantybee.api.enumerations.Error;
 
 /**
- * Thrown when the provided captcha is invalid.
+ * Thrown when the provided captcha is invalid or not verified.
  */
-public class InvalidCaptchaException extends APIException {
+public class CaptchaVerificationFailedException extends APIException {
 
   /**
    * Constructs a new InvalidCaptchaException with the default message
    * from {@link Error#INVALID_CAPTCHA}.
    */
-  public InvalidCaptchaException() {
+  public CaptchaVerificationFailedException() {
     super(Error.INVALID_CAPTCHA);
   }
 
@@ -20,7 +20,7 @@ public class InvalidCaptchaException extends APIException {
    *
    * @param message a detailed description of the error
    */
-  public InvalidCaptchaException(String message) {
+  public CaptchaVerificationFailedException(String message) {
     super(Error.INVALID_CAPTCHA, message);
   }
 
@@ -30,7 +30,7 @@ public class InvalidCaptchaException extends APIException {
    * @param message a detailed description of the error
    * @param cause   the underlying cause of this exception
    */
-  public InvalidCaptchaException(String message, Throwable cause) {
+  public CaptchaVerificationFailedException(String message, Throwable cause) {
     super(Error.INVALID_CAPTCHA, message);
     initCause(cause);
   }

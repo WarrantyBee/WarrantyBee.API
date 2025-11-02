@@ -34,7 +34,7 @@ public class UserProfile extends BaseEntity<UserProfile> {
 
     /** State ID */
     @Column(name = "state_id", nullable = false)
-    private Long stateId;
+    private Long regionId;
 
     /** Country ID */
     @Column(name = "country_id", nullable = false)
@@ -59,7 +59,7 @@ public class UserProfile extends BaseEntity<UserProfile> {
     /** Associated state entity */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id", updatable = false, insertable = false)
-    private State state;
+    private Region region;
 
     /** Associated country entity */
     @ManyToOne(fetch = FetchType.LAZY)

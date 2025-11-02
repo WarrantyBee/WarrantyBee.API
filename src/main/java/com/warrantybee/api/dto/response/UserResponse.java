@@ -1,36 +1,36 @@
 package com.warrantybee.api.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** DTO for user response */
+/**
+ * Represents user information returned in API responses.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse {
 
-    /** User's identifier */
+    /** Unique identifier of the user. */
     private Long id;
 
-    /** User's first name */
+    /** First name of the user. */
     private String firstname;
 
-    /** User's last name */
+    /** Last name of the user. */
     private String lastname;
 
-    /** User's email */
+    /** Email address of the user. */
     private String email;
 
-    /** Additional user profile details */
-    private UserProfileResponse details;
+    /** Password hash of the user. */
+    @JsonIgnore
+    private String password;
 
-    public UserResponse(Long id, String firstname, String lastname, String email) {
-        this.id = id;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.email = email;
-    }
+    /** Extended profile details of the user. */
+    private UserProfileResponse details;
 }

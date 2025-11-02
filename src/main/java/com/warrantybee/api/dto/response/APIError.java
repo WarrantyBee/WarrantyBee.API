@@ -13,4 +13,10 @@ public class APIError {
 
     /** Error message */
     private final String message;
+
+    /** Private default constructor for internal use only. */
+    private APIError() {
+        this.code = -1;
+        this.message = null;
+    }
 }

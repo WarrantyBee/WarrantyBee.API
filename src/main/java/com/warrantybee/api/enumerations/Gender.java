@@ -1,12 +1,13 @@
 package com.warrantybee.api.enumerations;
 
+import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 import lombok.Getter;
 
 /**
  * Enumeration representing user gender options.
  */
 @Getter
-public enum Gender {
+public enum Gender implements IEnumeration {
 
     /** Gender not specified */
     NONE(0),

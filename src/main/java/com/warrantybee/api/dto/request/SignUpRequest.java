@@ -16,53 +16,60 @@ import java.time.LocalDate;
 public class SignUpRequest {
 
     /** User's first name */
-    @NotBlank
     private String firstname;
 
     /** User's last name/surname */
-    @NotBlank
     private String lastname;
 
     /** User's email address */
-    @NotBlank
-    @Email
     private String email;
 
     /** User's password */
+<<<<<<< HEAD
     @NotBlank
+=======
+>>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
     private String password;
 
     /** user address line 1 */
-    @NotBlank
     private String addressLine1;
 
     /** User  address line 2*/
     private String addressLine2;
 
     /** User date of birth */
+<<<<<<< HEAD
     private LocalDate dob;
 
     /** User gender */
     private Gender gender;
 
     /** User state ID */
+=======
+    private LocalDate dateOfBirth;
+
+    /** User phone number */
+    private String phoneNumber;
+
+    /** User gender */
+    private Byte gender;
+
+    /** User region ID */
+>>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
     private Long regionId;
 
     /** User country ID */
     private Long countryId;
 
     /** User city */
-    @NotBlank
     private String city;
 
     /** User postal code */
-    @NotBlank
     private String postalCode;
 
     /** User avatar URL */
     private String avatarUrl;
 
     /** Captcha response. */
-    @NotBlank
     private String captchaResponse;
 }
