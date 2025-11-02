@@ -38,7 +38,7 @@ public class Validator {
      * @return {@code true} if the string is a valid email format, {@code false} otherwise.
      */
     public static boolean isEmail(String value) {
-        return isBlank(value) || EMAIL_PATTERN.matcher(value).matches();
+        return !isBlank(value) && EMAIL_PATTERN.matcher(value).matches();
     }
 
     /**
@@ -57,7 +57,7 @@ public class Validator {
      * @return {@code true} if the string meets all strong password criteria, {@code false} otherwise.
      */
     public static boolean isStrongPassword(String value) {
-        return isBlank(value) || STRONG_PASSWORD_PATTERN.matcher(value).matches();
+        return !isBlank(value) && STRONG_PASSWORD_PATTERN.matcher(value).matches();
     }
 
     /**

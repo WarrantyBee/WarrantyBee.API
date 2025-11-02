@@ -103,7 +103,10 @@ public enum Error {
     STRONG_PASSWORD_REQUIRED(1030, "Password is not strong enough.", HttpStatus.BAD_REQUEST),
 
     /** The phone number is required. */
-    PHONE_NUMBER_REQUIRED(1031, "Phone number is required.", HttpStatus.BAD_REQUEST);
+    PHONE_NUMBER_REQUIRED(1031, "Phone number is required.", HttpStatus.BAD_REQUEST),
+
+    /** The user registration failed. */
+    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

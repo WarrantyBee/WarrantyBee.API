@@ -70,7 +70,6 @@ public class UserRepository implements IUserRepository {
 
             return ((Number) resultList.get(0)[0]).longValue();
         } catch (Exception e) {
-            System.err.println("Error during user creation: " + e.getMessage());
             return null;
         }
     }
@@ -117,8 +116,8 @@ public class UserRepository implements IUserRepository {
             profile.setPhoneNumber((String) row[7]);
 
             if (row[8] != null) {
-                Byte genderValue = ((Number) row[8]).byteValue();
-                profile.setGender(Gender.values()[genderValue - 1]);
+                byte genderValue = ((Number) row[8]).byteValue();
+                profile.setGender(Gender.values()[genderValue]);
             } else {
                 profile.setGender(null);
             }
@@ -144,7 +143,25 @@ public class UserRepository implements IUserRepository {
             region.setIso((String) row[20]);
             address.setRegion(region);
 
+            TimeZoneResponse timezone = new TimeZoneResponse();
+            timezone.setId((row[21] instanceof Number) ? ((Number) row[21]).longValue() : null);
+            timezone.setName((String) row[22]);
+            timezone.setAbbreviation((String) row[23]);
+            timezone.setOffsetMinutes((row[24] instanceof Number) ? ((Number) row[24]).shortValue() : null);
+            timezone.setDst(Boolean.valueOf(String.valueOf(row[25])));
+            timezone.setCurrentOffsetMinutes((row[26] instanceof Number) ? ((Number) row[26]).shortValue() : null);
+
+            CurrencyResponse currency = new CurrencyResponse();
+            currency.setId((row[27] instanceof Number) ? ((Number) row[27]).longValue() : null);
+            currency.setName((String) row[28]);
+            currency.setCode((String) row[29]);
+            currency.setIso((String) row[30]);
+            currency.setSymbol((String) row[31]);
+            currency.setMinorUnit((row[32] instanceof Number) ? ((Number) row[32]).byteValue() : null);
+
             profile.setAddress(address);
+            profile.setTimezone(timezone);
+            profile.setCurrency(currency);
             userResponse.setDetails(profile);
 
             return userResponse;

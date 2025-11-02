@@ -9,6 +9,7 @@ import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.exceptions.*;
+import com.warrantybee.api.helpers.PasswordHelper;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.models.User;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
@@ -36,7 +37,6 @@ public class AuthService implements IAuthService {
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
     private final IUserRepository _userRepository;
-    private final BCryptPasswordEncoder _passwordEncoder;
 
     @PersistenceContext
     private EntityManager _entityManager;
@@ -56,7 +56,6 @@ public class AuthService implements IAuthService {
         this._cacheService = cacheService;
         this._captchaService = captchaService;
         this._userRepository = userRepository;
-        this._passwordEncoder = new BCryptPasswordEncoder(12);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class AuthService implements IAuthService {
             UserResponse user = _userRepository.get(searchFilter);
 
             if (user != null) {
-                if (!_passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                if (PasswordHelper.verify(request.getPassword(), user.getPassword())) {
                     throw new InvalidCredentialsException();
                 }
 
@@ -99,13 +98,14 @@ public class AuthService implements IAuthService {
         if (hasValidCaptcha) {
             UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
             UserResponse user = _userRepository.get(filter);
+            String passwordHash = PasswordHelper.generate(request.getPassword());
 
-            if (user != null) {
+            if (user == null) {
                 UserCreationRequest userCreationRequest = new UserCreationRequest(
                     request.getFirstname(),
                     request.getLastname(),
                     request.getEmail(),
-                    request.getPassword(),
+                    passwordHash,
                     request.getGender(),
                     request.getDateOfBirth(),
                     request.getPhoneNumber(),
@@ -118,6 +118,11 @@ public class AuthService implements IAuthService {
                     request.getAvatarUrl()
                 );
                 Long userId = _userRepository.create(userCreationRequest);
+
+                if (userId == null) {
+                    throw new UserRegistrationFailedException();
+                }
+
                 return new SignUpResponse(userId);
             }
             else {
@@ -171,19 +176,19 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getEmail())) {
                 throw new EmailRequiredException();
             }
-            if (Validator.isEmail(request.getEmail())) {
+            if (!Validator.isEmail(request.getEmail())) {
                 throw new InvalidEmailException();
             }
             if (Validator.isBlank(request.getPassword())) {
                 throw new PasswordRequiredException();
             }
-            if (Validator.isStrongPassword(request.getPassword())) {
+            if (!Validator.isStrongPassword(request.getPassword())) {
                 throw new StrongPasswordRequiredException();
             }
-            if (Validator.isEnum(request.getGender(), Gender.class)) {
+            if (!Validator.isEnum(request.getGender(), Gender.class)) {
                 throw new InvalidGenderValueException();
             }
-            if (Validator.hasLegalAge(request.getDateOfBirth())) {
+            if (!Validator.hasLegalAge(request.getDateOfBirth())) {
                 throw new UserIsMinorException();
             }
             if (Validator.isBlank(request.getPhoneNumber())) {
