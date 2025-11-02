@@ -58,7 +58,10 @@ public enum Error {
     INVALID_CAPTCHA(1015, "Invalid captcha.", HttpStatus.BAD_REQUEST),
 
     /** The specified user is not registered. */
-    USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND);
+    USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND),
+
+    /** The specified user is already registered. */
+    USER_ALREADY_REGISTERED(1017, "The specified user is already registered.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

@@ -30,8 +30,6 @@ public class SignUpRequest {
 
     /** User's password */
     @NotBlank
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&+=])(?=\\S+$).{12,}$")
     private String password;
 
     /** user address line 1 */
@@ -42,19 +40,15 @@ public class SignUpRequest {
     private String addressLine2;
 
     /** User date of birth */
-    @NotBlank
     private LocalDate dob;
 
     /** User gender */
-    @NotBlank
     private Gender gender;
 
     /** User state ID */
-    @NotBlank
-    private Long stateId;
+    private Long regionId;
 
     /** User country ID */
-    @NotBlank
     private Long countryId;
 
     /** User city */

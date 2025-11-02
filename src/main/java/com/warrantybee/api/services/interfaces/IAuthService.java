@@ -17,4 +17,6 @@ public interface IAuthService {
     LoginResponse login(LoginRequest request) throws Exception;
 
     SignUpResponse signUp(SignUpRequest request) throws Exception;
+
+    void sendOtp(Long userId, String email);
 }

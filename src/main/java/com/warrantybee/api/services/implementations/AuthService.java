@@ -1,5 +1,8 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.constants.EmailTemplate;
+import com.warrantybee.api.dto.internal.EmailPayload;
+import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
@@ -8,6 +11,7 @@ import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.models.User;
+import com.warrantybee.api.repositories.DBContext;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
 import jakarta.persistence.EntityManager;
@@ -101,7 +105,7 @@ public class AuthService implements IAuthService {
     }
 
     /**
-     * Retrieves a valid cached token for the specified user if available.
+     * Retrieves a valid cached token for the specified us'er if available.
      *
      * @param user the user whose cached token is requested
      * @return the cached JWT token, or {@code null} if none exists or is invalid
@@ -145,33 +149,77 @@ public class AuthService implements IAuthService {
     public SignUpResponse signUp(SignUpRequest request) throws Exception {
         var hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
-        if (!hasValidCaptcha) {
+        if (hasValidCaptcha) {
+            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
+            User user = _userRepository.get(filter);
+
+            if (user == null) {
+                String encodedPassword = _passwordEncoder.encode(request.getPassword());
+
+                UserCreationRequest userRequest = new UserCreationRequest();
+                userRequest.setFirstname(request.getFirstname());
+                userRequest.setLastname(request.getLastname());
+                userRequest.setEmail(request.getEmail());
+                userRequest.setPassword(encodedPassword);
+                userRequest.setGender((byte) request.getGender().getCode());
+                userRequest.setDob(request.getDob());
+                userRequest.setAddressLine1(request.getAddressLine1());
+                userRequest.setAddressLine2(request.getAddressLine2());
+                userRequest.setCity(request.getCity());
+                userRequest.setRegionId(request.getRegionId());
+                userRequest.setCountryId(request.getCountryId());
+                userRequest.setPostalCode(request.getPostalCode());
+                userRequest.setAvatarUrl(request.getAvatarUrl());
+                Long userId = _userRepository.create(userRequest);
+
+                return new SignUpResponse(userId);
+            }
+            else {
+                throw new UserAlreadyRegisteredException();
+            }
+        }
+        else {
             throw new InvalidCaptchaException();
         }
-
-        User user = _userRepository.findByEmail(request.getEmail());
-
-        if (user == null) {
-            String encodedPassword = _passwordEncoder.encode(request.getPassword());
-
-            user.setEmail(request.getEmail());
-            user.setFirstname(request.getFirstname());
-            user.setLastname(request.getLastname());
-            user.setPassword(encodedPassword);
-        }
-
-
-        String token = _getCachedToken(user);
-        if (token == null) {
-            token = _generateToken(user);
-            _cacheToken(user, token);
-        }
-
-        return new SignUpResponse(
-            user.getId(),
-            user.getFirstname(),
-            user.getLastname(),
-            user.getEmail()
-        );
     }
+
+
+    @Override
+    public void sendOtp(Long userId, String email) {
+        User user;
+         if (userId != null) {
+            user = _userRepository.findById(userId);
+            user = _userRepository.get(new UserSearchFilter(userId, null));
+        } else if (email != null) {
+            user = _userRepository.get(new UserSearchFilter(null, email));
+        } else {
+            throw new InvalidInputException("Either userId or email must be provided.");
+         }
+ 
+        if (email != null) {
+            emailId = _userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException();
+         }
+ 
+        String otp = _otpService.generateOtp(user.getEmail());
+
+        Map<String, String> macros = new HashMap<>();
+        macros.put("name", user.getFirstname());
+        macros.put("otp", otp);
+
+        String emailBody = _templateService.process(EmailTemplate.OTP, macros);
+
+        EmailPayload emailPayload = new EmailPayload();
+        emailPayload.setTo(new String[]{user.getEmail()});
+        emailPayload.setSubject("Your OTP for WarrantyBee");
+        emailPayload.setBody(emailBody);
+
+        _emailService.sendEmail(emailPayload);
+
+        String cacheKey = "otp:" + user.getEmail();
+        _cacheService.set(cacheKey, otp, 300);
+    }
+
 }
+

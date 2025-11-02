@@ -23,6 +23,9 @@ public class UserCreationRequest {
     /** User's login password. */
     private String password;
 
+    /** User's phone number. */
+    private String phoneNumber;
+
     /** User's gender (e.g., 1 for male, 2 for female, etc.). */
     private Byte gender;
 
@@ -38,11 +41,14 @@ public class UserCreationRequest {
     /** Name of the user's city. */
     private String city;
 
-    /** Identifier for the user's state. */
-    private Long stateId;
+    /** Identifier for the user's region. */
+    private Long regionId;
 
     /** Identifier for the user's country. */
     private Long countryId;
+
+    /** Identifier for the user's postal code. */
+    private String postalCode;
 
     /** URL of the user's profile avatar image. */
     private String avatarUrl;

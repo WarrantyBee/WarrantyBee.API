@@ -2,17 +2,13 @@ package com.warrantybee.api.exceptions;
 
 import com.warrantybee.api.enumerations.Error;
 
-/**
- * Thrown when a user is not found in the system.
- */
-public class UserNotFoundException extends APIException {
-
+public class UserAlreadyRegisteredException extends APIException {
     /**
      * Constructs a new UserNotFoundException with the default message
-     * from {@link Error#USER_NOT_FOUND}.
+     * from {@link com.warrantybee.api.enumerations.Error#USER_NOT_FOUND}.
      */
-    public UserNotFoundException() {
-      super(Error.USER_NOT_FOUND);
+    public UserAlreadyRegisteredException() {
+      super(Error.USER_ALREADY_REGISTERED);
     }
 
     /**
@@ -20,8 +16,8 @@ public class UserNotFoundException extends APIException {
      *
      * @param message a detailed description of the error
      */
-    public UserNotFoundException(String message) {
-      super(Error.USER_NOT_FOUND, message);
+    public UserAlreadyRegisteredException(String message) {
+      super(Error.USER_ALREADY_REGISTERED, message);
     }
 
     /**
@@ -30,8 +26,8 @@ public class UserNotFoundException extends APIException {
      * @param message a detailed description of the error
      * @param cause   the underlying cause of this exception
      */
-    public UserNotFoundException(String message, Throwable cause) {
-      super(Error.USER_NOT_FOUND, message);
+    public UserAlreadyRegisteredException(String message, Throwable cause) {
+      super(Error.USER_ALREADY_REGISTERED, message);
       initCause(cause);
     }
 }
