@@ -1,6 +1,7 @@
 package com.warrantybee.api.controllers;
 
 import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.request.OtpRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.LoginResponse;
@@ -39,7 +40,7 @@ public class AuthController {
      * @throws Exception if an authentication or unexpected error occurs.
      */
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) throws Exception {
+    public ResponseEntity<APIResponse<LoginResponse>> login(@RequestBody LoginRequest request) throws Exception {
         return ResponseEntity.ok(new APIResponse<LoginResponse>(authService.login(request)));
     }
 
@@ -51,7 +52,12 @@ public class AuthController {
      * @throws Exception if a registration or unexpected error occurs.
      */
     @PostMapping("/signup")
-    public ResponseEntity<APIResponse<SignUpResponse>> signUp(@Valid @RequestBody SignUpRequest request) throws Exception {
+    public ResponseEntity<APIResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) throws Exception {
         return ResponseEntity.ok(new APIResponse<SignUpResponse>(authService.signUp(request)));
+    }
+
+    @PostMapping("/sendotp")
+    public ResponseEntity<APIResponse<?>> sendOtp(@RequestBody OtpRequest request) throws Exception {
+        return ResponseEntity.ok(new APIResponse<?>(authService/))
     }
 }

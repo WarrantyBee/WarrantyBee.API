@@ -22,10 +22,6 @@ public class SignUpRequest {
     private String email;
 
     /** User's password */
-<<<<<<< HEAD
-    @NotBlank
-=======
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
     private String password;
 
     /** user address line 1 */
@@ -35,14 +31,9 @@ public class SignUpRequest {
     private String addressLine2;
 
     /** User date of birth */
-<<<<<<< HEAD
     private LocalDate dob;
 
-    /** User gender */
-    private Gender gender;
-
     /** User state ID */
-=======
     private LocalDate dateOfBirth;
 
     /** User phone number */
@@ -52,7 +43,6 @@ public class SignUpRequest {
     private Byte gender;
 
     /** User region ID */
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
     private Long regionId;
 
     /** User country ID */

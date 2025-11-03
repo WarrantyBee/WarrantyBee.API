@@ -60,9 +60,6 @@ public enum Error {
     USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND),
 
     /** The specified user is already registered. */
-<<<<<<< HEAD
-    USER_ALREADY_REGISTERED(1017, "The specified user is already registered.", HttpStatus.BAD_REQUEST);
-=======
     USER_ALREADY_REGISTERED(1017, "The specified user is already registered.", HttpStatus.CONFLICT),
 
     /** The request body is empty. */
@@ -108,8 +105,25 @@ public enum Error {
     PHONE_NUMBER_REQUIRED(1031, "Phone number is required.", HttpStatus.BAD_REQUEST),
 
     /** The user registration failed. */
-    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR);
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
+    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The otp receiver is required. */
+    OTP_RECEIVER_REQUIRED(1033, "The otp receiver is required.", HttpStatus.BAD_REQUEST),
+
+    /** The otp is invalid. */
+    INVALID_OTP(1034, "Invalid OTP.", HttpStatus.BAD_REQUEST),
+
+    /** The otp has expired. */
+    OTP_EXPIRED(1035, "OTP has expired.", HttpStatus.BAD_REQUEST),
+
+    /** The maximum otp attempts reached. */
+    MAX_OTP_ATTEMPTS_REACHED(1036, "Maximum OTP attempts reached.", HttpStatus.BAD_REQUEST),
+
+    /** The email template was not found. */
+    EMAIL_TEMPLATE_NOT_FOUND(1037, "Email template not found.", HttpStatus.NOT_FOUND),
+
+    /** There was an error parsing the email template. */
+    EMAIL_TEMPLATE_PARSING_ERROR(1038, "There was an error parsing the email template.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

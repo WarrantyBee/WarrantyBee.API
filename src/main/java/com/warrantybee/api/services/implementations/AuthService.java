@@ -1,10 +1,9 @@
 package com.warrantybee.api.services.implementations;
 
-import com.warrantybee.api.constants.EmailTemplate;
-import com.warrantybee.api.dto.internal.EmailPayload;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.request.OtpRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
@@ -14,7 +13,6 @@ import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.PasswordHelper;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.models.User;
-import com.warrantybee.api.repositories.DBContext;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
 import jakarta.persistence.EntityManager;
@@ -132,11 +130,30 @@ public class AuthService implements IAuthService {
         }
     }
 
+    @Override
+    public void sendOtp(OtpRequest request) {
+        _validate(request);
+        String sender = request.getEmail();
+
+        if (request.getUserId() == null) {
+            UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
+            UserResponse user = _userRepository.get(filter);
+            if (user == null) {
+                throw new UserNotFoundException();
+            }
+            else {
+                sender = user.getEmail();
+            }
+        }
+
+
+
+    }
+
+
     /**
-     * Retrieves a valid cached token for the specified us'er if available.
-     *
-     * @param user the user whose cached token is requested
-     * @return the cached JWT token, or {@code null} if none exists or is invalid
+     * Validates the given login request.
+     * @param request the login request to validate
      */
     private void _validate(LoginRequest request) {
         if (request == null) {
@@ -207,6 +224,21 @@ public class AuthService implements IAuthService {
     }
 
     /**
+     * Validates the given OTP request.
+     * @param request the OTP request to validate
+     */
+    private void _validate(OtpRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (request.getUserId() == null && Validator.isBlank(request.getEmail())) {
+                throw new OtpReceiverRequiredException();
+            }
+        }
+    }
+
+    /**
      * Retrieves and validates an access token from the cache for the specified email.
      * @param email the user's email address used to generate the cache key
      * @return the valid cached access token, or {@code null} if no valid token exists
@@ -242,43 +274,5 @@ public class AuthService implements IAuthService {
         String cacheKey = String.format("token:%s", email);
         _cacheService.set(cacheKey, token, 3600);
     }
-
-    @Override
-    public void sendOtp(Long userId, String email) {
-        User user;
-         if (userId != null) {
-            user = _userRepository.findById(userId);
-            user = _userRepository.get(new UserSearchFilter(userId, null));
-        } else if (email != null) {
-            user = _userRepository.get(new UserSearchFilter(null, email));
-        } else {
-            throw new InvalidInputException("Either userId or email must be provided.");
-         }
- 
-        if (email != null) {
-            emailId = _userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException();
-         }
- 
-        String otp = _otpService.generateOtp(user.getEmail());
-
-        Map<String, String> macros = new HashMap<>();
-        macros.put("name", user.getFirstname());
-        macros.put("otp", otp);
-
-        String emailBody = _templateService.process(EmailTemplate.OTP, macros);
-
-        EmailPayload emailPayload = new EmailPayload();
-        emailPayload.setTo(new String[]{user.getEmail()});
-        emailPayload.setSubject("Your OTP for WarrantyBee");
-        emailPayload.setBody(emailBody);
-
-        _emailService.sendEmail(emailPayload);
-
-        String cacheKey = "otp:" + user.getEmail();
-        _cacheService.set(cacheKey, otp, 300);
-    }
-
 }
 

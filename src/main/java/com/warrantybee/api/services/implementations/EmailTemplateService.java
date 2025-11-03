@@ -1,35 +1,42 @@
 package com.warrantybee.api.services.implementations;
 
-import com.warrantybee.api.exceptions.CustomProcessException;
-import com.warrantybee.api.services.interfaces.ITemplateService;
+import com.warrantybee.api.exceptions.EmailTemplateNotFoundException;
+import com.warrantybee.api.exceptions.EmailTemplateParsingException;
+import com.warrantybee.api.services.interfaces.IEmailTemplateService;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class EmailTemplateService implements ITemplateService {
+/**
+ * Implementation of {@link IEmailTemplateService} for processing email templates.
+ */
+@Service
+public class EmailTemplateService implements IEmailTemplateService {
 
     @Override
     public String process(String templatePath, Map<String, String> macros) {
+        String content = null;
 
-        String templateContent = null;
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(templatePath)) {
-
-
             if (inputStream == null) {
-                throw new CustomProcessException("Template resource not found or stream is null.");
+                throw new EmailTemplateNotFoundException();
             }
-            templateContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            else {
+                content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            }
         } catch (IOException e) {
-            String errorMessage = "Failed to read template content from input stream.";
-            throw new CustomProcessException(errorMessage, new IOException());
+            throw new EmailTemplateParsingException();
         }
 
 
-        macros.forEach((key, value) -> {
-            String template = "<macro>" + key + "</macro>";
-            template = template.replace(template, value);
-        });
+        for (Map.Entry<String, String> entry : macros.entrySet()) {
+            String macro = "<macro>" + entry.getKey() + "</macro>";
+            content = content.replace(macro, entry.getValue());
+        }
+
+        return content;
     }
 }
