@@ -46,13 +46,11 @@ public class UpstashCacheService implements ICacheService {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void set(String key, String value) {
         set(key, value, 0);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void set(String key, String value, int expirySeconds) {
         if (key == null || key.isBlank()) {
@@ -76,13 +74,12 @@ public class UpstashCacheService implements ICacheService {
             String body = _objectMapper.writeValueAsString(command);
             _send(_upstashBaseUrl, body);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             Thread.currentThread().interrupt();
             throw new CacheException("Failed to set cache value for key: " + key, e);
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String get(String key) {
         if (key == null || key.isBlank()) {
@@ -107,13 +104,9 @@ public class UpstashCacheService implements ICacheService {
 
         } catch (IOException e) {
             throw new CacheException("Failed to parse Upstash response for key: " + key, e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new CacheException("Cache retrieval interrupted for key: " + key, e);
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void delete(String key) {
         if (key == null || key.isBlank()) {
@@ -124,7 +117,7 @@ public class UpstashCacheService implements ICacheService {
             List<Object> command = List.of("DEL", key);
             String body = _objectMapper.writeValueAsString(command);
             _send(_upstashBaseUrl, body);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             Thread.currentThread().interrupt();
             throw new CacheException("Failed to delete cache key: " + key, e);
         }
@@ -137,8 +130,7 @@ public class UpstashCacheService implements ICacheService {
      * @param body the JSON request body
      * @return HttpResponse from Upstash
      */
-    private HttpResponse<String> _send(String url, String body)
-            throws IOException, InterruptedException {
+    private HttpResponse<String> _send(String url, String body) {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -147,16 +139,27 @@ public class UpstashCacheService implements ICacheService {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = _httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+
+        try {
+            response = _httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        }
+        catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         int status = response.statusCode();
+
         if (status == 401) {
             throw new UnauthorizedAccessException("Invalid Upstash credentials or expired token.");
-        } else if (status == 500) {
+        }
+        else if (status == 500) {
             throw new InternalServerErrorException("Upstash internal error: " + response.body());
-        } else if (status >= 503) {
+        }
+        else if (status >= 503) {
             throw new ServiceUnavailableException("Upstash service unavailable: " + response.body());
-        } else if (status != 200) {
+        }
+        else if (status != 200) {
             throw new CacheException("Unexpected Upstash response (status " + status + "): " + response.body());
         }
 

@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Represents standardized error codes used across the API.
- * Each code includes a numeric identifier, default message, and associated HTTP status.
  */
 @Getter
 @AllArgsConstructor
@@ -55,10 +54,58 @@ public enum Error {
     JWT_GENERATION_ERROR(1014, "Could not generate JWT token.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The provided captcha is invalid. */
-    INVALID_CAPTCHA(1015, "Invalid captcha.", HttpStatus.BAD_REQUEST),
+    INVALID_CAPTCHA(1015, "Given captcha is expired.", HttpStatus.BAD_REQUEST),
 
     /** The specified user is not registered. */
-    USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND);
+    USER_NOT_REGISTERED(1016, "The specified user is not registered.", HttpStatus.NOT_FOUND),
+
+    /** The specified user is already registered. */
+    USER_ALREADY_REGISTERED(1017, "The specified user is already registered.", HttpStatus.CONFLICT),
+
+    /** The request body is empty. */
+    REQUEST_BODY_EMPTY(1018, "Request body is empty.", HttpStatus.BAD_REQUEST),
+
+    /** The captcha response is required. */
+    CAPTCHA_RESPONSE_REQUIRED(1019, "Captcha response is required.", HttpStatus.BAD_REQUEST),
+
+    /** The firstname is required. */
+    FIRSTNAME_REQUIRED(1020, "Firstname is required.", HttpStatus.BAD_REQUEST),
+
+    /** The lastname is required. */
+    LASTNAME_REQUIRED(1021, "Lastname is required.", HttpStatus.BAD_REQUEST),
+
+    /** The email is required. */
+    EMAIL_REQUIRED(1022, "Email is required.", HttpStatus.BAD_REQUEST),
+
+    /** The password is required. */
+    PASSWORD_REQUIRED(1023, "Password is required.", HttpStatus.BAD_REQUEST),
+
+    /** The address is required. */
+    ADDRESS_REQUIRED(1024, "Address is required.", HttpStatus.BAD_REQUEST),
+
+    /** The city is required. */
+    CITY_REQUIRED(1025, "City is required.", HttpStatus.BAD_REQUEST),
+
+    /** The postal code is required. */
+    POSTAL_CODE_REQUIRED(1026, "Postal code is required.", HttpStatus.BAD_REQUEST),
+
+    /** The email is invalid. */
+    INVALID_EMAIL(1027, "Invalid email format.", HttpStatus.BAD_REQUEST),
+
+    /** The gender value is invalid. */
+    INVALID_GENDER_VALUE(1028, "Invalid gender value.", HttpStatus.BAD_REQUEST),
+
+    /** The user is a minor. */
+    USER_IS_MINOR(1029, "User must be at least 18 years old.", HttpStatus.BAD_REQUEST),
+
+    /** The password is not strong enough. */
+    STRONG_PASSWORD_REQUIRED(1030, "Password is not strong enough.", HttpStatus.BAD_REQUEST),
+
+    /** The phone number is required. */
+    PHONE_NUMBER_REQUIRED(1031, "Phone number is required.", HttpStatus.BAD_REQUEST),
+
+    /** The user registration failed. */
+    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
