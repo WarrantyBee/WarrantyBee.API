@@ -2,6 +2,7 @@ package com.warrantybee.api.configurations;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.eclipse.angus.mail.smtp.SMTPAddressFailedException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -37,4 +38,6 @@ public class AppConfiguration {
 
     /** Configuration properties for Google reCaptcha validation service. */
     private ReCaptchaConfiguration recaptchaConfiguration;
+
+    private SmtpConfiguration smtpConfiguration;
 }
