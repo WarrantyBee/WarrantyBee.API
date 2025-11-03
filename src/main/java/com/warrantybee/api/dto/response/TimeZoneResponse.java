@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents timezone details associated with a region or country.
+ * Data Transfer Object (DTO) containing detailed information about a geographical timezone.
  */
 @Getter
 @Setter
@@ -14,21 +14,33 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TimeZoneResponse {
 
-    /** Unique identifier of the timezone. */
+    /**
+     * Unique database identifier for the timezone entry.
+     */
     private Long id;
 
-    /** Full name of the timezone (e.g., Asia/Kolkata, America/New_York). */
+    /**
+     * The full IANA timezone name (e.g., "America/Los_Angeles").
+     */
     private String name;
 
-    /** Abbreviation of the timezone (e.g., IST, EST, PST). */
+    /**
+     * The common abbreviation for the timezone (e.g., "PST" or "PDT").
+     */
     private String abbreviation;
 
-    /** Standard offset from UTC in minutes. */
+    /**
+     * The standard (non-DST) offset from UTC, measured in minutes.
+     */
     private Short offsetMinutes;
 
-    /** Indicates whether daylight saving time (DST) is observed. */
+    /**
+     * Flag indicating if Daylight Saving Time (DST) is currently observed in this zone.
+     */
     private Boolean dst;
 
-    /** Current effective offset from UTC in minutes, accounting for DST. */
+    /**
+     * The effective offset from UTC in minutes, which includes DST if applicable.
+     */
     private Short currentOffsetMinutes;
 }

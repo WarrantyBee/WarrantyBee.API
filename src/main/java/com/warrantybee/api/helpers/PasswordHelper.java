@@ -4,10 +4,13 @@ import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Utility class for secure password hashing and verification using the Argon2 algorithm.
+ */
 public class PasswordHelper {
 
     private static final Argon2 argon2 = Argon2Factory.create(
-        Argon2Factory.Argon2Types.ARGON2id, 32, 64
+            Argon2Factory.Argon2Types.ARGON2id, 32, 64
     );
 
     private static final int _ITERATIONS = 3;
@@ -15,10 +18,11 @@ public class PasswordHelper {
     private static final int _PARALLELISM = 1;
 
     /**
-     * Generates a hex-encoded Argon2 hash for the given password.
+     * Generates a hex-encoded Argon2 hash for the given plain text password.
      *
-     * @param password plain text password
-     * @return hex string of Argon2 hash
+     * @param password The plain text password to be hashed.
+     * @return The hex string representing the Argon2 hash.
+     * @throws IllegalArgumentException if the provided password is null.
      */
     public static String generate(String password) {
         if (password == null) {
@@ -35,10 +39,11 @@ public class PasswordHelper {
 
     /**
      * Verifies that the given plain text password matches the stored hex hash.
+     * This method is resistant to timing attacks.
      *
-     * @param password plain text password
-     * @param storedHash hex string of stored Argon2 hash
-     * @return true if password matches, false otherwise
+     * @param password The plain text password to verify.
+     * @param storedHash The hex string of the previously stored Argon2 hash.
+     * @return {@code true} if the password matches the hash, {@code false} otherwise (or if inputs are null).
      */
     public static boolean verify(String password, String storedHash) {
         if (password == null || storedHash == null) {

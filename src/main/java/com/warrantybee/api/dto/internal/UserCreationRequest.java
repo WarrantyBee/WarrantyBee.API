@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 /**
  * Represents user details required for creating a new account.
+ * This DTO is used internally within the application services layer.
  */
 @Getter
 @Setter
@@ -19,14 +20,11 @@ public class UserCreationRequest {
     /** User's last name. */
     private String lastname;
 
-    /** User's email address. */
+    /** User's email address, serving as a unique identifier. */
     private String email;
 
-    /** User's login password. */
+    /** User's login password (should be hashed before persistence). */
     private String password;
-
-    /** User's phone number. */
-    private String phoneNumber;
 
     /** User's gender (e.g., 1 for male, 2 for female, etc.). */
     private Byte gender;
@@ -46,17 +44,13 @@ public class UserCreationRequest {
     /** Name of the user's city. */
     private String city;
 
-    /** Identifier for the user's region. */
+    /** Identifier for the user's region (state/province). */
     private Long regionId;
 
     /** Identifier for the user's country. */
     private Long countryId;
 
-<<<<<<< HEAD
     /** Identifier for the user's postal code. */
-=======
-    /** Postal code for the residence. */
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
     private String postalCode;
 
     /** URL of the user's profile avatar image. */

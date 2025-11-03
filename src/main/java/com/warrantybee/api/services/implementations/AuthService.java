@@ -1,10 +1,7 @@
 package com.warrantybee.api.services.implementations;
 
-<<<<<<< HEAD
 import com.warrantybee.api.constants.EmailTemplate;
 import com.warrantybee.api.dto.internal.EmailPayload;
-=======
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
@@ -23,18 +20,13 @@ import com.warrantybee.api.services.interfaces.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Service responsible for handling authentication-related operations
- * such as user login, token generation, caching, and CAPTCHA validation.
- *
- * <p>This service integrates with token, cache, telemetry, and CAPTCHA services
- * to provide a secure login flow.</p>
+ * Service responsible for handling authentication-related operations.
  */
 @Service
 public class AuthService implements IAuthService {
@@ -141,15 +133,10 @@ public class AuthService implements IAuthService {
     }
 
     /**
-<<<<<<< HEAD
      * Retrieves a valid cached token for the specified us'er if available.
      *
      * @param user the user whose cached token is requested
      * @return the cached JWT token, or {@code null} if none exists or is invalid
-=======
-     * Validates the login request for required fields and non-empty values.
-     * @param request the login request to validate
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
      */
     private void _validate(LoginRequest request) {
         if (request == null) {
@@ -255,47 +242,6 @@ public class AuthService implements IAuthService {
         String cacheKey = String.format("token:%s", email);
         _cacheService.set(cacheKey, token, 3600);
     }
-<<<<<<< HEAD
-
-
-    @Override
-    public SignUpResponse signUp(SignUpRequest request) throws Exception {
-        var hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
-
-        if (hasValidCaptcha) {
-            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
-            User user = _userRepository.get(filter);
-
-            if (user == null) {
-                String encodedPassword = _passwordEncoder.encode(request.getPassword());
-
-                UserCreationRequest userRequest = new UserCreationRequest();
-                userRequest.setFirstname(request.getFirstname());
-                userRequest.setLastname(request.getLastname());
-                userRequest.setEmail(request.getEmail());
-                userRequest.setPassword(encodedPassword);
-                userRequest.setGender((byte) request.getGender().getCode());
-                userRequest.setDob(request.getDob());
-                userRequest.setAddressLine1(request.getAddressLine1());
-                userRequest.setAddressLine2(request.getAddressLine2());
-                userRequest.setCity(request.getCity());
-                userRequest.setRegionId(request.getRegionId());
-                userRequest.setCountryId(request.getCountryId());
-                userRequest.setPostalCode(request.getPostalCode());
-                userRequest.setAvatarUrl(request.getAvatarUrl());
-                Long userId = _userRepository.create(userRequest);
-
-                return new SignUpResponse(userId);
-            }
-            else {
-                throw new UserAlreadyRegisteredException();
-            }
-        }
-        else {
-            throw new InvalidCaptchaException();
-        }
-    }
-
 
     @Override
     public void sendOtp(Long userId, String email) {
@@ -336,6 +282,3 @@ public class AuthService implements IAuthService {
 
 }
 
-=======
-}
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9

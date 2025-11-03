@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Represents standardized error codes used across the API.
- * Each code includes a numeric identifier, default message, and associated HTTP status.
  */
 @Getter
 @AllArgsConstructor

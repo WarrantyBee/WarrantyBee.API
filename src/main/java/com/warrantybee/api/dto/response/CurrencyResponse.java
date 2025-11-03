@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents currency details returned in API responses.
+ * Data Transfer Object (DTO) for currency details returned in API responses.
  */
 @Getter
 @Setter
@@ -14,21 +14,21 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CurrencyResponse {
 
-    /** Unique identifier of the currency. */
+    /** The unique database identifier of the currency. */
     private Long id;
 
-    /** Full name of the currency (e.g., US Dollar, Indian Rupee). */
+    /** The full name of the currency (e.g., US Dollar, Indian Rupee). */
     private String name;
 
-    /** ISO 4217 alphabetic code of the currency (e.g., USD, INR). */
+    /** The ISO 4217 alphabetic code (e.g., USD, INR). */
     private String iso;
 
-    /** Short numeric or internal code representing the currency. */
+    /** A short numeric or alternative internal code representing the currency. */
     private String code;
 
-    /** Symbol used to represent the currency (e.g., $, ₹, €). */
+    /** The symbol used to represent the currency (e.g., $, ₹, €). */
     private String symbol;
 
-    /** Number of decimal places (minor units) supported by the currency. */
+    /** The number of decimal places (minor units) supported by the currency (e.g., 2 for USD). */
     private Byte minorUnit;
 }

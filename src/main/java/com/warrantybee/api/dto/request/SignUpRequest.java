@@ -1,10 +1,6 @@
 package com.warrantybee.api.dto.request;
 
-import com.warrantybee.api.enumerations.Gender;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +9,7 @@ import java.time.LocalDate;
 /** DTO for user sign up request */
 @Getter
 @Setter
+@AllArgsConstructor
 public class SignUpRequest {
 
     /** User's first name */
@@ -51,7 +48,7 @@ public class SignUpRequest {
     /** User phone number */
     private String phoneNumber;
 
-    /** User gender */
+    /** User gender. The actual type is a {@code Byte} which maps to a value in the {@code Gender} enumeration. */
     private Byte gender;
 
     /** User region ID */

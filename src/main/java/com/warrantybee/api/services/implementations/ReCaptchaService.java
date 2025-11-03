@@ -39,12 +39,6 @@ public class ReCaptchaService implements ICaptchaService {
         }
     }
 
-    /**
-     * Validates the provided reCAPTCHA response token with Google API.
-     *
-     * @param captchaResponse the response token received from client
-     * @return true if valid, false otherwise
-     */
     @Override
     public boolean validate(String captchaResponse) {
         try {

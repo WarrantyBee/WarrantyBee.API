@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents user information returned in API responses.
+ * Data Transfer Object (DTO) containing core user account information.
  */
 @Getter
 @Setter
@@ -15,22 +15,36 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserResponse {
 
-    /** Unique identifier of the user. */
+    /**
+     * The unique database identifier of the user.
+     */
     private Long id;
 
-    /** First name of the user. */
+    /**
+     * The first name (given name) of the user.
+     */
     private String firstname;
 
-    /** Last name of the user. */
+    /**
+     * The last name (surname) of the user.
+     */
     private String lastname;
 
-    /** Email address of the user. */
+    /**
+     * The primary email address of the user.
+     */
     private String email;
 
-    /** Password hash of the user. */
+    /**
+     * The hashed password of the user. This field is ignored during JSON serialization
+     * due to the {@code @JsonIgnore} annotation for security reasons.
+     */
     @JsonIgnore
     private String password;
 
-    /** Extended profile details of the user. */
+    /**
+     * Extended profile details, including geographical and preference information,
+     * provided as a nested {@link UserProfileResponse} DTO.
+     */
     private UserProfileResponse details;
 }

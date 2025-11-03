@@ -8,13 +8,16 @@ import lombok.Getter;
 @AllArgsConstructor
 public class APIError {
 
-    /** Error code */
+    /** The specific HTTP status code or application-defined error code. */
     private final int code;
 
-    /** Error message */
+    /** A human-readable message describing the error. */
     private final String message;
 
-    /** Private default constructor for internal use only. */
+    /**
+     * Private default constructor for internal use only.
+     * Initializes code to -1 and message to null.
+     */
     private APIError() {
         this.code = -1;
         this.message = null;

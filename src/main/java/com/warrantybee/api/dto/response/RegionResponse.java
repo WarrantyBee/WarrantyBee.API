@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents a regional or state-level entity within a country.
+ * Data Transfer Object (DTO) representing a response structure for a regional or state-level entity.
  */
 @Getter
 @Setter
@@ -14,18 +14,23 @@ import lombok.Setter;
 @NoArgsConstructor
 public class RegionResponse {
 
-    /** Unique identifier of the region. */
+    /**
+     * Unique database identifier for the region entity.
+     */
     private Long id;
 
-    /** Common name of the region or state. */
+    /**
+     * The commonly used name of the region or state (e.g., "California", "Bavaria").
+     */
     private String name;
 
-    /** Official name of the region. */
-    private String official;
-
-    /** ISO or administrative code of the region. */
+    /**
+     * The ISO 3166-2 or other administrative code identifying the region (e.g., "US-CA").
+     */
     private String iso;
 
-    /** Capital city of the region. */
-    private String captial;
+    /**
+     * The capital city of the region or state.
+     */
+    private String capital;
 }
