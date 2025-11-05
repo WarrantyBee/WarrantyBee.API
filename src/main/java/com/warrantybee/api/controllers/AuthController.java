@@ -7,7 +7,6 @@ import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.services.interfaces.IAuthService;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,15 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final IAuthService authService;
+    private final IAuthService _authService;
 
     /**
      * Constructs the AuthController and injects the authentication service.
      *
-     * @param authService The service providing core authentication logic.
+     * @param _authService The service providing core authentication logic.
      */
-    public AuthController(IAuthService authService) {
-        this.authService = authService;
+    public AuthController(IAuthService _authService) {
+        this._authService = _authService;
     }
 
     /**
@@ -41,7 +40,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<APIResponse<LoginResponse>> login(@RequestBody LoginRequest request) throws Exception {
-        return ResponseEntity.ok(new APIResponse<LoginResponse>(authService.login(request)));
+        return ResponseEntity.ok(new APIResponse<LoginResponse>(_authService.login(request)));
     }
 
     /**
@@ -53,11 +52,19 @@ public class AuthController {
      */
     @PostMapping("/signup")
     public ResponseEntity<APIResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) throws Exception {
-        return ResponseEntity.ok(new APIResponse<SignUpResponse>(authService.signUp(request)));
+        return ResponseEntity.ok(new APIResponse<SignUpResponse>(_authService.signUp(request)));
     }
 
+    /**
+     * Handles OTP send requests.
+     *
+     * @param request the OTP request details
+     * @return a success response after sending the OTP
+     * @throws Exception if an error occurs while sending the OTP
+     */
     @PostMapping("/sendotp")
     public ResponseEntity<APIResponse<?>> sendOtp(@RequestBody OtpRequest request) throws Exception {
-        return ResponseEntity.ok(new APIResponse<?>(authService/))
+        _authService.sendOtp(request);
+        return ResponseEntity.ok(new APIResponse<Object>(null, null));
     }
 }

@@ -18,6 +18,9 @@ public class EmailPayload {
     /** BCC email addresses */
     private String[] bcc;
 
+    /** Email subject */
+    private String subject;
+
     /** Email body content */
     private String body;
 
