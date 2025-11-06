@@ -50,11 +50,7 @@ public class UserRepository implements IUserRepository {
             query.setParameter("in_password", request.getPassword());
             query.setParameter("in_phone_number", request.getPhoneNumber());
             query.setParameter("in_gender", request.getGender());
-<<<<<<< HEAD
-            query.setParameter("in_date_of_birth", request.getDob());
-=======
             query.setParameter("in_date_of_birth", (request.getDateOfBirth() != null) ? java.sql.Date.valueOf(request.getDateOfBirth()) : null);
->>>>>>> c9d7bb07b095b0d806ba915930111a3f05f419c9
             query.setParameter("in_address_line1", request.getAddressLine1());
             query.setParameter("in_address_line2", request.getAddressLine2());
             query.setParameter("in_country_id", request.getCountryId());

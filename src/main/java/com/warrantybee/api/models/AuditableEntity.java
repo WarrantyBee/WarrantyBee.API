@@ -27,19 +27,9 @@ public abstract class AuditableEntity implements Serializable {
     @Column(name = "created_at", updatable = false, insertable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    /** ID of the user who created the entity */
-    /*@Setter
-    @Column(name = "created_by", updatable = false, nullable = false)
-    private long createdBy;*/
-
     /** Timestamp when the entity was last updated */
     @Column(name = "updated_at", updatable = false, insertable = false)
     private LocalDateTime updatedAt;
-
-    /** ID of the user who last updated the entity */
-    /*@Setter
-    @Column(name = "updated_by", insertable = false)
-    private Long updatedBy;*/
 
     /** Soft-delete flag */
     @Column(name = "void", insertable = false, nullable = false)

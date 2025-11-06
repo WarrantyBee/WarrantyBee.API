@@ -108,7 +108,7 @@ public enum Error {
     USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The otp receiver is required. */
-    OTP_RECEIVER_REQUIRED(1033, "The otp receiver is required.", HttpStatus.BAD_REQUEST),
+    OTP_RECIPIENT_REQUIRED(1033, "The OTP recipient is required.", HttpStatus.BAD_REQUEST),
 
     /** The otp is invalid. */
     INVALID_OTP(1034, "Invalid OTP.", HttpStatus.BAD_REQUEST),
@@ -118,6 +118,9 @@ public enum Error {
 
     /** The maximum otp attempts reached. */
     MAX_OTP_ATTEMPTS_REACHED(1036, "Maximum OTP attempts reached.", HttpStatus.BAD_REQUEST),
+
+    /** Could not generate OTP. */
+    OTP_GENERATION_FAILED(1039, "Could not generate OTP.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The email template was not found. */
     EMAIL_TEMPLATE_NOT_FOUND(1037, "Email template not found.", HttpStatus.NOT_FOUND),

@@ -1,4 +1,5 @@
 package com.warrantybee.api.services.implementations;
+import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.constants.EmailTemplate;
 import com.warrantybee.api.constants.EmailTemplateMacros;
 import com.warrantybee.api.dto.internal.EmailPayload;
@@ -19,9 +20,12 @@ public class EmailService implements IEmailService {
 
     @Autowired
     private JavaMailSender _sender;
-    private IEmailTemplateService _templateService;
+    private final IEmailTemplateService _templateService;
+    private final Integer _expirationMins;
 
-    public EmailService(IEmailTemplateService templateService) {
+    public EmailService(AppConfiguration configuration, IEmailTemplateService templateService) {
+        var otpConfiguration = configuration.getOtpConfiguration();
+        _expirationMins = otpConfiguration.getExpiration();
         this._templateService = templateService;
     }
 
@@ -53,7 +57,7 @@ public class EmailService implements IEmailService {
         Map<String, String> macros = new HashMap<>();
         macros.put("ORGANIZATION_NAME", EmailTemplateMacros.get("ORGANIZATION_NAME"));
         macros.put("OTP", otp);
-        macros.put("EXPIRY_TIME", );
+        macros.put("EXPIRY_TIME", _expirationMins.toString());
         macros.put("SUPPORT_EMAIL", EmailTemplateMacros.get("SUPPORT_EMAIL"));
         macros.put("PRIVACY_POLICY_URL", EmailTemplateMacros.get("PRIVACY_POLICY_URL"));
         String body = _templateService.process(EmailTemplate.OTP, macros);

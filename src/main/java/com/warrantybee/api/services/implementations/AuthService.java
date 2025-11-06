@@ -1,5 +1,6 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.dto.internal.OtpStorageRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
@@ -10,9 +11,9 @@ import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.exceptions.*;
-import com.warrantybee.api.helpers.PasswordHelper;
+import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
-import com.warrantybee.api.models.User;
+import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
 import jakarta.persistence.EntityManager;
@@ -32,7 +33,9 @@ public class AuthService implements IAuthService {
     private final ITokenService _tokenService;
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
+    private final IOtpService _otpService;
     private final IUserRepository _userRepository;
+    private final IOtpRepository _otpRepository;
 
     @PersistenceContext
     private EntityManager _entityManager;
@@ -44,14 +47,17 @@ public class AuthService implements IAuthService {
      * @param cacheService      the service used for caching tokens
      * @param captchaService    the service used to validate CAPTCHA responses
      * @param userRepository    the repository used to manage user data
+     * @param otpRepository     tge repository used to store and retrieve OTPs
      */
     @Autowired
     public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IUserRepository userRepository) {
+                       IOtpService otpService, IUserRepository userRepository, IOtpRepository otpRepository) {
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
+        this._otpService = otpService;
         this._userRepository = userRepository;
+        this._otpRepository = otpRepository;
     }
 
     @Override
@@ -64,7 +70,7 @@ public class AuthService implements IAuthService {
             UserResponse user = _userRepository.get(searchFilter);
 
             if (user != null) {
-                if (PasswordHelper.verify(request.getPassword(), user.getPassword())) {
+                if (HashHelper.verify(request.getPassword(), user.getPassword())) {
                     throw new InvalidCredentialsException();
                 }
 
@@ -94,7 +100,7 @@ public class AuthService implements IAuthService {
         if (hasValidCaptcha) {
             UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
             UserResponse user = _userRepository.get(filter);
-            String passwordHash = PasswordHelper.generate(request.getPassword());
+            String passwordHash = HashHelper.getHash(request.getPassword());
 
             if (user == null) {
                 UserCreationRequest userCreationRequest = new UserCreationRequest(
@@ -133,23 +139,28 @@ public class AuthService implements IAuthService {
     @Override
     public void sendOtp(OtpRequest request) {
         _validate(request);
-        String sender = request.getEmail();
+        String recipient = request.getEmail();
 
-        if (request.getUserId() == null) {
+        if (request.getUserId() != null) {
             UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
             UserResponse user = _userRepository.get(filter);
             if (user == null) {
                 throw new UserNotFoundException();
             }
             else {
-                sender = user.getEmail();
+                recipient = user.getEmail();
             }
         }
 
+        final String otp = _otpService.generate();
+        final String otpHash = HashHelper.getHash(otp);
+        OtpStorageRequest otpStorageRequest = new OtpStorageRequest(otpHash, recipient, request.getUserId());
+        Long otpId = _otpRepository.store(otpStorageRequest);
 
-
+        if (otpId == null) {
+            throw new OtpGenerationFailedException();
+        }
     }
-
 
     /**
      * Validates the given login request.
@@ -232,8 +243,12 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
+            var invalidRecipient = !Validator.isBlank(request.getEmail()) && Validator.isEmail(request.getEmail());
             if (request.getUserId() == null && Validator.isBlank(request.getEmail())) {
-                throw new OtpReceiverRequiredException();
+                throw new OtpRecipientRequiredException();
+            }
+            if (request.getUserId() == null && invalidRecipient) {
+                throw new OtpRecipientRequiredException("Given OTP recipient is invalid.");
             }
         }
     }

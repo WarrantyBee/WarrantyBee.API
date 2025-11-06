@@ -39,5 +39,9 @@ public class AppConfiguration {
     /** Configuration properties for Google reCaptcha validation service. */
     private ReCaptchaConfiguration recaptchaConfiguration;
 
+    /** Configuration properties for the SMTP (email) service used to send emails such as OTPs or notifications. */
     private SmtpConfiguration smtpConfiguration;
+
+    /** Configuration properties for OTP (One-Time Password) settings such as expiration time or length. */
+    private OtpConfiguration otpConfiguration;
 }

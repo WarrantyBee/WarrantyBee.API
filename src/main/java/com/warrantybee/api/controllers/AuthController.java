@@ -62,7 +62,7 @@ public class AuthController {
      * @return a success response after sending the OTP
      * @throws Exception if an error occurs while sending the OTP
      */
-    @PostMapping("/sendotp")
+    @PostMapping("/send-otp")
     public ResponseEntity<APIResponse<?>> sendOtp(@RequestBody OtpRequest request) throws Exception {
         _authService.sendOtp(request);
         return ResponseEntity.ok(new APIResponse<Object>(null, null));
