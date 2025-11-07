@@ -2,25 +2,32 @@ package com.warrantybee.api.constants;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Holds and manages macros used in email templates.
+ * Provides access to predefined macros used in email templates.
  */
+@Component
 public class EmailTemplateMacros {
 
+    private static Map<String, String> macros;
+
+    /**
+     * Initializes the macro map using environment properties.
+     *
+     * @param environment the Spring environment containing macro property values
+     */
     @Autowired
-    private Environment _environment;
-
-    private EmailTemplateMacros() { }
-
-    /** Map storing macro key-value pairs. */
-    private Map<String, String> _macros = Map.of(
-        "ORGANIZATION_NAME", _environment.getProperty("WARRANTYBEE_MACRO_ORGANIZATION_NAME"),
-        "SUPPORT_EMAIL", _environment.getProperty("WARRANTYBEE_MACRO_SUPPORT_EMAIL"),
-        "PRIVACY_POLICY_URL", _environment.getProperty("WARANTYBEE_MACRO_PRIVACY_POLICY_URL")
-    );
+    public EmailTemplateMacros(Environment environment) {
+        macros = Map.of(
+            "ORGANIZATION_NAME", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_ORG_NAME")),
+            "SUPPORT_EMAIL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_SUPPORT_EMAIL")),
+            "PRIVACY_POLICY_URL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_PRIVACY_POLICY_URL"))
+        );
+    }
 
     /**
      * Retrieves the value of a macro by its key.
@@ -29,7 +36,6 @@ public class EmailTemplateMacros {
      * @return the macro value, or {@code null} if not found
      */
     public static String get(String key) {
-        EmailTemplateMacros obj = new EmailTemplateMacros();
-        return obj._macros.getOrDefault(key, null);
+        return macros != null ? macros.getOrDefault(key, null) : null;
     }
 }

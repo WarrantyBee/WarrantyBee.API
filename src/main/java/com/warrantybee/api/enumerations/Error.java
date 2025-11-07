@@ -126,7 +126,13 @@ public enum Error {
     EMAIL_TEMPLATE_NOT_FOUND(1037, "Email template not found.", HttpStatus.NOT_FOUND),
 
     /** There was an error parsing the email template. */
-    EMAIL_TEMPLATE_PARSING_ERROR(1038, "There was an error parsing the email template.", HttpStatus.INTERNAL_SERVER_ERROR);
+    EMAIL_TEMPLATE_PARSING_ERROR(1038, "There was an error parsing the email template.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** Could not resolve all macros in the email template. */
+    TEMPLATE_MACRO_COULD_NOT_BE_RESOLVED(1040, "Could not resolve all macros in the email template.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The rate limit has been exceeded. */
+    RATE_LIMIT_EXCEEDED(1041, "Rate limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

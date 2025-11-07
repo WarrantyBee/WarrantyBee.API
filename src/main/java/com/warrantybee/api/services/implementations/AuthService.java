@@ -244,7 +244,7 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
-            var invalidRecipient = !Validator.isBlank(request.getEmail()) && Validator.isEmail(request.getEmail());
+            var invalidRecipient = !Validator.isBlank(request.getEmail()) && !Validator.isEmail(request.getEmail());
             if (request.getUserId() == null && Validator.isBlank(request.getEmail())) {
                 throw new OtpRecipientRequiredException();
             }
