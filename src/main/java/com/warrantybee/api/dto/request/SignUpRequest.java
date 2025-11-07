@@ -31,6 +31,9 @@ public class SignUpRequest {
     private String addressLine2;
 
     /** User date of birth */
+    private LocalDate dob;
+
+    /** User state ID */
     private LocalDate dateOfBirth;
 
     /** User phone number */

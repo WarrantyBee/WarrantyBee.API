@@ -26,7 +26,7 @@ public class UserCreationRequest {
     /** User's login password (should be hashed before persistence). */
     private String password;
 
-    /** User's gender identifier (e.g., 1 for male, 2 for female, etc.). */
+    /** User's gender (e.g., 1 for male, 2 for female, etc.). */
     private Byte gender;
 
     /** User's date of birth. */
@@ -50,7 +50,7 @@ public class UserCreationRequest {
     /** Identifier for the user's country. */
     private Long countryId;
 
-    /** Postal code for the residence. */
+    /** Identifier for the user's postal code. */
     private String postalCode;
 
     /** URL of the user's profile avatar image. */

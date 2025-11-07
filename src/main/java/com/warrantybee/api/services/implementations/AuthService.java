@@ -1,20 +1,21 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.dto.internal.OtpStorageRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.request.OtpRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.exceptions.*;
-import com.warrantybee.api.helpers.PasswordHelper;
+import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
+import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,10 +31,10 @@ public class AuthService implements IAuthService {
     private final ITokenService _tokenService;
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
+    private final IOtpService _otpService;
+    private final IEmailService _emailService;
     private final IUserRepository _userRepository;
-
-    @PersistenceContext
-    private EntityManager _entityManager;
+    private final IOtpRepository _otpRepository;
 
     /**
      * Constructs a new {@code AuthService} with the required dependencies.
@@ -41,15 +42,20 @@ public class AuthService implements IAuthService {
      * @param tokenService      the service responsible for JWT operations
      * @param cacheService      the service used for caching tokens
      * @param captchaService    the service used to validate CAPTCHA responses
+     * @param emailService      the service used to send emails
      * @param userRepository    the repository used to manage user data
+     * @param otpRepository     tge repository used to store and retrieve OTPs
      */
     @Autowired
     public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IUserRepository userRepository) {
+                       IOtpService otpService, IEmailService emailService, IUserRepository userRepository, IOtpRepository otpRepository) {
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
+        this._otpService = otpService;
+        this._emailService = emailService;
         this._userRepository = userRepository;
+        this._otpRepository = otpRepository;
     }
 
     @Override
@@ -62,7 +68,7 @@ public class AuthService implements IAuthService {
             UserResponse user = _userRepository.get(searchFilter);
 
             if (user != null) {
-                if (PasswordHelper.verify(request.getPassword(), user.getPassword())) {
+                if (HashHelper.verify(request.getPassword(), user.getPassword())) {
                     throw new InvalidCredentialsException();
                 }
 
@@ -92,7 +98,7 @@ public class AuthService implements IAuthService {
         if (hasValidCaptcha) {
             UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
             UserResponse user = _userRepository.get(filter);
-            String passwordHash = PasswordHelper.generate(request.getPassword());
+            String passwordHash = HashHelper.getHash(request.getPassword());
 
             if (user == null) {
                 UserCreationRequest userCreationRequest = new UserCreationRequest(
@@ -128,8 +134,37 @@ public class AuthService implements IAuthService {
         }
     }
 
+    @Override
+    public void sendOtp(OtpRequest request) {
+        _validate(request);
+        String recipient = request.getEmail();
+
+        if (request.getUserId() != null) {
+            UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
+            UserResponse user = _userRepository.get(filter);
+            if (user == null) {
+                throw new UserNotFoundException();
+            }
+            else {
+                recipient = user.getEmail();
+            }
+        }
+
+        final String otp = _otpService.generate();
+        final String otpHash = HashHelper.getHash(otp);
+        OtpStorageRequest otpStorageRequest = new OtpStorageRequest(otpHash, recipient, request.getUserId());
+        Long otpId = _otpRepository.store(otpStorageRequest);
+
+        if (otpId == null) {
+            throw new OtpGenerationFailedException();
+        }
+        else {
+            _emailService.sendOtp(recipient, otp);
+        }
+    }
+
     /**
-     * Validates the login request for required fields and non-empty values.
+     * Validates the given login request.
      * @param request the login request to validate
      */
     private void _validate(LoginRequest request) {
@@ -201,6 +236,25 @@ public class AuthService implements IAuthService {
     }
 
     /**
+     * Validates the given OTP request.
+     * @param request the OTP request to validate
+     */
+    private void _validate(OtpRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            var invalidRecipient = !Validator.isBlank(request.getEmail()) && !Validator.isEmail(request.getEmail());
+            if (request.getUserId() == null && Validator.isBlank(request.getEmail())) {
+                throw new OtpRecipientRequiredException();
+            }
+            if (request.getUserId() == null && invalidRecipient) {
+                throw new OtpRecipientRequiredException("Given OTP recipient is invalid.");
+            }
+        }
+    }
+
+    /**
      * Retrieves and validates an access token from the cache for the specified email.
      * @param email the user's email address used to generate the cache key
      * @return the valid cached access token, or {@code null} if no valid token exists
@@ -237,3 +291,4 @@ public class AuthService implements IAuthService {
         _cacheService.set(cacheKey, token, 3600);
     }
 }
+

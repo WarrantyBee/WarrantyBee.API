@@ -19,13 +19,15 @@ public class APIResponse<T> {
     private final boolean success;
 
     /**
-     * Private default constructor for internal use only.
-     * Initializes data and error to null, and success to false.
+     * Creates an API response with the given data and error.
+     *
+     * @param data  the response data
+     * @param error the error details, null if successful
      */
-    private APIResponse() {
-        this.data = null;
-        this.error = null;
-        this.success = false;
+    public APIResponse(T data, APIError error) {
+        this.data = data;
+        this.error = error;
+        this.success = error == null;
     }
 
     /**

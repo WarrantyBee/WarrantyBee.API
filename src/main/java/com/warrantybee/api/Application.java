@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 				SecurityAutoConfiguration.class
 		}
 )
-public class Application {
+public class Application {	
 
 	/**
 	 * Starts the Spring Boot application.

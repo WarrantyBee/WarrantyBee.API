@@ -105,7 +105,34 @@ public enum Error {
     PHONE_NUMBER_REQUIRED(1031, "Phone number is required.", HttpStatus.BAD_REQUEST),
 
     /** The user registration failed. */
-    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR);
+    USER_REGISTRATION_FAILED(1032, "User registration failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The otp receiver is required. */
+    OTP_RECIPIENT_REQUIRED(1033, "The OTP recipient is required.", HttpStatus.BAD_REQUEST),
+
+    /** The otp is invalid. */
+    INVALID_OTP(1034, "Invalid OTP.", HttpStatus.BAD_REQUEST),
+
+    /** The otp has expired. */
+    OTP_EXPIRED(1035, "OTP has expired.", HttpStatus.BAD_REQUEST),
+
+    /** The maximum otp attempts reached. */
+    MAX_OTP_ATTEMPTS_REACHED(1036, "Maximum OTP attempts reached.", HttpStatus.BAD_REQUEST),
+
+    /** Could not generate OTP. */
+    OTP_GENERATION_FAILED(1039, "Could not generate OTP.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The email template was not found. */
+    EMAIL_TEMPLATE_NOT_FOUND(1037, "Email template not found.", HttpStatus.NOT_FOUND),
+
+    /** There was an error parsing the email template. */
+    EMAIL_TEMPLATE_PARSING_ERROR(1038, "There was an error parsing the email template.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** Could not resolve all macros in the email template. */
+    TEMPLATE_MACRO_COULD_NOT_BE_RESOLVED(1040, "Could not resolve all macros in the email template.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The rate limit has been exceeded. */
+    RATE_LIMIT_EXCEEDED(1041, "Rate limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

@@ -21,5 +21,5 @@ public class JwtTokenConfiguration {
     private String secret;
 
     /** The token expiration time, specified in minutes. */
-    private int expiration;
+    private Integer expiration;
 }
