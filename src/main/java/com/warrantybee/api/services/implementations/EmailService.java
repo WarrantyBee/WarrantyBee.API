@@ -1,4 +1,5 @@
 package com.warrantybee.api.services.implementations;
+
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.constants.EmailTemplate;
 import com.warrantybee.api.constants.EmailTemplateMacros;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Service implementation for handling email operations such as sending messages and OTPs.
+ */
 @Service
 public class EmailService implements IEmailService {
 
@@ -21,11 +25,11 @@ public class EmailService implements IEmailService {
     private final Integer _expirationMins;
     private final JavaMailSender _sender;
 
-    public EmailService(AppConfiguration configuration, IEmailTemplateService templateService) {
+    public EmailService(AppConfiguration configuration, IEmailTemplateService templateService, JavaMailSender sender) {
         var otpConfiguration = configuration.getOtpConfiguration();
         _expirationMins = otpConfiguration.getExpiration();
         this._templateService = templateService;
-        this._sender = null;
+        this._sender = sender;
     }
 
     @Override

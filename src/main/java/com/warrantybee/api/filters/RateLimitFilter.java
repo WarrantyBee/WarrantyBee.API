@@ -1,5 +1,9 @@
 package com.warrantybee.api.filters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.warrantybee.api.dto.response.APIError;
+import com.warrantybee.api.dto.response.APIResponse;
+import com.warrantybee.api.enumerations.Error;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -25,6 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitFilter implements Filter {
 
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
+
+    public RateLimitFilter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -40,8 +49,12 @@ public class RateLimitFilter implements Filter {
             Bucket bucket = cache.computeIfAbsent(clientId, this::createNewBucket);
 
             if (!bucket.tryConsume(1)) {
-                response.setStatus(429);
-                response.getWriter().write("Rate limit exceeded. Try again after 2 minutes.");
+                APIError apiError = new APIError(Error.RATE_LIMIT_EXCEEDED.getCode(), Error.RATE_LIMIT_EXCEEDED.getMessage());
+                APIResponse<?> apiResponse = new APIResponse<>(apiError);
+
+                response.setStatus(Error.RATE_LIMIT_EXCEEDED.getStatus().value());
+                response.setContentType("application/json");
+                response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
                 return;
             }
         }
@@ -61,7 +74,7 @@ public class RateLimitFilter implements Filter {
      * Allows 1 request every 2 minutes.
      */
     private Bucket createNewBucket(String clientId) {
-        Refill refill = Refill.intervally(1, Duration.ofMinutes(2)); // 1 token every 2 minutes
+        Refill refill = Refill.intervally(1, Duration.ofMinutes(30));
         Bandwidth limit = Bandwidth.classic(1, refill);
         return Bucket.builder().addLimit(limit).build();
     }

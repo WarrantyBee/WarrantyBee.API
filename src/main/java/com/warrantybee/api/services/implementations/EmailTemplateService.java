@@ -2,6 +2,7 @@ package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.exceptions.EmailTemplateNotFoundException;
 import com.warrantybee.api.exceptions.EmailTemplateParsingException;
+import com.warrantybee.api.exceptions.TemplateMacroCouldNotBeResolvedException;
 import com.warrantybee.api.services.interfaces.IEmailTemplateService;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link IEmailTemplateService} for processing email templates.
@@ -34,7 +37,13 @@ public class EmailTemplateService implements IEmailTemplateService {
 
         for (Map.Entry<String, String> entry : macros.entrySet()) {
             String macro = "<macro>" + entry.getKey() + "</macro>";
-            content = content.replace(macro, entry.getValue());
+            content = content.replaceAll(macro, entry.getValue());
+        }
+
+        Pattern pattern = Pattern.compile("<macro>.*?</macro>");
+        Matcher matcher = pattern.matcher(content);
+        if (matcher.find()) {
+            throw new TemplateMacroCouldNotBeResolvedException("Unresolved macro found: " + matcher.group());
         }
 
         return content;
