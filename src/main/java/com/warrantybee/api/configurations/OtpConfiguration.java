@@ -14,5 +14,5 @@ public class OtpConfiguration {
      * The expiration time of the OTP, typically defined in minutes,
      * after which the OTP becomes invalid.
      */
-    private int expiration;
+    private Integer expiration;
 }
