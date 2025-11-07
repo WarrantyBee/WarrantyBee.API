@@ -16,8 +16,6 @@ import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,11 +32,9 @@ public class AuthService implements IAuthService {
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
     private final IOtpService _otpService;
+    private final IEmailService _emailService;
     private final IUserRepository _userRepository;
     private final IOtpRepository _otpRepository;
-
-    @PersistenceContext
-    private EntityManager _entityManager;
 
     /**
      * Constructs a new {@code AuthService} with the required dependencies.
@@ -46,16 +42,18 @@ public class AuthService implements IAuthService {
      * @param tokenService      the service responsible for JWT operations
      * @param cacheService      the service used for caching tokens
      * @param captchaService    the service used to validate CAPTCHA responses
+     * @param emailService      the service used to send emails
      * @param userRepository    the repository used to manage user data
      * @param otpRepository     tge repository used to store and retrieve OTPs
      */
     @Autowired
     public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IOtpService otpService, IUserRepository userRepository, IOtpRepository otpRepository) {
+                       IOtpService otpService, IEmailService emailService, IUserRepository userRepository, IOtpRepository otpRepository) {
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
         this._otpService = otpService;
+        this._emailService = emailService;
         this._userRepository = userRepository;
         this._otpRepository = otpRepository;
     }
@@ -159,6 +157,9 @@ public class AuthService implements IAuthService {
 
         if (otpId == null) {
             throw new OtpGenerationFailedException();
+        }
+        else {
+            _emailService.sendOtp(recipient, otp);
         }
     }
 

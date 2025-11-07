@@ -16,21 +16,4 @@ public class SmtpConfig {
     public SmtpConfig(AppConfiguration appConfiguration) {
         this.smtpConfiguration = appConfiguration.getSmtpConfiguration();
     }
-
-    @Bean
-    public JavaMailSender javaMailSender() {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(this.smtpConfiguration.getHost());
-        mailSender.setPort(this.smtpConfiguration.getPort());
-        mailSender.setUsername(this.smtpConfiguration.getUsername());
-        mailSender.setPassword(this.smtpConfiguration.getPassword());
-
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "false");
-
-        return mailSender;
-    }
 }

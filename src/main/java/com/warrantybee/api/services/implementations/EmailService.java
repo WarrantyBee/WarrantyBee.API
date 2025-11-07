@@ -7,7 +7,6 @@ import com.warrantybee.api.services.interfaces.IEmailService;
 import com.warrantybee.api.services.interfaces.IEmailTemplateService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -18,15 +17,15 @@ import java.util.Map;
 @Service
 public class EmailService implements IEmailService {
 
-    @Autowired
-    private JavaMailSender _sender;
     private final IEmailTemplateService _templateService;
     private final Integer _expirationMins;
+    private final JavaMailSender _sender;
 
     public EmailService(AppConfiguration configuration, IEmailTemplateService templateService) {
         var otpConfiguration = configuration.getOtpConfiguration();
         _expirationMins = otpConfiguration.getExpiration();
         this._templateService = templateService;
+        this._sender = null;
     }
 
     @Override
