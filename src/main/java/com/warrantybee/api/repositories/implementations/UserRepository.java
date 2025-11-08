@@ -1,18 +1,17 @@
 package com.warrantybee.api.repositories.implementations;
 
+import com.warrantybee.api.dto.internal.LoginTokenDetails;
 import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ParameterMode;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.StoredProcedureQuery;
+import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +28,7 @@ public class UserRepository implements IUserRepository {
     @Transactional
     public Long create(UserCreationRequest request) {
         try {
+            List<List<Object[]>> results = new ArrayList<>();
             StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_RegisterUser");
 
             query.registerStoredProcedureParameter("in_firstname", String.class, jakarta.persistence.ParameterMode.IN);
@@ -63,14 +63,17 @@ public class UserRepository implements IUserRepository {
 
             query.execute();
 
-            @SuppressWarnings("unchecked")
-            List<Object[]> resultList = query.getResultList();
+            do {
+                @SuppressWarnings("unchecked")
+                List<Object[]> resultList = query.getResultList();
+                results.add(resultList);
+            } while (query.hasMoreResults());
 
-            if (resultList.isEmpty() || resultList.get(0)[0] == null) {
+            if (results.getLast().isEmpty() || results.getLast().get(0)[0] == null) {
                 return null;
             }
 
-            return ((Number) resultList.get(0)[0]).longValue();
+            return ((Number) results.getLast().get(0)[0]).longValue();
         } catch (Exception e) {
             return null;
         }
@@ -169,6 +172,7 @@ public class UserRepository implements IUserRepository {
             profile.setCurrency(currency);
             profile.setSettings(settings);
             userResponse.setProfile(profile);
+            userResponse.setPassword((String)row[34]);
 
             return userResponse;
 
@@ -183,11 +187,9 @@ public class UserRepository implements IUserRepository {
         try {
             StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_StoreLoginToken");
 
-            query.registerStoredProcedureParameter("in_email", String.class, ParameterMode.IN);
-            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_token", String.class, ParameterMode.IN);
 
-            query.setParameter("in_email", details.getEmail());
             query.setParameter("in_user_id", details.getUserId().intValue());
             query.setParameter("in_token", details.getToken());
 
@@ -208,22 +210,16 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public Boolean validate(com.warrantybee.api.dto.internal.LoginTokenDetails details) {
+    public Boolean validate(LoginTokenDetails details) {
         try {
-            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("ufn_ValidateLoginToken");
+            Query query = _entityManager.createNativeQuery(
+                    "SELECT ufn_ValidateLoginToken(:userId, :token)"
+            );
+            query.setParameter("userId", details.getUserId());
+            query.setParameter("token", details.getToken());
 
-            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
-            query.registerStoredProcedureParameter("in_email", String.class, ParameterMode.IN);
-            query.registerStoredProcedureParameter("in_token", String.class, ParameterMode.IN);
-            query.registerStoredProcedureParameter("returnValue", Boolean.class, ParameterMode.OUT);
-
-            query.setParameter("in_user_id", details.getUserId().intValue());
-            query.setParameter("in_email", details.getEmail());
-            query.setParameter("in_token", details.getToken());
-
-            query.execute();
-
-            return (Boolean) query.getOutputParameterValue("returnValue");
+            Object result = query.getSingleResult();
+            return result != null && ((Boolean) result);
         } catch (Exception e) {
             return false;
         }
@@ -235,7 +231,7 @@ public class UserRepository implements IUserRepository {
         try {
             StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_ResetPassword");
 
-            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_new_password", String.class, ParameterMode.IN);
 
             query.setParameter("in_user_id", request.getUserId().intValue());

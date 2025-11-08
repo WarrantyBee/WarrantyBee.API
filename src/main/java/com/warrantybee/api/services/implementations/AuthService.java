@@ -9,6 +9,7 @@ import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.enumerations.Gender;
+import com.warrantybee.api.enumerations.LogLevel;
 import com.warrantybee.api.enumerations.OtpRequestReason;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.HashHelper;
@@ -33,6 +34,7 @@ public class AuthService implements IAuthService {
     private final ICaptchaService _captchaService;
     private final IOtpService _otpService;
     private final IEmailService _emailService;
+    private final ITelemetryService _telemetryService;
     private final IUserRepository _userRepository;
     private final IOtpRepository _otpRepository;
 
@@ -48,12 +50,14 @@ public class AuthService implements IAuthService {
      */
     @Autowired
     public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IOtpService otpService, IEmailService emailService, IUserRepository userRepository, IOtpRepository otpRepository) {
+                       IOtpService otpService, IEmailService emailService, ITelemetryService telemetryService,
+                       IUserRepository userRepository, IOtpRepository otpRepository) {
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
         this._otpService = otpService;
         this._emailService = emailService;
+        this._telemetryService = telemetryService;
         this._userRepository = userRepository;
         this._otpRepository = otpRepository;
     }
@@ -126,6 +130,15 @@ public class AuthService implements IAuthService {
 
                 if (userId == null) {
                     throw new UserRegistrationFailedException();
+                }
+
+                try {
+                    _emailService.sendWelcomeMail(request);
+                }
+                catch (Exception e) {
+                    Map<String, Object> context = new HashMap<>();
+                    context.put("exception", e);
+                    _telemetryService.log(LogLevel.WARN, "A failure happened while sending the welcome email.", context);
                 }
 
                 return new SignUpResponse(userId);
@@ -287,25 +300,6 @@ public class AuthService implements IAuthService {
     }
 
     /**
-     * Validates the given OTP request.
-     * @param request the OTP request to validate
-     */
-    private void _validate(OtpRequest request) {
-        if (request == null) {
-            throw new RequestBodyEmptyException();
-        }
-        else {
-            var invalidRecipient = !Validator.isBlank(request.getEmail()) && !Validator.isEmail(request.getEmail());
-            if (request.getUserId() == null && Validator.isBlank(request.getEmail())) {
-                throw new OtpRecipientRequiredException();
-            }
-            if (request.getUserId() == null && invalidRecipient) {
-                throw new OtpRecipientRequiredException("Given OTP recipient is invalid.");
-            }
-        }
-    }
-
-    /**
      * Validates the forgot password request.
      */
     private void _validate(ForgotPasswordRequest request) {
@@ -403,7 +397,7 @@ public class AuthService implements IAuthService {
             }
 
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
-                LoginTokenDetails token = new LoginTokenDetails(user.getId(), user.getEmail(), HashHelper.generateToken());
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), HashHelper.generateToken());
                 Boolean isStored = _userRepository.store(token);
 
                 if (isStored) {
@@ -443,7 +437,7 @@ public class AuthService implements IAuthService {
             }
 
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
-                LoginTokenDetails token = new LoginTokenDetails(user.getId(), user.getEmail(), request.getToken());
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
                 Boolean isValid = _userRepository.validate(token);
 
                 if (isValid) {
@@ -506,6 +500,7 @@ public class AuthService implements IAuthService {
             throw new OtpGenerationFailedException();
         }
         else {
+            macros.put("OTP", otp);
             OtpEmailPayload payload = new OtpEmailPayload(recipient, otp, reason, macros);
             _emailService.sendOtp(payload);
         }

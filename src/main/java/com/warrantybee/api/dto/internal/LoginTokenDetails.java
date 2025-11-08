@@ -15,9 +15,6 @@ public class LoginTokenDetails {
     /** Unique identifier of the user. */
     private Long userId;
 
-    /** Email address of the user. */
-    private String email;
-
     /** Generated login token for the user session. */
     private String token;
 }
