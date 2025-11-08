@@ -1,5 +1,6 @@
 package com.warrantybee.api.dto.response;
 
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
+public class LoginResponse implements ILoginResponse {
 
     /**
      * The JSON Web Token (JWT) used for subsequent authenticated requests to protected API endpoints.

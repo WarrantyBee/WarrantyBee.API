@@ -1,5 +1,7 @@
 package com.warrantybee.api.repositories.interfaces;
 
+import com.warrantybee.api.dto.internal.LoginTokenDetails;
+import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.response.UserResponse;
@@ -27,4 +29,28 @@ public interface IUserRepository {
      * @return A {@link UserResponse} DTO containing the user's details, or {@code null} if no user is found.
      */
     UserResponse get(UserSearchFilter filter);
+
+    /**
+     * Stores the user's login token details.
+     *
+     * @param details the login token details to store
+     * @return true if the token is stored successfully, otherwise false
+     */
+    Boolean store(LoginTokenDetails details);
+
+    /**
+     * Validates the provided login token details.
+     *
+     * @param details the login token details to validate
+     * @return true if the token is valid, otherwise false
+     */
+    Boolean validate(LoginTokenDetails details);
+
+    /**
+     * Resets the user's password based on the provided request.
+     *
+     * @param request contains user details and new password information
+     * @return true if the password reset is successful, false otherwise
+     */
+    Boolean resetPassword(PasswordResetRequest request);
 }

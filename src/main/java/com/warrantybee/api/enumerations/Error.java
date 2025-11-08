@@ -132,7 +132,28 @@ public enum Error {
     TEMPLATE_MACRO_COULD_NOT_BE_RESOLVED(1040, "Could not resolve all macros in the email template.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The rate limit has been exceeded. */
-    RATE_LIMIT_EXCEEDED(1041, "Rate limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
+    RATE_LIMIT_EXCEEDED(1041, "Rate limit exceeded. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
+
+    /** The OTP is required. */
+    OTP_REQUIRED(1042, "The OTP is required.", HttpStatus.BAD_REQUEST),
+
+    /** The OTP recipient is invalid. */
+    INVALID_OTP_RECIPIENT(1043, "The OTP recipient is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The login token could not be saved. */
+    LOGIN_TOKEN_COULD_NOT_BE_SAVED(1044, "The login token could not be saved.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The user has not enabled MFA. */
+    MFA_NOT_ENABLED(1045, "The user has not enabled MFA.", HttpStatus.BAD_REQUEST),
+
+    /** The request body is invalid. */
+    INVALID_REQUEST_BODY(1046, "The request body is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The token is required. */
+    TOKEN_REQUIRED(1047, "The token is required and it cannot be empty.", HttpStatus.BAD_REQUEST),
+
+    /** The token is required. */
+    PASSWORD_RESET_FAILED(1048, "Password could not be reset.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

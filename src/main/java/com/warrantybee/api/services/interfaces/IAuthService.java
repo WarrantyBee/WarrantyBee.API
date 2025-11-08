@@ -1,10 +1,9 @@
 package com.warrantybee.api.services.interfaces;
 
-import com.warrantybee.api.dto.request.LoginRequest;
-import com.warrantybee.api.dto.request.OtpRequest;
-import com.warrantybee.api.dto.request.SignUpRequest;
-import com.warrantybee.api.dto.response.LoginResponse;
+import com.warrantybee.api.dto.request.*;
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import com.warrantybee.api.dto.response.SignUpResponse;
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 
 /**
  * Service interface for handling user authentication and registration operations.
@@ -12,12 +11,12 @@ import com.warrantybee.api.dto.response.SignUpResponse;
 public interface IAuthService {
 
     /**
-     * Authenticates a user based on the provided credentials.
+     * Authenticates a user based on the provided login request and returns a corresponding login response.
      *
-     * @param request the login request containing email, password, and captcha
-     * @return a {@link LoginResponse} containing user details and authentication token
+     * @param request the login request containing user credentials and related details
+     * @return an {@link ILoginResponse} representing the outcome of the login process
      */
-    LoginResponse login(LoginRequest request);
+    ILoginResponse login(ILoginRequest request);
 
     /**
      * Registers a new user with the provided sign-up details.
@@ -28,9 +27,16 @@ public interface IAuthService {
     SignUpResponse signUp(SignUpRequest request);
 
     /**
-     * Sends an OTP (One-Time Password) to the specified user email for verification.
+     * Initiates the forgot password process for the given user.
      *
-     * @param request the OTP request containing user ID and email
+     * @param request contains the user's email address
      */
-    void sendOtp(OtpRequest request);
+    void forgotPassword(ForgotPasswordRequest request);
+
+    /**
+     * Resets the user's password after OTP verification.
+     *
+     * @param request contains the OTP, email, and new password
+     */
+    void resetPassword(ResetPasswordRequest request);
 }

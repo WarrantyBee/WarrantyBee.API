@@ -1,5 +1,6 @@
 package com.warrantybee.api.repositories.interfaces;
 
+import com.warrantybee.api.dto.internal.OtpSearchFilter;
 import com.warrantybee.api.dto.internal.OtpStorageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -20,8 +21,8 @@ public interface IOtpRepository {
     /**
      * Retrieves the stored OTP value for the specified recipient.
      *
-     * @param recipient the recipient identifier (email)
+     * @param filter the search filter containing recipient details and reason
      * @return the stored OTP value
      */
-    String get(String recipient);
+    String get(OtpSearchFilter filter);
 }

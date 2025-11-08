@@ -1,5 +1,6 @@
 package com.warrantybee.api.dto.request;
 
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -13,27 +14,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class LoginRequest {
+public class LoginRequest implements ILoginRequest {
 
-    /**
-     * The user's email address, which serves as the login identifier.
-     * Must be a valid email format and cannot be blank.
-     */
-    @Email
-    @NotBlank
+    /** The user's email address, which serves as the login identifier. */
     private String email;
 
-    /**
-     * The user's plain-text password.
-     * Cannot be blank.
-     */
-    @NotBlank
+    /** The user's plain-text password. */
     private String password;
 
-    /**
-     * The verification token received from the CAPTCHA service (e.g., reCAPTCHA).
-     * Cannot be blank.
-     */
-    @NotBlank
+    /** The verification token received from the CAPTCHA service (e.g., reCAPTCHA). */
     private String captchaResponse;
 }

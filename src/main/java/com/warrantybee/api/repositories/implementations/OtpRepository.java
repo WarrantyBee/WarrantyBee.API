@@ -1,5 +1,6 @@
 package com.warrantybee.api.repositories.implementations;
 
+import com.warrantybee.api.dto.internal.OtpSearchFilter;
 import com.warrantybee.api.dto.internal.OtpStorageRequest;
 import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import jakarta.persistence.EntityManager;
@@ -24,10 +25,12 @@ public class OtpRepository implements IOtpRepository {
         query.registerStoredProcedureParameter("in_value", String.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("in_recipient", String.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("in_recipient_id", Long.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("in_type", Byte.class, ParameterMode.IN);
 
         query.setParameter("in_value", request.getValue());
         query.setParameter("in_recipient", request.getRecipient());
         query.setParameter("in_recipient_id", request.getRecipientId());
+        query.setParameter("in_type", request.getReason());
 
         boolean hasResult = query.execute();
 
@@ -42,10 +45,12 @@ public class OtpRepository implements IOtpRepository {
     }
 
     @Override
-    public String get(String recipient) {
+    public String get(OtpSearchFilter filter) {
         StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_GetOtp");
         query.registerStoredProcedureParameter("in_recipient", String.class, jakarta.persistence.ParameterMode.IN);
-        query.setParameter("in_recipient", recipient);
+        query.setParameter("in_recipient", filter.getRecipient());
+        query.setParameter("in_recipient_id", filter.getRecipientId());
+        query.setParameter("in_type", filter.getReason());
         boolean hasResult = query.execute();
 
         if (hasResult) {

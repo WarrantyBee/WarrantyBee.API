@@ -1,5 +1,6 @@
 package com.warrantybee.api.dto.internal;
 
+import com.warrantybee.api.enumerations.OtpRequestReason;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,4 +27,9 @@ public class OtpStorageRequest {
      * The unique ID of the recipient, if available.
      */
     private Long recipientId;
+
+    /**
+     * The reason for requesting the OTP.
+     */
+    private Byte reason;
 }

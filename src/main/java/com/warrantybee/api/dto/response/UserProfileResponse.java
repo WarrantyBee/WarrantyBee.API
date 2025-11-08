@@ -47,6 +47,9 @@ public class UserProfileResponse {
      */
     private CurrencyResponse currency;
 
+    /** User's account settings information. */
+    private UserSettingsResponse settings;
+
     /**
      * The public URL pointing to the user's avatar or profile picture image.
      */

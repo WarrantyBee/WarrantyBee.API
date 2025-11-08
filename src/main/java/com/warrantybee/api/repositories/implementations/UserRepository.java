@@ -1,13 +1,12 @@
 package com.warrantybee.api.repositories.implementations;
 
+import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.StoredProcedureQuery;
+import jakarta.persistence.*;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;
 
@@ -159,15 +158,102 @@ public class UserRepository implements IUserRepository {
             currency.setSymbol((String) row[31]);
             currency.setMinorUnit((row[32] instanceof Number) ? ((Number) row[32]).byteValue() : null);
 
+            UserSettingsResponse settings = new UserSettingsResponse();
+            settings.setIs2FAEnabled(Boolean.valueOf(String.valueOf(row[33])));
+
             profile.setAddress(address);
             profile.setTimezone(timezone);
             profile.setCurrency(currency);
-            userResponse.setDetails(profile);
+            profile.setSettings(settings);
+            userResponse.setProfile(profile);
 
             return userResponse;
 
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    @Override
+    @Transactional
+    public Boolean store(com.warrantybee.api.dto.internal.LoginTokenDetails details) {
+        try {
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_StoreLoginToken");
+
+            query.registerStoredProcedureParameter("in_email", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_token", String.class, ParameterMode.IN);
+
+            query.setParameter("in_email", details.getEmail());
+            query.setParameter("in_user_id", details.getUserId().intValue());
+            query.setParameter("in_token", details.getToken());
+
+            query.execute();
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultList = query.getResultList();
+
+            if (resultList.isEmpty() || ((Number) resultList.get(0)[0]).intValue() != 0) {
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean validate(com.warrantybee.api.dto.internal.LoginTokenDetails details) {
+        try {
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("ufn_ValidateLoginToken");
+
+            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_email", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_token", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("returnValue", Boolean.class, ParameterMode.OUT);
+
+            query.setParameter("in_user_id", details.getUserId().intValue());
+            query.setParameter("in_email", details.getEmail());
+            query.setParameter("in_token", details.getToken());
+
+            query.execute();
+
+            return (Boolean) query.getOutputParameterValue("returnValue");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public Boolean resetPassword(PasswordResetRequest request) {
+        try {
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_ResetPassword");
+
+            query.registerStoredProcedureParameter("in_user_id", Integer.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_new_password", String.class, ParameterMode.IN);
+
+            query.setParameter("in_user_id", request.getUserId().intValue());
+            query.setParameter("in_new_password", request.getNewPassword());
+
+            query.execute();
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultList = query.getResultList();
+
+            if (resultList.isEmpty()) {
+                return false;
+            }
+
+            Object[] row = resultList.get(0);
+            int status = ((Number) row[0]).intValue();
+            String message = (row[1] != null) ? row[1].toString() : null;
+
+            return status == 0; // Success
+        } catch (Exception e) {
+            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.warrantybee.api.services.interfaces;
 
 import com.warrantybee.api.dto.internal.EmailPayload;
+import com.warrantybee.api.dto.internal.OtpEmailPayload;
 
 /** Service interface for sending emails. */
 public interface IEmailService {
@@ -12,9 +13,8 @@ public interface IEmailService {
     void send(EmailPayload payload);
 
     /**
-     * Sends an OTP email to the specified address.
-     * @param email the recipient's email address
-     * @param otp   the one-time password to send
+     * Sends an OTP email to the specified recipient based on the provided payload.
+     * @param payload the OTP email payload containing recipient details, OTP, reason, and dynamic macros
      */
-    void sendOtp(String email, String otp);
+    void sendOtp(OtpEmailPayload payload);
 }

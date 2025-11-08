@@ -3,7 +3,7 @@ package com.warrantybee.api.exceptions;
 import com.warrantybee.api.enumerations.Error;
 
 /**
- * Thrown when the OTP receiver is required.
+ * Thrown when the OTP recipient is required.
  */
 public class OtpRecipientRequiredException extends APIException {
 

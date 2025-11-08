@@ -1,15 +1,15 @@
 package com.warrantybee.api.services.implementations;
 
-import com.warrantybee.api.dto.internal.OtpStorageRequest;
-import com.warrantybee.api.dto.internal.UserCreationRequest;
-import com.warrantybee.api.dto.internal.UserSearchFilter;
-import com.warrantybee.api.dto.request.LoginRequest;
-import com.warrantybee.api.dto.request.OtpRequest;
-import com.warrantybee.api.dto.request.SignUpRequest;
+import com.warrantybee.api.dto.internal.*;
+import com.warrantybee.api.dto.request.*;
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
+import com.warrantybee.api.dto.response.MFALoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.enumerations.Gender;
+import com.warrantybee.api.enumerations.OtpRequestReason;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
@@ -59,35 +59,40 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) {
-        _validate(request);
-        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+    public ILoginResponse login(ILoginRequest request) {
+        LoginRequest loginRequest = null;
+        MFALoginRequest mfaLoginRequest = null;
+        boolean hasValidCaptcha = false;
+        ILoginResponse response = null;
 
-        if (hasValidCaptcha) {
-            UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
-            UserResponse user = _userRepository.get(searchFilter);
+        if (request instanceof LoginRequest obj) {
+            loginRequest = obj;
+        }
+        if (request instanceof MFALoginRequest obj) {
+            mfaLoginRequest = obj;
+        }
 
-            if (user != null) {
-                if (HashHelper.verify(request.getPassword(), user.getPassword())) {
-                    throw new InvalidCredentialsException();
-                }
-
-                String token = _getAccessTokenFromCache(user.getEmail());
-                if (token == null) {
-                    token = _generateAccessToken(user);
-                    _cacheToken(user.getEmail(), token);
-                }
-
-                Map<String, Object> claims = _tokenService.validate(token);
-                return new LoginResponse(token, claims.get("iat").toString(), claims.get("exp").toString(), user);
+        if (loginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(loginRequest.getCaptchaResponse());
+            if (hasValidCaptcha) {
+                response = _process(loginRequest);
             }
-            else {
-                throw new UserNotRegisteredException();
+        }
+        else if (mfaLoginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(mfaLoginRequest.getCaptchaResponse());
+            if (hasValidCaptcha) {
+                response = _process(mfaLoginRequest);
             }
         }
         else {
+            throw new InvalidRequestBodyException();
+        }
+
+        if (!hasValidCaptcha) {
             throw new CaptchaVerificationFailedException();
         }
+
+        return response;
     }
 
     @Override
@@ -135,31 +140,50 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public void sendOtp(OtpRequest request) {
+    public void forgotPassword(ForgotPasswordRequest request) {
         _validate(request);
-        String recipient = request.getEmail();
+        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
-        if (request.getUserId() != null) {
-            UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
-            UserResponse user = _userRepository.get(filter);
-            if (user == null) {
-                throw new UserNotFoundException();
-            }
-            else {
-                recipient = user.getEmail();
-            }
-        }
-
-        final String otp = _otpService.generate();
-        final String otpHash = HashHelper.getHash(otp);
-        OtpStorageRequest otpStorageRequest = new OtpStorageRequest(otpHash, recipient, request.getUserId());
-        Long otpId = _otpRepository.store(otpStorageRequest);
-
-        if (otpId == null) {
-            throw new OtpGenerationFailedException();
+        if (hasValidCaptcha) {
+            OtpRequest otpRequest = new OtpRequest(null, request.getEmail(), OtpRequestReason.ForgotPassword);
+            _sendOtp(otpRequest);
         }
         else {
-            _emailService.sendOtp(recipient, otp);
+            throw new CaptchaVerificationFailedException();
+        }
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        _validate(request);
+        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+
+        if (hasValidCaptcha) {
+            UserSearchFilter userSearchFilter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(userSearchFilter);
+
+            if (user != null) {
+                OtpSearchFilter otpSearchFilter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.ForgotPassword.getCode());
+                String otpHash = _otpRepository.get(otpSearchFilter);
+
+                if (!HashHelper.verify(request.getOtp(), otpHash)) {
+                    throw new InvalidOtpException();
+                }
+                else {
+                    String passwordHash = HashHelper.getHash(request.getNewPassword());
+                    PasswordResetRequest resetRequest = new PasswordResetRequest(user.getId(), passwordHash);
+                    Boolean success = _userRepository.resetPassword(resetRequest);
+                    if (!success) {
+                        throw new PasswordResetFailedException();
+                    }
+                }
+            }
+            else {
+                throw new UserNotRegisteredException();
+            }
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
         }
     }
 
@@ -180,6 +204,33 @@ public class AuthService implements IAuthService {
             }
             if (Validator.isBlank(request.getPassword())) {
                 throw new PasswordRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the given multifactor authentication login request.
+     * @param request the multifactor authentication request
+     */
+    private void _validate(MFALoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (Validator.isBlank(request.getToken())) {
+                throw new TokenRequiredException();
+            }
+            if (Validator.isBlank(request.getOtp())) {
+                throw new OtpRequiredException();
             }
         }
     }
@@ -255,6 +306,49 @@ public class AuthService implements IAuthService {
     }
 
     /**
+     * Validates the forgot password request.
+     */
+    private void _validate(ForgotPasswordRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getEmail())) {
+                throw new OtpRecipientRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidOtpRecipientException();
+            }
+        }
+    }
+
+    /**
+     * Validates the reset password request.
+     */
+    private void _validate(ResetPasswordRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getOtp())) {
+                throw new OtpRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidOtpRecipientException();
+            }
+            if (Validator.isBlank(request.getNewPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (!Validator.isStrongPassword(request.getNewPassword())) {
+                throw new StrongPasswordRequiredException();
+            }
+        }
+    }
+
+    /**
      * Retrieves and validates an access token from the cache for the specified email.
      * @param email the user's email address used to generate the cache key
      * @return the valid cached access token, or {@code null} if no valid token exists
@@ -290,5 +384,154 @@ public class AuthService implements IAuthService {
         String cacheKey = String.format("token:%s", email);
         _cacheService.set(cacheKey, token, 3600);
     }
-}
 
+    /**
+     * Processes a standard login request by validating credentials and handling MFA if enabled.
+     *
+     * @param request The login request containing user email and password.
+     * @return A {@link ILoginResponse} object, which can be a {@link LoginResponse} or {@link MFALoginResponse}.
+     */
+    private ILoginResponse _process(LoginRequest request) {
+        _validate(request);
+
+        UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
+        UserResponse user = _userRepository.get(searchFilter);
+
+        if (user != null) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+
+            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), user.getEmail(), HashHelper.generateToken());
+                Boolean isStored = _userRepository.store(token);
+
+                if (isStored) {
+                    OtpRequest otpRequest = new OtpRequest(user.getId(), user.getEmail(), OtpRequestReason.Login);
+                    _sendOtp(otpRequest);
+                    return new MFALoginResponse(token.getToken());
+                }
+                else {
+                    throw new LoginTokenCouldNotBeSavedException();
+                }
+            }
+            else {
+                return _getLoginResponse(user);
+            }
+        }
+        else {
+            throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Processes an MFA login request by validating credentials, verifying the login token and OTP,
+     * and returning a valid {@link LoginResponse} upon successful authentication.
+     *
+     * @param request The MFA login request containing email, password, token, and OTP.
+     * @return A {@link LoginResponse} if authentication succeeds.
+     */
+    private LoginResponse _process(MFALoginRequest request) {
+        _validate(request);
+
+        UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
+        UserResponse user = _userRepository.get(searchFilter);
+
+        if (user != null) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+
+            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), user.getEmail(), request.getToken());
+                Boolean isValid = _userRepository.validate(token);
+
+                if (isValid) {
+                    OtpSearchFilter filter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.Login.getCode());
+                    String otpHash = _otpRepository.get(filter);
+
+                    if (!HashHelper.verify(request.getOtp(), otpHash)) {
+                        throw new InvalidOtpException();
+                    }
+                    else {
+                        return _getLoginResponse(user);
+                    }
+                }
+                else {
+                    throw new InvalidLoginTokenException();
+                }
+            }
+            else {
+                throw new MFANotEnabledException();
+            }
+        }
+        else {
+            throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Generates and sends an OTP to the specified user based on the request details.
+     * @param request the OTP request containing the user's email, ID, and reason
+     */
+    private void _sendOtp(OtpRequest request) {
+        String recipient = request.getEmail();
+        OtpRequestReason reason = request.getReason();
+        Map<String, String> macros = new HashMap<>();
+
+        if (reason == OtpRequestReason.Login) {
+            if (request.getUserId() != null) {
+                UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
+                UserResponse user = _userRepository.get(filter);
+                if (user == null) {
+                    throw new OtpRecipientRequiredException();
+                }
+                else {
+                    recipient = user.getEmail();
+                    macros.put("USER_FIRST_NAME", user.getFirstname());
+                    macros.put("USER_LAST_NAME", user.getLastname());
+                }
+            }
+            else {
+                throw new OtpRecipientRequiredException();
+            }
+        }
+
+        final String otp = _otpService.generate();
+        final String otpHash = HashHelper.getHash(otp);
+        OtpStorageRequest otpStorageRequest = new OtpStorageRequest(otpHash, recipient, request.getUserId(), (byte) reason.getCode());
+        Long otpId = _otpRepository.store(otpStorageRequest);
+
+        if (otpId == null) {
+            throw new OtpGenerationFailedException();
+        }
+        else {
+            OtpEmailPayload payload = new OtpEmailPayload(recipient, otp, reason, macros);
+            _emailService.sendOtp(payload);
+        }
+    }
+
+    /**
+     * Builds and returns a {@link LoginResponse} for the given user.
+     * Retrieves the access token from cache if available, otherwise generates and stores a new one.
+     *
+     * @param user The authenticated user details.
+     * @return A populated {@link LoginResponse} containing the token and related claims.
+     */
+    private LoginResponse _getLoginResponse(UserResponse user) {
+        String accessToken = _getAccessTokenFromCache(user.getEmail());
+
+        if (accessToken == null) {
+            accessToken = _generateAccessToken(user);
+            _cacheToken(user.getEmail(), accessToken);
+        }
+
+        Map<String, Object> claims = _tokenService.validate(accessToken);
+        return new LoginResponse(
+            accessToken,
+            claims.get("iat").toString(),
+            claims.get("exp").toString(),
+            user
+        );
+    }
+}

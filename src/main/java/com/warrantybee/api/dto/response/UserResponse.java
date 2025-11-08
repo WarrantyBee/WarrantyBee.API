@@ -46,5 +46,5 @@ public class UserResponse {
      * Extended profile details, including geographical and preference information,
      * provided as a nested {@link UserProfileResponse} DTO.
      */
-    private UserProfileResponse details;
+    private UserProfileResponse profile;
 }

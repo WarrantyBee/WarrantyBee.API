@@ -5,6 +5,12 @@ package com.warrantybee.api.constants;
  */
 public class EmailTemplate {
 
-    /** Path to the OTP email template */
-    public static final String OTP = "templates/otp.html";
+    /** Path to the Login email template */
+    public static final String LOGIN = "templates/login.html";
+
+    /** Path to the Forgot Password email template */
+    public static final String FORGOT_PASSWORD = "templates/forgot_password.html";
+
+    /** Path to the New Account email template */
+    public static final String NEW_ACCOUNT = "templates/new_account.html";
 }
