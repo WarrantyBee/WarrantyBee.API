@@ -1,6 +1,5 @@
 package com.warrantybee.api.dto.internal;
 
-import com.warrantybee.api.enumerations.OtpRequestReason;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

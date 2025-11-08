@@ -6,9 +6,12 @@ import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
-import jakarta.persistence.*;
-import org.springframework.stereotype.Repository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.StoredProcedureQuery;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 

@@ -1,8 +1,6 @@
 package com.warrantybee.api.dto.request;
 
 import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

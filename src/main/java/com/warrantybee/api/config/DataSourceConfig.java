@@ -4,9 +4,9 @@ import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.DataSourceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
  * Spring configuration class responsible for creating and configuring the

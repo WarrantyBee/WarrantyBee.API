@@ -3,6 +3,7 @@ package com.warrantybee.api.dto.internal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDate;
 
 /**

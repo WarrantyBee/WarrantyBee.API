@@ -1,6 +1,8 @@
 package com.warrantybee.api.services.interfaces;
 
-import com.warrantybee.api.dto.request.*;
+import com.warrantybee.api.dto.request.ForgotPasswordRequest;
+import com.warrantybee.api.dto.request.ResetPasswordRequest;
+import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
