@@ -42,4 +42,7 @@ public class AppConfiguration {
 
     /** Configuration properties for OTP (One-Time Password) settings such as expiration time or length. */
     private OtpConfiguration otpConfiguration;
+
+    /** Configuration properties related to user profile management. */
+    private ProfileConfiguration profileConfiguration;
 }

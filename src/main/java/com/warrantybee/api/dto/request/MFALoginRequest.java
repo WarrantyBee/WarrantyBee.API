@@ -1,6 +1,7 @@
 package com.warrantybee.api.dto.request;
 
 import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@AllArgsConstructor
 public class MFALoginRequest implements ILoginRequest {
     /** User's email address used for login. */
     private String email;

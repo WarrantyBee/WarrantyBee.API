@@ -5,10 +5,8 @@ import com.warrantybee.api.constants.EmailSubject;
 import com.warrantybee.api.constants.EmailTemplate;
 import com.warrantybee.api.constants.EmailTemplateMacros;
 import com.warrantybee.api.dto.internal.EmailPayload;
-import com.warrantybee.api.dto.internal.OtpEmailPayload;
-import com.warrantybee.api.dto.internal.UserCreationRequest;
-import com.warrantybee.api.dto.request.SignUpRequest;
-import com.warrantybee.api.enumerations.OtpRequestReason;
+import com.warrantybee.api.dto.internal.NotificationPayload;
+import com.warrantybee.api.enumerations.NotificationType;
 import com.warrantybee.api.services.interfaces.IEmailService;
 import com.warrantybee.api.services.interfaces.IEmailTemplateService;
 import jakarta.mail.MessagingException;
@@ -21,7 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Service implementation for handling email operations such as sending messages and OTPs.
+ * Implementation of {@link IEmailService} responsible for composing and sending emails.
+ * <p>
+ * This service handles template processing, macro substitution, and delivery of
+ * different types of notification and OTP emails.
+ * </p>
  */
 @Service
 public class EmailService implements IEmailService {
@@ -30,6 +32,13 @@ public class EmailService implements IEmailService {
     private final Integer _expirationMins;
     private final JavaMailSender _sender;
 
+    /**
+     * Initializes the {@code EmailService} with configuration and dependencies.
+     *
+     * @param configuration   application configuration containing OTP settings
+     * @param templateService service used for processing email templates
+     * @param sender          JavaMail sender for dispatching email messages
+     */
     public EmailService(AppConfiguration configuration, IEmailTemplateService templateService, JavaMailSender sender) {
         var otpConfiguration = configuration.getOtpConfiguration();
         _expirationMins = otpConfiguration.getExpiration();
@@ -38,8 +47,9 @@ public class EmailService implements IEmailService {
     }
 
     @Override
-    public void send(EmailPayload payload) {
+    public void send(NotificationPayload notification) {
         try {
+            EmailPayload payload = _getPayload(notification);
             MimeMessage message = _sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -59,37 +69,18 @@ public class EmailService implements IEmailService {
         }
     }
 
-    @Override
-    public void sendWelcomeMail(SignUpRequest request) {
-        Map<String, String> macros = _getMacros(request);
-        EmailPayload emailPayload = _getPayload(request.getEmail(), OtpRequestReason.None, macros);
-        send(emailPayload);
-    }
-
-    @Override
-    public void sendOtp(OtpEmailPayload payload) {
-        Map<String, String> macros = _getMacros(payload);
-        EmailPayload emailPayload = _getPayload(payload.getEmail(), payload.getReason(), macros);
-        send(emailPayload);
-    }
-
     /**
-     * Builds and returns a map of macros to be used in the OTP email template.
-     * Includes default macros and any dynamic ones provided in the payload.
+     * Prepares a map of macros for email templates by combining
+     * dynamic and common macro values.
      *
-     * @param payload the OTP email payload containing OTP and dynamic macros
-     * @return a map of macro key-value pairs for email template processing
+     * @param payload the notification payload containing dynamic macros
+     * @return a populated macro map for template rendering
      */
-    private Map<String, String> _getMacros(OtpEmailPayload payload) {
+    private Map<String, String> _getMacros(NotificationPayload payload) {
         Map<String, String> macros = new HashMap<>();
-        macros.put("EXPIRY_TIME", _expirationMins.toString());
 
         if (payload.getDynamicMacros() != null) {
-            for (Map.Entry<String, String> entry : payload.getDynamicMacros().entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                macros.put(key, value);
-            }
+            macros.putAll(payload.getDynamicMacros());
         }
 
         _getCommonMacros(macros);
@@ -97,61 +88,51 @@ public class EmailService implements IEmailService {
     }
 
     /**
-     * Generates a map of macros for populating email templates based on the signup request.
+     * Adds global organization-related macros such as support email,
+     * privacy policy URL, and expiry time to the provided map.
      *
-     * @param request the signup request containing user details
-     * @return a map of macro names and their corresponding values
-     */
-    private Map<String, String> _getMacros(SignUpRequest request) {
-        Map<String, String> macros = new HashMap<>();
-        macros.put("LOG_IN_URL", EmailTemplateMacros.get("LOG_IN_URL"));
-        macros.put("USER_FIRST_NAME", request.getFirstname());
-        macros.put("USER_LAST_NAME", request.getLastname());
-
-        _getCommonMacros(macros);
-        return macros;
-    }
-
-    /**
-     * Adds common organization-related macros to the given map for email templates.
-     *
-     * @param macros the map to populate with common macro values
+     * @param macros the macro map to populate
      */
     private void _getCommonMacros(Map<String, String> macros) {
         macros.put("ORGANIZATION_NAME", EmailTemplateMacros.get("ORGANIZATION_NAME"));
         macros.put("SUPPORT_EMAIL", EmailTemplateMacros.get("SUPPORT_EMAIL"));
         macros.put("PRIVACY_POLICY_URL", EmailTemplateMacros.get("PRIVACY_POLICY_URL"));
+        macros.put("LOG_IN_URL", EmailTemplateMacros.get("LOG_IN_URL"));
+        macros.put("EXPIRY_TIME", _expirationMins.toString());
     }
 
     /**
-     * Creates an EmailPayload for the given recipient and OTP request reason.
+     * Builds an {@link EmailPayload} based on the notification type and associated macros.
      *
-     * @param recipient the email address of the recipient
-     * @param reason the purpose for sending the OTP (e.g., login, forgot password)
-     * @param macros key-value pairs to replace placeholders in the email template
-     * @return an EmailPayload object with the subject, body, and recipient set
+     * @param payload the notification data containing recipient and type
+     * @return a fully populated {@link EmailPayload} ready to send
      */
-    private EmailPayload _getPayload(String recipient, OtpRequestReason reason, Map<String, String> macros) {
+    private EmailPayload _getPayload(NotificationPayload payload) {
         EmailPayload emailPayload = new EmailPayload();
+        Map<String, String> macros = _getMacros(payload);
         String body = null;
 
-        switch (reason) {
-            case OtpRequestReason.Login -> {
+        switch (payload.getType()) {
+            case NotificationType.MFA_LOGIN -> {
                 body = _templateService.process(EmailTemplate.LOGIN, macros);
                 emailPayload.setSubject(EmailSubject.LOGIN);
             }
-            case OtpRequestReason.ForgotPassword -> {
+            case NotificationType.FORGOT_PASSWORD -> {
                 body = _templateService.process(EmailTemplate.FORGOT_PASSWORD, macros);
                 emailPayload.setSubject(EmailSubject.FORGOT_PASSWORD);
             }
-            case OtpRequestReason.None -> {
+            case NotificationType.WELCOME -> {
                 body = _templateService.process(EmailTemplate.NEW_ACCOUNT, macros);
                 emailPayload.setSubject(EmailSubject.NEW_ACCOUNT);
+            }
+            case NotificationType.PASSWORD_CHANGED -> {
+                body = _templateService.process(EmailTemplate.PASSWORD_CHANGED, macros);
+                emailPayload.setSubject(EmailSubject.PASSWORD_CHANGED);
             }
         }
 
         emailPayload.setBody(body);
-        emailPayload.setTo(new String[] { recipient });
+        emailPayload.setTo(new String[] { payload.getRecipient() });
         return emailPayload;
     }
 }

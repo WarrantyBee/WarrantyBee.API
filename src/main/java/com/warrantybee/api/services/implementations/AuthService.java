@@ -1,5 +1,6 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.dto.internal.*;
 import com.warrantybee.api.dto.request.*;
 import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
@@ -10,6 +11,7 @@ import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.enumerations.LogLevel;
+import com.warrantybee.api.enumerations.NotificationType;
 import com.warrantybee.api.enumerations.OtpRequestReason;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.HashHelper;
@@ -20,6 +22,9 @@ import com.warrantybee.api.services.interfaces.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +34,7 @@ import java.util.Map;
 @Service
 public class AuthService implements IAuthService {
 
+    private final AppConfiguration _appConfiguration;
     private final ITokenService _tokenService;
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
@@ -39,19 +45,23 @@ public class AuthService implements IAuthService {
     private final IOtpRepository _otpRepository;
 
     /**
-     * Constructs a new {@code AuthService} with the required dependencies.
+     * Constructs a new {@code AuthService} instance with all required dependencies.
      *
-     * @param tokenService      the service responsible for JWT operations
-     * @param cacheService      the service used for caching tokens
-     * @param captchaService    the service used to validate CAPTCHA responses
-     * @param emailService      the service used to send emails
-     * @param userRepository    the repository used to manage user data
-     * @param otpRepository     tge repository used to store and retrieve OTPs
+     * @param appConfiguration   the global application configuration containing environment and service settings
+     * @param tokenService       the service responsible for generating and validating JWT tokens
+     * @param cacheService       the service used for managing cached authentication data
+     * @param captchaService     the service used to validate CAPTCHA responses during login or signup
+     * @param otpService         the service responsible for generating, sending, and validating OTPs
+     * @param emailService       the service used to send authentication-related emails (e.g., OTP, password reset)
+     * @param telemetryService   the service used to capture and log authentication telemetry data
+     * @param userRepository     the repository used to access and manage user account data
+     * @param otpRepository      the repository used to store and retrieve OTP records
      */
     @Autowired
-    public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IOtpService otpService, IEmailService emailService, ITelemetryService telemetryService,
-                       IUserRepository userRepository, IOtpRepository otpRepository) {
+    public AuthService(AppConfiguration appConfiguration, ITokenService tokenService, ICacheService cacheService,
+                       ICaptchaService captchaService, IOtpService otpService, IEmailService emailService,
+                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository) {
+        this._appConfiguration = appConfiguration;
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
@@ -133,12 +143,16 @@ public class AuthService implements IAuthService {
                 }
 
                 try {
-                    _emailService.sendWelcomeMail(request);
+                    Map<String, String> macros = new HashMap<>();
+                    macros.put("USER_FIRST_NAME", request.getFirstname());
+                    macros.put("USER_LAST_NAME", request.getLastname());
+                    NotificationPayload notification = new NotificationPayload(request.getEmail(), macros, NotificationType.WELCOME);
+                    _emailService.send(notification);
                 }
                 catch (Exception e) {
                     Map<String, Object> context = new HashMap<>();
                     context.put("exception", e);
-                    _telemetryService.log(LogLevel.WARN, "A failure happened while sending the welcome email.", context);
+                    _telemetryService.log(LogLevel.ERROR, "A failure happened while sending the welcome email.", context);
                 }
 
                 return new SignUpResponse(userId);
@@ -158,8 +172,30 @@ public class AuthService implements IAuthService {
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
-            OtpRequest otpRequest = new OtpRequest(null, request.getEmail(), OtpRequestReason.ForgotPassword);
-            _sendOtp(otpRequest);
+            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(filter);
+            if (user != null) {
+                boolean hasPasswordResetWindow = true;
+                Timestamp passwordUpdatedAt = user.getProfile().getSettings().getPasswordUpdatedAt();
+
+                if (passwordUpdatedAt != null) {
+                    Instant now = Instant.now();
+                    Instant lastUpdatedAt = passwordUpdatedAt.toInstant();
+                    Instant leastAllowedTime = now.minus(_appConfiguration.getProfileConfiguration().getPasswordResetWindow(), ChronoUnit.MINUTES);
+                    hasPasswordResetWindow = !lastUpdatedAt.isBefore(leastAllowedTime);
+                }
+
+                if (hasPasswordResetWindow) {
+                    OtpRequest otpRequest = new OtpRequest(user.getId(), request.getEmail(), OtpRequestReason.FORGOT_PASSWORD);
+                    _sendOtp(otpRequest);
+                }
+                else {
+                    throw new PasswordRecentlyUpdatedException();
+                }
+            }
+            else {
+                throw new UserNotRegisteredException();
+            }
         }
         else {
             throw new CaptchaVerificationFailedException();
@@ -176,7 +212,7 @@ public class AuthService implements IAuthService {
             UserResponse user = _userRepository.get(userSearchFilter);
 
             if (user != null) {
-                OtpSearchFilter otpSearchFilter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.ForgotPassword.getCode());
+                OtpSearchFilter otpSearchFilter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.FORGOT_PASSWORD.getCode());
                 String otpHash = _otpRepository.get(otpSearchFilter);
 
                 if (!HashHelper.verify(request.getOtp(), otpHash)) {
@@ -188,6 +224,13 @@ public class AuthService implements IAuthService {
                     Boolean success = _userRepository.resetPassword(resetRequest);
                     if (!success) {
                         throw new PasswordResetFailedException();
+                    }
+                    else {
+                        Map<String, String> macros = new HashMap<>();
+                        macros.put("USER_FIRST_NAME", user.getFirstname());
+                        macros.put("USER_LAST_NAME", user.getLastname());
+                        NotificationPayload notification = new NotificationPayload(user.getEmail(), macros, NotificationType.PASSWORD_CHANGED);
+                        _emailService.send(notification);
                     }
                 }
             }
@@ -401,7 +444,7 @@ public class AuthService implements IAuthService {
                 Boolean isStored = _userRepository.store(token);
 
                 if (isStored) {
-                    OtpRequest otpRequest = new OtpRequest(user.getId(), user.getEmail(), OtpRequestReason.Login);
+                    OtpRequest otpRequest = new OtpRequest(user.getId(), user.getEmail(), OtpRequestReason.LOGIN);
                     _sendOtp(otpRequest);
                     return new MFALoginResponse(token.getToken());
                 }
@@ -441,7 +484,7 @@ public class AuthService implements IAuthService {
                 Boolean isValid = _userRepository.validate(token);
 
                 if (isValid) {
-                    OtpSearchFilter filter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.Login.getCode());
+                    OtpSearchFilter filter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.LOGIN.getCode());
                     String otpHash = _otpRepository.get(filter);
 
                     if (!HashHelper.verify(request.getOtp(), otpHash)) {
@@ -473,7 +516,8 @@ public class AuthService implements IAuthService {
         OtpRequestReason reason = request.getReason();
         Map<String, String> macros = new HashMap<>();
 
-        if (reason == OtpRequestReason.Login) {
+        if (reason == OtpRequestReason.LOGIN ||
+            reason == OtpRequestReason.FORGOT_PASSWORD) {
             if (request.getUserId() != null) {
                 UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
                 UserResponse user = _userRepository.get(filter);
@@ -501,8 +545,16 @@ public class AuthService implements IAuthService {
         }
         else {
             macros.put("OTP", otp);
-            OtpEmailPayload payload = new OtpEmailPayload(recipient, otp, reason, macros);
-            _emailService.sendOtp(payload);
+            NotificationPayload notification = null;
+            switch (reason) {
+                case OtpRequestReason.LOGIN -> {
+                    notification = new NotificationPayload(recipient, macros, NotificationType.MFA_LOGIN);
+                }
+                case OtpRequestReason.FORGOT_PASSWORD -> {
+                    notification = new NotificationPayload(recipient, macros, NotificationType.FORGOT_PASSWORD);
+                }
+            }
+            _emailService.send(notification);
         }
     }
 

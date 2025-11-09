@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -166,6 +167,7 @@ public class UserRepository implements IUserRepository {
 
             UserSettingsResponse settings = new UserSettingsResponse();
             settings.setIs2FAEnabled(Boolean.valueOf(String.valueOf(row[33])));
+            settings.setPasswordUpdatedAt((Timestamp) row[35]);
 
             profile.setAddress(address);
             profile.setTimezone(timezone);

@@ -9,13 +9,13 @@ import lombok.Getter;
 @Getter
 public enum OtpRequestReason implements IEnumeration {
     /** No specific reason. */
-    None(0),
+    NONE(0),
 
     /** OTP requested for user login. */
-    Login(1),
+    LOGIN(1),
 
     /** OTP requested for password recovery. */
-    ForgotPassword(2);
+    FORGOT_PASSWORD(2);
 
     /**
      * The unique, persistent integer code associated with this reason.

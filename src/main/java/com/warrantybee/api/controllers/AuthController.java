@@ -64,7 +64,7 @@ public class AuthController {
      * @throws Exception if the process fails
      */
     @PostMapping("/forgotpassword")
-    public ResponseEntity<APIResponse<?>> forgotPassword(ForgotPasswordRequest request) throws Exception {
+    public ResponseEntity<APIResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest request) throws Exception {
         _authService.forgotPassword(request);
         return ResponseEntity.ok(new APIResponse<>(null, null));
     }
@@ -77,7 +77,7 @@ public class AuthController {
      * @throws Exception if the process fails
      */
     @PostMapping("/resetpassword")
-    public ResponseEntity<APIResponse<?>> resetPassword(ResetPasswordRequest request) throws Exception {
+    public ResponseEntity<APIResponse<?>> resetPassword(@RequestBody ResetPasswordRequest request) throws Exception {
         _authService.resetPassword(request);
         return ResponseEntity.ok(new APIResponse<>(null, null));
     }

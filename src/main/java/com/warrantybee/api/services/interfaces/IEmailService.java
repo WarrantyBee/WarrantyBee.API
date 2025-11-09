@@ -1,28 +1,18 @@
 package com.warrantybee.api.services.interfaces;
 
-import com.warrantybee.api.dto.internal.EmailPayload;
-import com.warrantybee.api.dto.internal.OtpEmailPayload;
-import com.warrantybee.api.dto.request.SignUpRequest;
+import com.warrantybee.api.dto.internal.NotificationPayload;
 
-/** Service interface for sending emails. */
+/**
+ * Defines the contract for email-related operations such as sending
+ * standard emails and generic notifications.
+ */
 public interface IEmailService {
 
     /**
-     * Sends an email with the specified payload.
-     * @param payload the email details including recipients, body, and attachments
-     */
-    void send(EmailPayload payload);
-
-    /**
-     * Sends a welcome email to the user based on the signup request.
+     * Sends an email based on the provided notification payload by generating
+     * the message content, applying macros, and delivering it through the mail sender.
      *
-     * @param request the signup request containing user details
+     * @param notification the notification payload containing recipient and dynamic data
      */
-    void sendWelcomeMail(SignUpRequest request);
-
-    /**
-     * Sends an OTP email to the specified recipient based on the provided payload.
-     * @param payload the OTP email payload containing recipient details, OTP, reason, and dynamic macros
-     */
-    void sendOtp(OtpEmailPayload payload);
+    void send(NotificationPayload notification);
 }

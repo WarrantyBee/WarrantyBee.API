@@ -13,4 +13,7 @@ public class EmailSubject {
 
     /** Subject for forgot password OTP emails. */
     public static final String FORGOT_PASSWORD = "Your OTP for resetting password";
+
+    /** Subject for password changed notification emails. */
+    public static final String PASSWORD_CHANGED = "Your password has been changed";
 }

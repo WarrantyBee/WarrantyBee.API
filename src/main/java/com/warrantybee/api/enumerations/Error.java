@@ -153,7 +153,10 @@ public enum Error {
     TOKEN_REQUIRED(1047, "The token is required and it cannot be empty.", HttpStatus.BAD_REQUEST),
 
     /** The token is required. */
-    PASSWORD_RESET_FAILED(1048, "Password could not be reset.", HttpStatus.INTERNAL_SERVER_ERROR);
+    PASSWORD_RESET_FAILED(1048, "Password could not be reset.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The password is recently updated. */
+    PASSWORD_RECENTLY_UPDATED(1049, "Password was reset within last 12 hours. Please try again later.", HttpStatus.TOO_MANY_REQUESTS);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
