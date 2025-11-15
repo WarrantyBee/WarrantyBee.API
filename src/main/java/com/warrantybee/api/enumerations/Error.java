@@ -156,7 +156,7 @@ public enum Error {
     PASSWORD_RESET_FAILED(1048, "Password could not be reset.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The password is recently updated. */
-    PASSWORD_RECENTLY_UPDATED(1049, "Password was reset within last 12 hours. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
+    PASSWORD_RECENTLY_UPDATED(1049, "Password was recently updated. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
 
     /** The password was previously used. */
     PASSWORD_ALREADY_USED(1050, "The specified password was previously used.", HttpStatus.BAD_REQUEST),
