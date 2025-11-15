@@ -171,7 +171,13 @@ public enum Error {
     CULTURE_REQUIRED(1053, "The culture is required.", HttpStatus.BAD_REQUEST),
 
     /** The session has expired. */
-    SESSION_EXPIRED(1054, "The session has expired. Please log in again.", HttpStatus.UNAUTHORIZED);
+    SESSION_EXPIRED(1054, "The session has expired. Please log in again.", HttpStatus.UNAUTHORIZED),
+
+    /** The auth header is invalid. */
+    INVALID_AUTH_HEADER(1055, "Missing or invalid Authorization header.", HttpStatus.UNAUTHORIZED),
+
+    /** The token is invalid or expired. */
+    INVALID_EXPIRED_TOKEN(1056, "Invalid or expired Authentication token.", HttpStatus.UNAUTHORIZED);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

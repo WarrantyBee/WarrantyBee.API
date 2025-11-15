@@ -1,5 +1,9 @@
 package com.warrantybee.api.config.filters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.warrantybee.api.dto.response.APIError;
+import com.warrantybee.api.dto.response.APIResponse;
+import com.warrantybee.api.enumerations.Error;
 import com.warrantybee.api.services.implementations.JwtTokenService;
 import com.warrantybee.api.exceptions.InvalidTokenException;
 import com.warrantybee.api.exceptions.SessionExpiredException;
@@ -7,6 +11,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +28,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService _tokenService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public AuthenticationFilter(JwtTokenService tokenService) {
         this._tokenService = tokenService;
     }
@@ -35,7 +44,18 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().write(
+                objectMapper.writeValueAsString(
+                    new APIResponse<>(null,
+                        new APIError(
+                            Error.INVALID_AUTH_HEADER.getCode(),
+                            Error.INVALID_AUTH_HEADER.getMessage()
+                        )
+                    )
+                )
+            );
             return;
         }
 
@@ -60,7 +80,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         } catch (SessionExpiredException | InvalidTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or expired JWT token");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().write(
+                objectMapper.writeValueAsString(
+                    new APIResponse<>(null,
+                        new APIError(
+                            Error.INVALID_EXPIRED_TOKEN.getCode(),
+                            Error.INVALID_EXPIRED_TOKEN.getMessage()
+                        )
+                    )
+                )
+            );
             return;
         }
 

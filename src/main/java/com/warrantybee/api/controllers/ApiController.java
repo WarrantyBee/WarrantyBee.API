@@ -16,11 +16,6 @@ public class ApiController {
 
     /**
      * Endpoint used to verify whether the user's session is still active.
-     * <p>
-     * The client must provide a valid JWT token in the Authorization header.
-     * If the token is valid and not expired, the request succeeds and returns HTTP 200.
-     * If the token is invalid or expired, the authentication filter will return HTTP 401.
-     *
      * @return {@link ResponseEntity} containing a generic {@link APIResponse} indicating success
      * @throws Exception if any unexpected error occurs during execution
      */
@@ -29,8 +24,12 @@ public class ApiController {
         return ResponseEntity.ok(new APIResponse<>(null, null));
     }
 
+    /**
+     * Endpoint used for checking the health/status of the API.
+     * @return a redirect instruction to {@code status.html}
+     */
     @GetMapping("/status")
     public String get() {
-        return "redirect:/apistatus.html";
+        return "redirect:/status.html";
     }
 }
