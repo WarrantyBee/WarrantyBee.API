@@ -35,11 +35,25 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         this._tokenService = tokenService;
     }
 
+    private static final List<String> PUBLIC_URLS = List.of(
+            "/api/status",
+            "/status.html",
+            "/api/auth/login",
+            "/api/auth/signup",
+            "/api/auth/forgotpassword",
+            "/api/auth/resetpassword"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
+        if (PUBLIC_URLS.stream().anyMatch(url -> request.getRequestURI().equals(url))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader("Authorization");
 
