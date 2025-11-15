@@ -46,6 +46,7 @@ public class UserRepository implements IUserRepository {
             query.registerStoredProcedureParameter("in_city", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_postal_code", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_avatar_url", String.class, jakarta.persistence.ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_culture_id", Long.class, ParameterMode.IN);
 
             query.setParameter("in_firstname", request.getFirstname());
             query.setParameter("in_lastname", request.getLastname());
@@ -61,6 +62,7 @@ public class UserRepository implements IUserRepository {
             query.setParameter("in_city", request.getCity());
             query.setParameter("in_postal_code", request.getPostalCode());
             query.setParameter("in_avatar_url", request.getAvatarUrl());
+            query.setParameter("in_culture_id", request.getCultureId());
 
             query.execute();
 
@@ -169,9 +171,21 @@ public class UserRepository implements IUserRepository {
             settings.setIs2FAEnabled(Boolean.valueOf(String.valueOf(row[33])));
             settings.setPasswordUpdatedAt((Timestamp) row[35]);
 
+            CultureResponse culture = new CultureResponse();
+            culture.setId((row[36] instanceof Number) ? ((Number) row[36]).longValue() : null);
+            culture.setIso((String) row[37]);
+            culture.setRtl(Boolean.valueOf(String.valueOf(row[38])));
+
+            LanguageResponse lang = new LanguageResponse();
+            lang.setId((row[39] instanceof Number) ? ((Number) row[39]).longValue() : null);
+            lang.setName((String) row[40]);
+            lang.setIso((String) row[41]);
+            culture.setLanguage(lang);
+
             profile.setAddress(address);
             profile.setTimezone(timezone);
             profile.setCurrency(currency);
+            profile.setCulture(culture);
             profile.setSettings(settings);
             userResponse.setProfile(profile);
             userResponse.setPassword((String)row[34]);
@@ -256,5 +270,30 @@ public class UserRepository implements IUserRepository {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public List<String> getPasswords(Long id) {
+        StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_GetUserPasswords");
+
+        query.registerStoredProcedureParameter(
+                "in_user_id",
+                Long.class,
+                ParameterMode.IN
+        );
+
+        query.setParameter("in_user_id", id);
+
+        query.execute();
+
+        @SuppressWarnings("unchecked")
+        List<Object> resultList = query.getResultList();
+        List<String> passwords = new ArrayList<>();
+
+        for (Object o : resultList) {
+            passwords.add((String) o);
+        }
+
+        return passwords;
     }
 }

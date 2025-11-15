@@ -56,4 +56,7 @@ public class UserCreationRequest {
 
     /** URL of the user's profile avatar image. */
     private String avatarUrl;
+
+    /** Identifier for the user's preferred culture. */
+    private Long cultureId;
 }

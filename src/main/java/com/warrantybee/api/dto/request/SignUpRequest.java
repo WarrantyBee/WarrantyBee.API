@@ -30,9 +30,6 @@ public class SignUpRequest {
     /** User  address line 2*/
     private String addressLine2;
 
-    /** User date of birth */
-    private LocalDate dob;
-
     /** User state ID */
     private LocalDate dateOfBirth;
 
@@ -56,6 +53,9 @@ public class SignUpRequest {
 
     /** User avatar URL */
     private String avatarUrl;
+
+    /** User's preferred culture's identifier */
+    private Long cultureId;
 
     /** Captcha response. */
     private String captchaResponse;

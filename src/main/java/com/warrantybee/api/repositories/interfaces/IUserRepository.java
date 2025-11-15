@@ -7,6 +7,8 @@ import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.response.UserResponse;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Defines the data access layer (Repository) operations for managing {@code User} entities.
  * This interface decouples the service layer from the specific persistence implementation.
@@ -53,4 +55,12 @@ public interface IUserRepository {
      * @return true if the password reset is successful, false otherwise
      */
     Boolean resetPassword(PasswordResetRequest request);
+
+    /**
+     * Retrieves all passwords (both old and currently active) for the specified user.
+     *
+     * @param id the identifier of the user
+     * @return a list of passwords associated with the user
+     */
+    List<String> getPasswords(Long id);
 }

@@ -48,6 +48,9 @@ public class UserProfileResponse {
      */
     private CurrencyResponse currency;
 
+    /** The user's preferred culture info. */
+    private CultureResponse culture;
+
     /** User's account settings information. */
     private UserSettingsResponse settings;
 

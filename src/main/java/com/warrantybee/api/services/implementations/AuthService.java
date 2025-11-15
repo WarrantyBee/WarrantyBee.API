@@ -26,7 +26,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Service responsible for handling authentication-related operations.
@@ -134,7 +136,8 @@ public class AuthService implements IAuthService {
                     request.getRegionId(),
                     request.getCountryId(),
                     request.getPostalCode(),
-                    request.getAvatarUrl()
+                    request.getAvatarUrl(),
+                    request.getCultureId()
                 );
                 Long userId = _userRepository.create(userCreationRequest);
 
@@ -182,7 +185,7 @@ public class AuthService implements IAuthService {
                     Instant now = Instant.now();
                     Instant lastUpdatedAt = passwordUpdatedAt.toInstant();
                     Instant leastAllowedTime = now.minus(_appConfiguration.getProfileConfiguration().getPasswordResetWindow(), ChronoUnit.MINUTES);
-                    hasPasswordResetWindow = !lastUpdatedAt.isBefore(leastAllowedTime);
+                    hasPasswordResetWindow = !lastUpdatedAt.isAfter(leastAllowedTime);
                 }
 
                 if (hasPasswordResetWindow) {
@@ -219,6 +222,17 @@ public class AuthService implements IAuthService {
                     throw new InvalidOtpException();
                 }
                 else {
+                    AtomicBoolean previouslyUsedPassword = new AtomicBoolean(false);
+                    List<String> previousPasswords = _userRepository.getPasswords(user.getId());
+
+                    previousPasswords.forEach(pwd -> {
+                        previouslyUsedPassword.set(HashHelper.verify(request.getNewPassword(), pwd));
+                    });
+
+                    if (previouslyUsedPassword.get()) {
+                        throw new PasswordAlreadyUsedException();
+                    }
+
                     String passwordHash = HashHelper.getHash(request.getNewPassword());
                     PasswordResetRequest resetRequest = new PasswordResetRequest(user.getId(), passwordHash);
                     Boolean success = _userRepository.resetPassword(resetRequest);
@@ -338,6 +352,15 @@ public class AuthService implements IAuthService {
             }
             if (Validator.isBlank(request.getPostalCode())) {
                 throw new PostalCodeRequiredException();
+            }
+            if (request.getRegionId() == null) {
+                throw new RegionRequiredException();
+            }
+            if (request.getCountryId() == null) {
+                throw new CountryRequiredException();
+            }
+            if (request.getCultureId() == null) {
+                throw new CultureRequiredException();
             }
         }
     }
