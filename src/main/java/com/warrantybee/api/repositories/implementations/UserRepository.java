@@ -36,6 +36,9 @@ public class UserRepository implements IUserRepository {
             query.registerStoredProcedureParameter("in_lastname", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_email", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_password", String.class, jakarta.persistence.ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_accepted_tnc", Boolean.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_accepted_pp", Boolean.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_phone_code", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_phone_number", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_gender", Byte.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_date_of_birth", java.sql.Date.class, jakarta.persistence.ParameterMode.IN);
@@ -52,6 +55,9 @@ public class UserRepository implements IUserRepository {
             query.setParameter("in_lastname", request.getLastname());
             query.setParameter("in_email", request.getEmail());
             query.setParameter("in_password", request.getPassword());
+            query.setParameter("in_accepted_tnc", request.getHasAcceptedTnC());
+            query.setParameter("in_accepted_pp", request.getHasAcceptedPrivacyPolicy());
+            query.setParameter("in_phone_code", request.getPhoneCode());
             query.setParameter("in_phone_number", request.getPhoneNumber());
             query.setParameter("in_gender", request.getGender());
             query.setParameter("in_date_of_birth", (request.getDateOfBirth() != null) ? java.sql.Date.valueOf(request.getDateOfBirth()) : null);
@@ -121,6 +127,7 @@ public class UserRepository implements IUserRepository {
             userResponse.setEmail((String) row[4]);
 
             UserProfileResponse profile = new UserProfileResponse();
+            profile.setPhoneCode((String) row[43]);
             profile.setPhoneNumber((String) row[7]);
 
             if (row[8] != null) {
@@ -145,12 +152,6 @@ public class UserRepository implements IUserRepository {
             country.setIso3((String) row[17]);
             address.setCountry(country);
 
-            RegionResponse region = new RegionResponse();
-            region.setId((row[18] instanceof Number) ? ((Number) row[18]).longValue() : null);
-            region.setName((String) row[19]);
-            region.setIso((String) row[20]);
-            address.setRegion(region);
-
             TimeZoneResponse timezone = new TimeZoneResponse();
             timezone.setId((row[21] instanceof Number) ? ((Number) row[21]).longValue() : null);
             timezone.setName((String) row[22]);
@@ -158,6 +159,13 @@ public class UserRepository implements IUserRepository {
             timezone.setOffsetMinutes((row[24] instanceof Number) ? ((Number) row[24]).shortValue() : null);
             timezone.setDst(Boolean.valueOf(String.valueOf(row[25])));
             timezone.setCurrentOffsetMinutes((row[26] instanceof Number) ? ((Number) row[26]).shortValue() : null);
+
+            RegionResponse region = new RegionResponse();
+            region.setId((row[18] instanceof Number) ? ((Number) row[18]).longValue() : null);
+            region.setName((String) row[19]);
+            region.setIso((String) row[20]);
+            region.setTimezoneId(timezone.getId());
+            address.setRegion(region);
 
             CurrencyResponse currency = new CurrencyResponse();
             currency.setId((row[27] instanceof Number) ? ((Number) row[27]).longValue() : null);
@@ -180,6 +188,7 @@ public class UserRepository implements IUserRepository {
             lang.setId((row[39] instanceof Number) ? ((Number) row[39]).longValue() : null);
             lang.setName((String) row[40]);
             lang.setIso((String) row[41]);
+            lang.setNativeName((String) row[42]);
             culture.setLanguage(lang);
 
             profile.setAddress(address);

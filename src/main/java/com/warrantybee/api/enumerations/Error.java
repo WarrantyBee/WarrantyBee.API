@@ -177,7 +177,19 @@ public enum Error {
     INVALID_AUTH_HEADER(1055, "Missing or invalid Authorization header.", HttpStatus.UNAUTHORIZED),
 
     /** The token is invalid or expired. */
-    INVALID_EXPIRED_TOKEN(1056, "Invalid or expired Authentication token.", HttpStatus.UNAUTHORIZED);
+    INVALID_EXPIRED_TOKEN(1056, "Invalid or expired Authentication token.", HttpStatus.UNAUTHORIZED),
+
+    /** The terms and conditions are not accepted. */
+    TERMS_AND_CONDITIONS_NOT_ACCEPTED(1057, "The terms and conditions are not accepted.", HttpStatus.BAD_REQUEST),
+
+    /** The privacy policy is not accepted. */
+    PRIVACY_POLICY_NOT_ACCEPTED(1058, "The privacy policy is not accepted.", HttpStatus.BAD_REQUEST),
+
+    /** The phone code is required. */
+    PHONE_CODE_REQUIRED(1059, "The phone code is required.", HttpStatus.BAD_REQUEST),
+
+    /** The phone code is invalid. */
+    INVALID_PHONE_CODE(1060, "The phone code is invalid.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

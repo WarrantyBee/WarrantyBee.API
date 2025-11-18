@@ -33,4 +33,7 @@ public class RegionResponse {
      * The capital city of the region or state.
      */
     private String capital;
+
+    /** The identifier of the timezone that is associated with the state. */
+    private Long timezoneId;
 }

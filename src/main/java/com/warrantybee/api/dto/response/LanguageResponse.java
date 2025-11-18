@@ -22,4 +22,7 @@ public class LanguageResponse {
 
     /** The ISO code of the language (e.g., "en" for English). */
     private String iso;
+
+    /** The native name of the language (e.g., "हिन्दी" for Hindi) */
+    private String nativeName;
 }

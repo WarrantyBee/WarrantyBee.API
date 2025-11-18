@@ -19,10 +19,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final AuthenticationFilter authenticationFilter;
+    private final AuthenticationFilter _filter;
 
-    public SecurityConfig(AuthenticationFilter authenticationFilter) {
-        this.authenticationFilter = authenticationFilter;
+    public SecurityConfig(AuthenticationFilter filter) {
+        this._filter = filter;
     }
 
     @Bean
@@ -42,11 +42,12 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/signup",
                     "/api/auth/forgotpassword",
-                    "/api/auth/resetpassword"
+                    "/api/auth/resetpassword",
+                    "/api/countries"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(_filter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -54,7 +55,12 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://warrantybee-dev.com"));
+        configuration.setAllowedOrigins(List.of(
+                "http://warrantybee-dev.com",
+                "https://warrantybee.netlify.app",
+                "https://warrantybeetest.netlify.app",
+                "https://warrantybeestage.netlify.app"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -41,7 +41,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/auth/signup",
             "/api/auth/forgotpassword",
-            "/api/auth/resetpassword"
+            "/api/auth/resetpassword",
+            "/api/countries"
     );
 
     @Override

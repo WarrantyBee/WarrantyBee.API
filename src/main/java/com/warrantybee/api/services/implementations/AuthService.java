@@ -127,8 +127,11 @@ public class AuthService implements IAuthService {
                     request.getLastname(),
                     request.getEmail(),
                     passwordHash,
+                    request.getHasAcceptedTermsAndConditions(),
+                    request.getHasAcceptedPrivacyPolicy(),
                     request.getGender(),
                     request.getDateOfBirth(),
+                    request.getPhoneCode(),
                     request.getPhoneNumber(),
                     request.getAddressLine1(),
                     request.getAddressLine2(),
@@ -314,6 +317,16 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
+            if (request.getHasAcceptedTermsAndConditions() == null ||
+                !request.getHasAcceptedTermsAndConditions()) {
+
+            }
+
+            if (request.getHasAcceptedPrivacyPolicy() == null ||
+                !request.getHasAcceptedPrivacyPolicy()) {
+
+            }
+
             if (Validator.isBlank(request.getCaptchaResponse())) {
                 throw new CaptchaResponseRequiredException();
             }
@@ -340,6 +353,12 @@ public class AuthService implements IAuthService {
             }
             if (!Validator.hasLegalAge(request.getDateOfBirth())) {
                 throw new UserIsMinorException();
+            }
+            if (Validator.isBlank(request.getPhoneCode())) {
+
+            }
+            if (!Validator.isPhoneCode(request.getPhoneCode())) {
+
             }
             if (Validator.isBlank(request.getPhoneNumber())) {
                 throw new PhoneNumberRequiredException();

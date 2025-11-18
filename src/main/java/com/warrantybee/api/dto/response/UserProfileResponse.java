@@ -18,6 +18,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class UserProfileResponse {
 
+    /** The user's dialing code (can vary based on the region). */
+    private String phoneCode;
+
     /**
      * The user's primary phone number, typically in E.164 format.
      */

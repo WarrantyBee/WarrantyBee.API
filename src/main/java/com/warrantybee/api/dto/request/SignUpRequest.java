@@ -24,6 +24,12 @@ public class SignUpRequest {
     /** User's password */
     private String password;
 
+    /** Indicates whether the user has accepted the terms and conditions. */
+    private Boolean hasAcceptedTermsAndConditions;
+
+    /** Indicates whether the user has accepted the privacy policy. */
+    private Boolean hasAcceptedPrivacyPolicy;
+
     /** user address line 1 */
     private String addressLine1;
 
@@ -32,6 +38,9 @@ public class SignUpRequest {
 
     /** User state ID */
     private LocalDate dateOfBirth;
+
+    /** User's dialing code (can vary based on the region). */
+    private String phoneCode;
 
     /** User phone number */
     private String phoneNumber;
