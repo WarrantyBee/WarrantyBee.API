@@ -1,5 +1,12 @@
 package com.warrantybee.api.services.implementations;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.warrantybee.api.configurations.AppConfiguration;
+import com.warrantybee.api.exceptions.*;
+import com.warrantybee.api.services.interfaces.ICacheService;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -8,13 +15,6 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.warrantybee.api.configurations.AppConfiguration;
-import com.warrantybee.api.exceptions.*;
-import com.warrantybee.api.services.interfaces.ICacheService;
-import org.springframework.stereotype.Service;
 
 /**
  * Redis cache service using Upstash REST API.

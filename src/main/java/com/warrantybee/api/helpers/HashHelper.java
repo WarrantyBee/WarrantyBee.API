@@ -2,7 +2,11 @@ package com.warrantybee.api.helpers;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
+
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 /**
  * Helper class providing secure hashing and verification methods
@@ -58,5 +62,44 @@ public class HashHelper {
         }
 
         return argon2.verify(storedHash, text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Generates a random token using SHA256.
+     *
+     * @return A random token.
+     */
+    public static String generateToken() {
+        try {
+            SecureRandom secureRandom = new SecureRandom();
+            byte[] randomBytes = new byte[32];
+            secureRandom.nextBytes(randomBytes);
+
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] hashedBytes = messageDigest.digest(randomBytes);
+
+            return bytesToHex(hashedBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
+    }
+
+    /**
+     * Converts a byte array into its hexadecimal string representation.
+     * Each byte is represented by two hexadecimal characters.
+     *
+     * @param bytes the byte array to convert
+     * @return a hexadecimal string representation of the given bytes
+     */
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }

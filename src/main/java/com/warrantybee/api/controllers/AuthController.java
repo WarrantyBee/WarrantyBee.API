@@ -1,11 +1,12 @@
 package com.warrantybee.api.controllers;
 
-import com.warrantybee.api.dto.request.LoginRequest;
-import com.warrantybee.api.dto.request.OtpRequest;
+import com.warrantybee.api.dto.request.ForgotPasswordRequest;
+import com.warrantybee.api.dto.request.ResetPasswordRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import com.warrantybee.api.dto.response.APIResponse;
-import com.warrantybee.api.dto.response.LoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.services.interfaces.IAuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,8 +40,8 @@ public class AuthController {
      * @throws Exception if an authentication or unexpected error occurs.
      */
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<LoginResponse>> login(@RequestBody LoginRequest request) throws Exception {
-        return ResponseEntity.ok(new APIResponse<LoginResponse>(_authService.login(request)));
+    public ResponseEntity<APIResponse<ILoginResponse>> login(@RequestBody ILoginRequest request) throws Exception {
+        return ResponseEntity.ok(new APIResponse<>(_authService.login(request)));
     }
 
     /**
@@ -52,19 +53,32 @@ public class AuthController {
      */
     @PostMapping("/signup")
     public ResponseEntity<APIResponse<SignUpResponse>> signUp(@RequestBody SignUpRequest request) throws Exception {
-        return ResponseEntity.ok(new APIResponse<SignUpResponse>(_authService.signUp(request)));
+        return ResponseEntity.ok(new APIResponse<>(_authService.signUp(request)));
     }
 
     /**
-     * Handles OTP send requests.
+     * Handles the forgot password request and triggers the OTP process.
      *
-     * @param request the OTP request details
-     * @return a success response after sending the OTP
-     * @throws Exception if an error occurs while sending the OTP
+     * @param request the forgot password request containing the user's email
+     * @return a generic API response indicating success
+     * @throws Exception if the process fails
      */
-    @PostMapping("/send-otp")
-    public ResponseEntity<APIResponse<?>> sendOtp(@RequestBody OtpRequest request) throws Exception {
-        _authService.sendOtp(request);
-        return ResponseEntity.ok(new APIResponse<Object>(null, null));
+    @PostMapping("/forgotpassword")
+    public ResponseEntity<APIResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest request) throws Exception {
+        _authService.forgotPassword(request);
+        return ResponseEntity.ok(new APIResponse<>(null, null));
+    }
+
+    /**
+     * Handles the password reset request using OTP verification.
+     *
+     * @param request the reset password request containing OTP, email, and new password
+     * @return a generic API response indicating success
+     * @throws Exception if the process fails
+     */
+    @PostMapping("/resetpassword")
+    public ResponseEntity<APIResponse<?>> resetPassword(@RequestBody ResetPasswordRequest request) throws Exception {
+        _authService.resetPassword(request);
+        return ResponseEntity.ok(new APIResponse<>(null, null));
     }
 }

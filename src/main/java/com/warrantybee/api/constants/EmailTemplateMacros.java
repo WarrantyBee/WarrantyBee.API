@@ -25,7 +25,8 @@ public class EmailTemplateMacros {
         macros = Map.of(
             "ORGANIZATION_NAME", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_ORG_NAME")),
             "SUPPORT_EMAIL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_SUPPORT_EMAIL")),
-            "PRIVACY_POLICY_URL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_PRIVACY_POLICY_URL"))
+            "PRIVACY_POLICY_URL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_PRIVACY_POLICY_URL")),
+            "LOG_IN_URL", Objects.requireNonNull(environment.getProperty("WARRANTYBEE_MACRO_LOG_IN_URL"))
         );
     }
 

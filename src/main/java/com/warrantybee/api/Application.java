@@ -8,9 +8,8 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
  * Entry point for the WarrantyBee Spring Boot application.
  */
 @SpringBootApplication(
-		exclude = {
-				SecurityAutoConfiguration.class
-		}
+    exclude = {
+    }
 )
 public class Application {	
 

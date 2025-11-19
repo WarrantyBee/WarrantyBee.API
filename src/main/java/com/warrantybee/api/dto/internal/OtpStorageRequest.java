@@ -26,4 +26,9 @@ public class OtpStorageRequest {
      * The unique ID of the recipient, if available.
      */
     private Long recipientId;
+
+    /**
+     * The reason for requesting the OTP.
+     */
+    private Byte reason;
 }

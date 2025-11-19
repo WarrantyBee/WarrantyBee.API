@@ -3,6 +3,7 @@ package com.warrantybee.api.helpers;
 import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -16,6 +17,28 @@ public class Validator {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
     private static final Pattern STRONG_PASSWORD_PATTERN = Pattern.compile(STRONG_PASSWORD_REGEX);
+    private static final List<String> VALID_PHONE_CODES = List.of(
+        "+93", "+355", "+213", "+376", "+244", "+1-268", "+54", "+374", "+61", "+43",
+        "+994", "+1-242", "+973", "+880", "+1-246", "+375", "+32", "+501", "+229", "+975",
+        "+591", "+387", "+267", "+55", "+673", "+359", "+226", "+257", "+855", "+237",
+        "+1", "+238", "+236", "+235", "+56", "+86", "+57", "+269", "+242", "+506",
+        "+225", "+385", "+53", "+357", "+420", "+45", "+253", "+1-767", "+1-809",
+        "+1-829", "+1-849", "+593", "+20", "+503", "+240", "+291", "+372", "+268",
+        "+251", "+679", "+358", "+33", "+241", "+220", "+995", "+49", "+233", "+30",
+        "+1-473", "+502", "+224", "+245", "+592", "+509", "+504", "+36", "+354", "+91",
+        "+62", "+98", "+964", "+353", "+972", "+39", "+1-876", "+81", "+962", "+7",
+        "+254", "+686", "+965", "+996", "+856", "+371", "+961", "+266", "+231", "+218",
+        "+423", "+370", "+352", "+261", "+265", "+60", "+960", "+223", "+356", "+692",
+        "+222", "+230", "+52", "+691", "+373", "+377", "+976", "+382", "+212", "+258",
+        "+95", "+264", "+674", "+977", "+31", "+64", "+505", "+227", "+234", "+850",
+        "+389", "+47", "+968", "+92", "+680", "+507", "+675", "+595", "+51", "+63",
+        "+48", "+351", "+974", "+40", "+250", "+1-869", "+1-758", "+1-784", "+685",
+        "+378", "+239", "+966", "+221", "+381", "+248", "+232", "+65", "+421", "+386",
+        "+677", "+252", "+27", "+82", "+211", "+34", "+94", "+249", "+597", "+46",
+        "+41", "+963", "+886", "+992", "+255", "+66", "+228", "+676", "+1-868", "+216",
+        "+90", "+993", "+688", "+256", "+380", "+971", "+44", "+598", "+998", "+678",
+        "+379", "+58", "+84", "+967", "+260", "+263"
+    );
 
     /**
      * Checks if a given String is null, empty ({@code ""}), or contains only whitespace characters.
@@ -100,5 +123,23 @@ public class Validator {
         }
         LocalDate legalAgeCutoff = LocalDate.now().minusYears(18);
         return !value.isAfter(legalAgeCutoff);
+    }
+
+    /**
+     * Checks if the given String value is a valid country phone code.
+     * <p>
+     * The validation first ensures the string is not blank. It then checks if the trimmed string
+     * exists in the predefined, static list of {@code VALID_PHONE_CODES}.
+     *
+     * @param value The String to be checked (e.g., "+1", "+44", "+91").
+     * @return {@code true} if the string is a recognized phone code; {@code false} if it is blank
+     * or not found in the list of valid codes.
+     */
+    public static boolean isPhoneCode(String value) {
+        if (isBlank(value)) {
+            return false;
+        }
+
+        return VALID_PHONE_CODES.contains(value.trim());
     }
 }

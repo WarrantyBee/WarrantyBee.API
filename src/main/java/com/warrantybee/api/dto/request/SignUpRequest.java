@@ -24,17 +24,23 @@ public class SignUpRequest {
     /** User's password */
     private String password;
 
+    /** Indicates whether the user has accepted the terms and conditions. */
+    private Boolean hasAcceptedTermsAndConditions;
+
+    /** Indicates whether the user has accepted the privacy policy. */
+    private Boolean hasAcceptedPrivacyPolicy;
+
     /** user address line 1 */
     private String addressLine1;
 
     /** User  address line 2*/
     private String addressLine2;
 
-    /** User date of birth */
-    private LocalDate dob;
-
     /** User state ID */
     private LocalDate dateOfBirth;
+
+    /** User's dialing code (can vary based on the region). */
+    private String phoneCode;
 
     /** User phone number */
     private String phoneNumber;
@@ -56,6 +62,9 @@ public class SignUpRequest {
 
     /** User avatar URL */
     private String avatarUrl;
+
+    /** User's preferred culture's identifier */
+    private Long cultureId;
 
     /** Captcha response. */
     private String captchaResponse;

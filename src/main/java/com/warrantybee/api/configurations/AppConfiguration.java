@@ -2,10 +2,8 @@ package com.warrantybee.api.configurations;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.eclipse.angus.mail.smtp.SMTPAddressFailedException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
  * Loads application-wide configuration settings from properties files
@@ -44,4 +42,7 @@ public class AppConfiguration {
 
     /** Configuration properties for OTP (One-Time Password) settings such as expiration time or length. */
     private OtpConfiguration otpConfiguration;
+
+    /** Configuration properties related to user profile management. */
+    private ProfileConfiguration profileConfiguration;
 }

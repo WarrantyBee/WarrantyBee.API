@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDate;
 
 /**
@@ -16,6 +17,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserProfileResponse {
+
+    /** The user's dialing code (can vary based on the region). */
+    private String phoneCode;
 
     /**
      * The user's primary phone number, typically in E.164 format.
@@ -46,6 +50,12 @@ public class UserProfileResponse {
      * The user's preferred currency settings, provided as a {@link CurrencyResponse} DTO.
      */
     private CurrencyResponse currency;
+
+    /** The user's preferred culture info. */
+    private CultureResponse culture;
+
+    /** User's account settings information. */
+    private UserSettingsResponse settings;
 
     /**
      * The public URL pointing to the user's avatar or profile picture image.

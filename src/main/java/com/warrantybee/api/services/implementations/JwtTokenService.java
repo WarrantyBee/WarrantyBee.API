@@ -9,6 +9,7 @@ import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.exceptions.ConfigurationException;
 import com.warrantybee.api.exceptions.InvalidTokenException;
 import com.warrantybee.api.exceptions.JwtGenerationException;
+import com.warrantybee.api.exceptions.SessionExpiredException;
 import com.warrantybee.api.services.interfaces.ITokenService;
 import org.springframework.stereotype.Service;
 
@@ -82,12 +83,12 @@ public class JwtTokenService implements ITokenService {
             Map<String, Object> claims = new HashMap<>();
 
             decoded.getClaims().forEach((k, v) -> claims.put(k, v.asString()));
+            claims.put("iat", decoded.getIssuedAt().getTime());
+            claims.put("exp", decoded.getExpiresAt().getTime());
+            boolean isExpired = decoded.getExpiresAt().toInstant().isBefore(Instant.now());
 
-            if (decoded.getIssuedAt() != null) {
-                claims.put("iat", decoded.getIssuedAt().getTime());
-            }
-            if (decoded.getExpiresAt() != null) {
-                claims.put("exp", decoded.getExpiresAt().getTime());
+            if (isExpired) {
+                throw new SessionExpiredException();
             }
 
             return claims;
