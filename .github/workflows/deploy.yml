@@ -1,25 +1,10 @@
-# This workflow builds and pushes a Docker image to Docker Hub and then deploys it to Koyeb.
-# The workflow is triggered on pushes to the main, stage, and develop branches.
-#
-# It uses GitHub environments to manage secrets and variables for different deployment targets:
-# - `main` branch -> `Production` environment
-# - `stage` branch -> `Stage` environment
-# - `develop` branch -> `Test` environment
-#
-# Required secrets in each environment:
-# - DOCKERHUB_USERNAME: Your Docker Hub username.
-# - DOCKERHUB_TOKEN: Your Docker Hub access token.
-# - KOYEB_TOKEN: Your Koyeb API token.
-#
-# Required variables in each environment:
-# - KOYEB_APP_NAME: The name of your Koyeb app.
-# - KOYEB_SERVICE_NAME: The name of the service within your Koyeb app to deploy to.
-# - KOYEB_DOCKER_SECRET_NAME: The name of the Koyeb secret for your Docker private registry.
-
 name: Deploy
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
@@ -27,7 +12,7 @@ jobs:
     name: Deploy to ${{ github.ref_name }}
     runs-on: ubuntu-latest
     environment:
-      name: ${{ (github.ref_name == 'main' && 'Production') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
+      name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
       url: ${{ steps.deploy-to-koyeb.outputs.url }}
 
     steps:
