@@ -25,6 +25,16 @@ jobs:
         with:
           string: ${{ github.ref_name }}
 
+      - name: Determine image name
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "IMAGE_NAME=warrantybee-api" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" == "stage" ]; then
+            echo "IMAGE_NAME=warrantybee-api-stage" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" == "develop" ]; then
+            echo "IMAGE_NAME=warrantybee-api-test" >> $GITHUB_ENV
+          fi
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -41,16 +51,24 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ steps.string.outputs.lowercase }},${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.string.outputs.lowercase }},${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to Koyeb
-        id: deploy-to-koyeb
-        uses: koyeb-community/koyeb-actions@v2
-        with:
-          koyeb_token: ${{ secrets.KOYEB_TOKEN }}
-          app: ${{ vars.KOYEB_APP_NAME }}
-          service: ${{ vars.KOYEB_SERVICE_NAME }}
-          docker_image: "${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ github.sha }}"
-          docker_private_registry_secret: ${{ vars.KOYEB_DOCKER_SECRET_NAME }}
+      - name: Update image and redeploy on Koyeb
+        id: redeploy
+        run: |
+          curl -X PATCH \
+            https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }} \
+            -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"definition\": {
+                \"container\": {
+                  \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
+                  \"private_registry\": {
+                    \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
+                  }
+                }
+              }
+            }"
