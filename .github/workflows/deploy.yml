@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
-      url: ${{ steps.deploy-to-koyeb.outputs.url }}
 
     steps:
       - name: Checkout repository
@@ -51,14 +50,16 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.string.outputs.lowercase }},${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.string.outputs.lowercase }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Update image and redeploy on Koyeb
         run: |
-          curl -X POST \
-            https://app.koyeb.com/v1/deployments?service_id=${{ vars.KOYEB_SERVICE_ID }} \
+          curl -X PATCH \
+            https://api.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }} \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
