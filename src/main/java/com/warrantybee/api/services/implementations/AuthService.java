@@ -1,108 +1,439 @@
 package com.warrantybee.api.services.implementations;
-import com.warrantybee.api.dto.request.LoginRequest;
+
+import com.warrantybee.api.configurations.AppConfiguration;
+import com.warrantybee.api.dto.internal.*;
+import com.warrantybee.api.dto.request.*;
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
 import com.warrantybee.api.dto.response.LoginResponse;
+import com.warrantybee.api.dto.response.MFALoginResponse;
+import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
+import com.warrantybee.api.enumerations.Gender;
+import com.warrantybee.api.enumerations.LogLevel;
+import com.warrantybee.api.enumerations.NotificationType;
+import com.warrantybee.api.enumerations.OtpRequestReason;
 import com.warrantybee.api.exceptions.*;
-import com.warrantybee.api.models.User;
+import com.warrantybee.api.helpers.HashHelper;
+import com.warrantybee.api.helpers.Validator;
+import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import com.warrantybee.api.services.interfaces.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Service responsible for handling authentication-related operations
- * such as user login, token generation, caching, and CAPTCHA validation.
- *
- * <p>This service integrates with token, cache, telemetry, and CAPTCHA services
- * to provide a secure login flow.</p>
+ * Service responsible for handling authentication-related operations.
  */
 @Service
 public class AuthService implements IAuthService {
 
+    private final AppConfiguration _appConfiguration;
     private final ITokenService _tokenService;
     private final ICacheService _cacheService;
     private final ICaptchaService _captchaService;
+    private final IOtpService _otpService;
+    private final IEmailService _emailService;
+    private final ITelemetryService _telemetryService;
     private final IUserRepository _userRepository;
-    private final BCryptPasswordEncoder _passwordEncoder;
-
-    @PersistenceContext
-    private EntityManager _entityManager;
+    private final IOtpRepository _otpRepository;
 
     /**
-     * Constructs a new {@code AuthService} with the required dependencies.
+     * Constructs a new {@code AuthService} instance with all required dependencies.
      *
-     * @param tokenService      the service responsible for JWT operations
-     * @param cacheService      the service used for caching tokens
-     * @param captchaService    the service used to validate CAPTCHA responses
-     * @param userRepository    the repository used to manage user data
+     * @param appConfiguration   the global application configuration containing environment and service settings
+     * @param tokenService       the service responsible for generating and validating JWT tokens
+     * @param cacheService       the service used for managing cached authentication data
+     * @param captchaService     the service used to validate CAPTCHA responses during login or signup
+     * @param otpService         the service responsible for generating, sending, and validating OTPs
+     * @param emailService       the service used to send authentication-related emails (e.g., OTP, password reset)
+     * @param telemetryService   the service used to capture and log authentication telemetry data
+     * @param userRepository     the repository used to access and manage user account data
+     * @param otpRepository      the repository used to store and retrieve OTP records
      */
     @Autowired
-    public AuthService(ITokenService tokenService, ICacheService cacheService, ICaptchaService captchaService,
-                       IUserRepository userRepository) {
+    public AuthService(AppConfiguration appConfiguration, ITokenService tokenService, ICacheService cacheService,
+                       ICaptchaService captchaService, IOtpService otpService, IEmailService emailService,
+                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository) {
+        this._appConfiguration = appConfiguration;
         this._tokenService = tokenService;
         this._cacheService = cacheService;
         this._captchaService = captchaService;
+        this._otpService = otpService;
+        this._emailService = emailService;
+        this._telemetryService = telemetryService;
         this._userRepository = userRepository;
-        this._passwordEncoder = new BCryptPasswordEncoder(12);
+        this._otpRepository = otpRepository;
     }
 
-    /**
-     * Authenticates a user based on the provided login credentials and CAPTCHA.
-     * Generates and caches a JWT token upon successful authentication.
-     *
-     * @param request the login request containing user credentials and CAPTCHA response
-     * @return a {@link LoginResponse} containing the JWT token and user details
-     * @throws UserNotFoundException       if the user does not exist
-     * @throws InvalidCredentialsException if the password is incorrect
-     * @throws InvalidTokenException       if a cached token is invalid
-     * @throws CacheException              if an error occurs while accessing the cache
-     * @throws JwtGenerationException      if token generation fails
-     */
     @Override
-    public LoginResponse login(LoginRequest request) throws UserNotFoundException, InvalidCredentialsException,
-            InvalidTokenException, CacheException, JwtGenerationException {
+    public ILoginResponse login(ILoginRequest request) {
+        LoginRequest loginRequest = null;
+        MFALoginRequest mfaLoginRequest = null;
+        boolean hasValidCaptcha = false;
+        ILoginResponse response = null;
+
+        if (request instanceof LoginRequest obj) {
+            loginRequest = obj;
+        }
+        if (request instanceof MFALoginRequest obj) {
+            mfaLoginRequest = obj;
+        }
+
+        if (loginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(loginRequest.getCaptchaResponse());
+            if (hasValidCaptcha) {
+                response = _process(loginRequest);
+            }
+        }
+        else if (mfaLoginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(mfaLoginRequest.getCaptchaResponse());
+            if (hasValidCaptcha) {
+                response = _process(mfaLoginRequest);
+            }
+        }
+        else {
+            throw new InvalidRequestBodyException();
+        }
+
+        if (!hasValidCaptcha) {
+            throw new CaptchaVerificationFailedException();
+        }
+
+        return response;
+    }
+
+    @Override
+    public SignUpResponse signUp(SignUpRequest request) {
+        _validate(request);
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
-            User user = _userRepository.findByEmail(request.getEmail());
+            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(filter);
+            String passwordHash = HashHelper.getHash(request.getPassword());
 
+            if (user == null) {
+                UserCreationRequest userCreationRequest = new UserCreationRequest(
+                    request.getFirstname(),
+                    request.getLastname(),
+                    request.getEmail(),
+                    passwordHash,
+                    request.getHasAcceptedTermsAndConditions(),
+                    request.getHasAcceptedPrivacyPolicy(),
+                    request.getGender(),
+                    request.getDateOfBirth(),
+                    request.getPhoneCode(),
+                    request.getPhoneNumber(),
+                    request.getAddressLine1(),
+                    request.getAddressLine2(),
+                    request.getCity(),
+                    request.getRegionId(),
+                    request.getCountryId(),
+                    request.getPostalCode(),
+                    request.getAvatarUrl(),
+                    request.getCultureId()
+                );
+                Long userId = _userRepository.create(userCreationRequest);
+
+                if (userId == null) {
+                    throw new UserRegistrationFailedException();
+                }
+
+                try {
+                    Map<String, String> macros = new HashMap<>();
+                    macros.put("USER_FIRST_NAME", request.getFirstname());
+                    macros.put("USER_LAST_NAME", request.getLastname());
+                    NotificationPayload notification = new NotificationPayload(request.getEmail(), macros, NotificationType.WELCOME);
+                    _emailService.send(notification);
+                }
+                catch (Exception e) {
+                    Map<String, Object> context = new HashMap<>();
+                    context.put("exception", e);
+                    _telemetryService.log(LogLevel.ERROR, "A failure happened while sending the welcome email.", context);
+                }
+
+                return new SignUpResponse(userId);
+            }
+            else {
+                throw new UserAlreadyRegisteredException();
+            }
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
+        }
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) {
+        _validate(request);
+        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+
+        if (hasValidCaptcha) {
+            UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(filter);
             if (user != null) {
-                if (!_passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                    throw new InvalidCredentialsException();
+                boolean hasPasswordResetWindow = true;
+                Timestamp passwordUpdatedAt = user.getProfile().getSettings().getPasswordUpdatedAt();
+
+                if (passwordUpdatedAt != null) {
+                    Instant now = Instant.now();
+                    Instant lastUpdatedAt = passwordUpdatedAt.toInstant();
+                    Instant leastAllowedTime = now.minus(_appConfiguration.getProfileConfiguration().getPasswordResetWindow(), ChronoUnit.MINUTES);
+                    hasPasswordResetWindow = !lastUpdatedAt.isAfter(leastAllowedTime);
                 }
 
-                String token = _getCachedToken(user);
-                if (token == null) {
-                    token = _generateToken(user);
-                    _cacheToken(user, token);
+                if (hasPasswordResetWindow) {
+                    OtpRequest otpRequest = new OtpRequest(user.getId(), request.getEmail(), OtpRequestReason.FORGOT_PASSWORD);
+                    _sendOtp(otpRequest);
                 }
-
-                Map<String, Object> claims = _tokenService.validate(token);
-                UserResponse userResponse = new UserResponse(user.getId(), user.getFirstname(), user.getLastname(), user.getEmail());
-
-                return new LoginResponse(token, claims.get("iat").toString(), claims.get("exp").toString(), userResponse);
-            } else {
+                else {
+                    throw new PasswordRecentlyUpdatedException();
+                }
+            }
+            else {
                 throw new UserNotRegisteredException();
             }
-        } else {
-            throw new InvalidCaptchaException();
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
+        }
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        _validate(request);
+        boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
+
+        if (hasValidCaptcha) {
+            UserSearchFilter userSearchFilter = new UserSearchFilter(null, request.getEmail());
+            UserResponse user = _userRepository.get(userSearchFilter);
+
+            if (user != null) {
+                OtpSearchFilter otpSearchFilter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.FORGOT_PASSWORD.getCode());
+                String otpHash = _otpRepository.get(otpSearchFilter);
+
+                if (!HashHelper.verify(request.getOtp(), otpHash)) {
+                    throw new InvalidOtpException();
+                }
+                else {
+                    AtomicBoolean previouslyUsedPassword = new AtomicBoolean(false);
+                    List<String> previousPasswords = _userRepository.getPasswords(user.getId());
+
+                    previousPasswords.forEach(pwd -> {
+                        previouslyUsedPassword.set(HashHelper.verify(request.getNewPassword(), pwd));
+                    });
+
+                    if (previouslyUsedPassword.get()) {
+                        throw new PasswordAlreadyUsedException();
+                    }
+
+                    String passwordHash = HashHelper.getHash(request.getNewPassword());
+                    PasswordResetRequest resetRequest = new PasswordResetRequest(user.getId(), passwordHash);
+                    Boolean success = _userRepository.resetPassword(resetRequest);
+                    if (!success) {
+                        throw new PasswordResetFailedException();
+                    }
+                    else {
+                        Map<String, String> macros = new HashMap<>();
+                        macros.put("USER_FIRST_NAME", user.getFirstname());
+                        macros.put("USER_LAST_NAME", user.getLastname());
+                        NotificationPayload notification = new NotificationPayload(user.getEmail(), macros, NotificationType.PASSWORD_CHANGED);
+                        _emailService.send(notification);
+                    }
+                }
+            }
+            else {
+                throw new UserNotRegisteredException();
+            }
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
         }
     }
 
     /**
-     * Retrieves a valid cached token for the specified user if available.
-     *
-     * @param user the user whose cached token is requested
-     * @return the cached JWT token, or {@code null} if none exists or is invalid
+     * Validates the given login request.
+     * @param request the login request to validate
      */
-    private String _getCachedToken(User user) throws CacheException, InvalidTokenException {
-        String cacheKey = "token:" + user.getEmail();
+    private void _validate(LoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the given multifactor authentication login request.
+     * @param request the multifactor authentication request
+     */
+    private void _validate(MFALoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (Validator.isBlank(request.getToken())) {
+                throw new TokenRequiredException();
+            }
+            if (Validator.isBlank(request.getOtp())) {
+                throw new OtpRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the given sign-up request for required and valid user details.
+     * @param request the sign-up request to validate
+     */
+    private void _validate(SignUpRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (request.getHasAcceptedTermsAndConditions() == null ||
+                !request.getHasAcceptedTermsAndConditions()) {
+
+            }
+
+            if (request.getHasAcceptedPrivacyPolicy() == null ||
+                !request.getHasAcceptedPrivacyPolicy()) {
+
+            }
+
+            if (Validator.isBlank(request.getCaptchaResponse())) {
+                throw new CaptchaResponseRequiredException();
+            }
+            if (Validator.isBlank(request.getFirstname())) {
+                throw new FirstnameRequiredException();
+            }
+            if (Validator.isBlank(request.getLastname())) {
+                throw new LastnameRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
+            }
+            if (Validator.isBlank(request.getPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (!Validator.isStrongPassword(request.getPassword())) {
+                throw new StrongPasswordRequiredException();
+            }
+            if (!Validator.isEnum(request.getGender(), Gender.class)) {
+                throw new InvalidGenderValueException();
+            }
+            if (!Validator.hasLegalAge(request.getDateOfBirth())) {
+                throw new UserIsMinorException();
+            }
+            if (Validator.isBlank(request.getPhoneCode())) {
+
+            }
+            if (!Validator.isPhoneCode(request.getPhoneCode())) {
+
+            }
+            if (Validator.isBlank(request.getPhoneNumber())) {
+                throw new PhoneNumberRequiredException();
+            }
+            if (Validator.isBlank(request.getAddressLine1())) {
+                throw new AddressRequiredException();
+            }
+            if (Validator.isBlank(request.getCity())) {
+                throw new CityRequiredException();
+            }
+            if (Validator.isBlank(request.getPostalCode())) {
+                throw new PostalCodeRequiredException();
+            }
+            if (request.getRegionId() == null) {
+                throw new RegionRequiredException();
+            }
+            if (request.getCountryId() == null) {
+                throw new CountryRequiredException();
+            }
+            if (request.getCultureId() == null) {
+                throw new CultureRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the forgot password request.
+     */
+    private void _validate(ForgotPasswordRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getEmail())) {
+                throw new OtpRecipientRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidOtpRecipientException();
+            }
+        }
+    }
+
+    /**
+     * Validates the reset password request.
+     */
+    private void _validate(ResetPasswordRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getOtp())) {
+                throw new OtpRequiredException();
+            }
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidOtpRecipientException();
+            }
+            if (Validator.isBlank(request.getNewPassword())) {
+                throw new PasswordRequiredException();
+            }
+            if (!Validator.isStrongPassword(request.getNewPassword())) {
+                throw new StrongPasswordRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Retrieves and validates an access token from the cache for the specified email.
+     * @param email the user's email address used to generate the cache key
+     * @return the valid cached access token, or {@code null} if no valid token exists
+     */
+    private String _getAccessTokenFromCache(String email) {
+        String cacheKey = String.format("token:%s", email);
         String cachedToken = _cacheService.get(cacheKey);
         if (cachedToken != null) {
             _tokenService.validate(cachedToken);
@@ -112,26 +443,184 @@ public class AuthService implements IAuthService {
     }
 
     /**
-     * Generates a new JWT token for the specified user.
-     *
-     * @param user the user for whom the token is generated
-     * @return the generated JWT token
+     * Generates a new access token for the specified user with user ID and email as claims.
+     * @param user the user details used to create token claims
+     * @return the generated access token as a string
      */
-    private String _generateToken(User user) {
+    private String _generateAccessToken(UserResponse user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", user.getEmail());
         claims.put("userId", user.getId().toString());
+        claims.put("email", user.getEmail());
         return _tokenService.generate(claims);
     }
 
     /**
-     * Caches the given token for the specified user.
-     *
-     * @param user  the user associated with the token
-     * @param token the token to cache
+     * Caches the given token for the specified email with a 1-hour expiry.
+     * @param email the user's email associated with the token
+     * @param token the access token to be cached
      */
-    private void _cacheToken(User user, String token) throws CacheException {
-        String cacheKey = "token:" + user.getEmail();
+    private void _cacheToken(String email, String token) {
+        String cacheKey = String.format("token:%s", email);
         _cacheService.set(cacheKey, token, 3600);
+    }
+
+    /**
+     * Processes a standard login request by validating credentials and handling MFA if enabled.
+     *
+     * @param request The login request containing user email and password.
+     * @return A {@link ILoginResponse} object, which can be a {@link LoginResponse} or {@link MFALoginResponse}.
+     */
+    private ILoginResponse _process(LoginRequest request) {
+        _validate(request);
+
+        UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
+        UserResponse user = _userRepository.get(searchFilter);
+
+        if (user != null) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+
+            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), HashHelper.generateToken());
+                Boolean isStored = _userRepository.store(token);
+
+                if (isStored) {
+                    OtpRequest otpRequest = new OtpRequest(user.getId(), user.getEmail(), OtpRequestReason.LOGIN);
+                    _sendOtp(otpRequest);
+                    return new MFALoginResponse(token.getToken());
+                }
+                else {
+                    throw new LoginTokenCouldNotBeSavedException();
+                }
+            }
+            else {
+                return _getLoginResponse(user);
+            }
+        }
+        else {
+            throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Processes an MFA login request by validating credentials, verifying the login token and OTP,
+     * and returning a valid {@link LoginResponse} upon successful authentication.
+     *
+     * @param request The MFA login request containing email, password, token, and OTP.
+     * @return A {@link LoginResponse} if authentication succeeds.
+     */
+    private LoginResponse _process(MFALoginRequest request) {
+        _validate(request);
+
+        UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
+        UserResponse user = _userRepository.get(searchFilter);
+
+        if (user != null) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+
+            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+                LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
+                Boolean isValid = _userRepository.validate(token);
+
+                if (isValid) {
+                    OtpSearchFilter filter = new OtpSearchFilter(user.getEmail(), user.getId(), (byte) OtpRequestReason.LOGIN.getCode());
+                    String otpHash = _otpRepository.get(filter);
+
+                    if (!HashHelper.verify(request.getOtp(), otpHash)) {
+                        throw new InvalidOtpException();
+                    }
+                    else {
+                        return _getLoginResponse(user);
+                    }
+                }
+                else {
+                    throw new InvalidLoginTokenException();
+                }
+            }
+            else {
+                throw new MFANotEnabledException();
+            }
+        }
+        else {
+            throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Generates and sends an OTP to the specified user based on the request details.
+     * @param request the OTP request containing the user's email, ID, and reason
+     */
+    private void _sendOtp(OtpRequest request) {
+        String recipient = request.getEmail();
+        OtpRequestReason reason = request.getReason();
+        Map<String, String> macros = new HashMap<>();
+
+        if (reason == OtpRequestReason.LOGIN ||
+            reason == OtpRequestReason.FORGOT_PASSWORD) {
+            if (request.getUserId() != null) {
+                UserSearchFilter filter = new UserSearchFilter(request.getUserId(), null);
+                UserResponse user = _userRepository.get(filter);
+                if (user == null) {
+                    throw new OtpRecipientRequiredException();
+                }
+                else {
+                    recipient = user.getEmail();
+                    macros.put("USER_FIRST_NAME", user.getFirstname());
+                    macros.put("USER_LAST_NAME", user.getLastname());
+                }
+            }
+            else {
+                throw new OtpRecipientRequiredException();
+            }
+        }
+
+        final String otp = _otpService.generate();
+        final String otpHash = HashHelper.getHash(otp);
+        OtpStorageRequest otpStorageRequest = new OtpStorageRequest(otpHash, recipient, request.getUserId(), (byte) reason.getCode());
+        Long otpId = _otpRepository.store(otpStorageRequest);
+
+        if (otpId == null) {
+            throw new OtpGenerationFailedException();
+        }
+        else {
+            macros.put("OTP", otp);
+            NotificationPayload notification = null;
+            switch (reason) {
+                case OtpRequestReason.LOGIN -> {
+                    notification = new NotificationPayload(recipient, macros, NotificationType.MFA_LOGIN);
+                }
+                case OtpRequestReason.FORGOT_PASSWORD -> {
+                    notification = new NotificationPayload(recipient, macros, NotificationType.FORGOT_PASSWORD);
+                }
+            }
+            _emailService.send(notification);
+        }
+    }
+
+    /**
+     * Builds and returns a {@link LoginResponse} for the given user.
+     * Retrieves the access token from cache if available, otherwise generates and stores a new one.
+     *
+     * @param user The authenticated user details.
+     * @return A populated {@link LoginResponse} containing the token and related claims.
+     */
+    private LoginResponse _getLoginResponse(UserResponse user) {
+        String accessToken = _getAccessTokenFromCache(user.getEmail());
+
+        if (accessToken == null) {
+            accessToken = _generateAccessToken(user);
+            _cacheToken(user.getEmail(), accessToken);
+        }
+
+        Map<String, Object> claims = _tokenService.validate(accessToken);
+        return new LoginResponse(
+            accessToken,
+            claims.get("iat").toString(),
+            claims.get("exp").toString(),
+            user
+        );
     }
 }

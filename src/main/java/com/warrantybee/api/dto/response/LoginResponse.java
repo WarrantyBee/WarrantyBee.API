@@ -1,26 +1,38 @@
 package com.warrantybee.api.dto.response;
 
+import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** DTO for login response */
+/**
+ * Data Transfer Object (DTO) representing the response returned upon successful user login.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
+public class LoginResponse implements ILoginResponse {
 
-    /** JWT access token */
+    /**
+     * The JSON Web Token (JWT) used for subsequent authenticated requests to protected API endpoints.
+     */
     private String accessToken;
 
-    /** Token issued timestamp */
+    /**
+     * The timestamp (in ISO 8601 format) indicating the moment the access token was issued (iat claim).
+     */
     private String issuedAt;
 
-    /** Token expiration timestamp */
+    /**
+     * The timestamp (in ISO 8601 format) indicating the moment the access token will expire (exp claim).
+     */
     private String expiresAt;
 
-    /** Logged-in user details */
+    /**
+     * Details of the successfully logged-in user, typically containing the user ID, name, and roles.
+     * @see UserResponse
+     */
     private UserResponse user;
 }

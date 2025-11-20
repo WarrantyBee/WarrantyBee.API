@@ -4,21 +4,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Configuration for database data source connection.
+ * Configuration class for defining the properties needed to establish a
+ * database connection (data source).
  */
 @Getter
 @Setter
 public class DataSourceConfiguration {
 
-    /** Database connection URL */
+    /** The JDBC connection URL for the database. */
     private String url;
 
-    /** Database username */
+    /** The username required to authenticate with the database. */
     private String username;
 
-    /** Database password */
+    /** The password required to authenticate with the database. */
     private String password;
 
-    /** Database driver class name */
+    /** The fully qualified class name of the JDBC driver. */
     private String driver;
 }

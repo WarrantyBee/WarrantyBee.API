@@ -1,6 +1,5 @@
 package com.warrantybee.api.repositories.interfaces;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
@@ -10,5 +9,5 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @param <ID> Primary key type.
  */
 @NoRepositoryBean
-public interface IBaseRepository<T, ID> extends JpaRepository<T, ID> {
+public interface IBaseRepository<T, ID> {
 }

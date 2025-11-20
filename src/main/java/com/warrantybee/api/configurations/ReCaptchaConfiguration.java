@@ -4,18 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Configuration for Google reCAPTCHA.
+ * Configuration class for defining properties related to Google reCAPTCHA
+ * verification service.
  */
 @Getter
 @Setter
 public class ReCaptchaConfiguration {
 
-    /** The secret key provided by Google reCAPTCHA */
+    /** The secret key used to communicate with the Google reCAPTCHA API. */
     private String secret;
 
-    /** The verification URL to validate CAPTCHA responses */
+    /** The endpoint URL used to verify a reCAPTCHA response token. */
     private String verifyUrl;
 
-    /** Optional: Minimum score for reCAPTCHA v3 validation */
+    /** The minimum acceptable score for reCAPTCHA v3 verification (optional). */
     private double minimumScore;
 }

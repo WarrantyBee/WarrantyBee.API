@@ -4,10 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
- * Application configuration details.
+ * Loads application-wide configuration settings from properties files
+ * (prefixed by 'app'). This class aggregates various configuration groups
+ * used throughout the application.
  */
 @Configuration
 @ConfigurationProperties(prefix = "app")
@@ -15,24 +16,33 @@ import org.springframework.stereotype.Component;
 @Setter
 public class AppConfiguration {
 
-    /** App name. */
+    /** The display name of the application. */
     private String name;
 
-    /** App environment (e.g., dev, prod). */
+    /** The runtime environment (e.g., dev, prod, staging). */
     private String environment;
 
-    /** Database settings. */
+    /** Configuration properties for the database connection. */
     private DataSourceConfiguration dataSourceConfiguration;
 
-    /** Upstash Redis settings. */
+    /** Configuration properties for the Upstash Redis cache service. */
     private UpstashConfiguration upstashConfiguration;
 
-    /** Better Stack logging settings. */
+    /** Configuration properties for Better Stack logging and monitoring. */
     private BetterStackConfiguration betterStackConfiguration;
 
-    /** JWT token settings. */
+    /** Configuration properties related to JWT token generation and validation. */
     private JwtTokenConfiguration jwtTokenConfiguration;
 
-    /** reCaptcha settings. */
+    /** Configuration properties for Google reCaptcha validation service. */
     private ReCaptchaConfiguration recaptchaConfiguration;
+
+    /** Configuration properties for the SMTP (email) service used to send emails such as OTPs or notifications. */
+    private SmtpConfiguration smtpConfiguration;
+
+    /** Configuration properties for OTP (One-Time Password) settings such as expiration time or length. */
+    private OtpConfiguration otpConfiguration;
+
+    /** Configuration properties related to user profile management. */
+    private ProfileConfiguration profileConfiguration;
 }

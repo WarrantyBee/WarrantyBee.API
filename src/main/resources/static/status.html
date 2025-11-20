@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WarrantyBee.API</title>
+
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				background: #0d1117;
+				color: #e6edf3;
+				font-family: "Inter", sans-serif;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				overflow: hidden;
+			}
+
+			.container {
+				text-align: center;
+				padding: 30px 50px;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 18px;
+				box-shadow: 0 0 25px rgba(77, 163, 255, 0.15);
+				backdrop-filter: blur(6px);
+				animation: fadeIn 1.2s ease-out;
+			}
+
+			@keyframes fadeIn {
+				0% {
+					opacity: 0;
+					transform: scale(0.9);
+				}
+				100% {
+					opacity: 1;
+					transform: scale(1);
+				}
+			}
+
+			.pulse {
+				height: 18px;
+				width: 18px;
+				margin: 0 auto 20px auto;
+				border-radius: 50%;
+				background-color: #4da3ff;
+				box-shadow: 0 0 20px #4da3ff;
+				animation: pulse 1.5s infinite;
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(0.95);
+					box-shadow: 0 0 0 0 rgba(77, 163, 255, 0.7);
+				}
+				70% {
+					transform: scale(1);
+					box-shadow: 0 0 10px 20px rgba(77, 163, 255, 0);
+				}
+				100% {
+					transform: scale(0.95);
+					box-shadow: 0 0 0 0 rgba(77, 163, 255, 0);
+				}
+			}
+
+			h1 {
+				font-size: 2.1rem;
+				margin-bottom: 10px;
+				letter-spacing: 1px;
+				font-weight: 600;
+			}
+
+			p {
+				font-size: 1.05rem;
+				color: #9ba7b4;
+			}
+
+			.footer {
+				margin-top: 25px;
+				font-size: 0.9rem;
+				color: #69737e;
+			}
+
+			.glow {
+				color: #4da3ff;
+				text-shadow: 0 0 8px rgba(77, 163, 255, 0.7);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="pulse"></div>
+			<h1><span class="glow">WarrantyBee.API</span></h1>
+			<p>Your API is <strong class="glow">Up & Running</strong> 🚀</p>
+			<p>All systems are operational.</p>
+
+			<div class="footer">Last updated: <span id="timestamp"></span></div>
+		</div>
+
+		<script>
+			document.getElementById("timestamp").innerText =
+				new Date().toLocaleString();
+		</script>
+	</body>
+</html>
