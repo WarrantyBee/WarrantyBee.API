@@ -11,6 +11,7 @@ jobs:
     if: github.ref_name == 'main' || github.ref_name == 'stage' || github.ref_name == 'develop'
     name: Deploy to ${{ github.ref_name }}
     runs-on: ubuntu-latest
+
     environment:
       name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
 
@@ -58,8 +59,8 @@ jobs:
 
       - name: Update image and redeploy on Koyeb
         run: |
-          curl -X PATCH \
-            https://api.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }} \
+          echo "Patching Koyeb service: ${{ vars.KOYEB_SERVICE_ID }}"
+          curl -v -X PATCH "https://api.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
