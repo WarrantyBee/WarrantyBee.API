@@ -27,11 +27,11 @@ jobs:
 
       - name: Determine image name
         run: |
-          if [ "${{ github.ref_name }}" == "main" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             echo "IMAGE_NAME=warrantybee-api" >> $GITHUB_ENV
-          elif [ "${{ github.ref_name }}" == "stage" ]; then
+          elif [ "${{ github.ref_name }}" = "stage" ]; then
             echo "IMAGE_NAME=warrantybee-api-stage" >> $GITHUB_ENV
-          elif [ "${{ github.ref_name }}" == "develop" ]; then
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
             echo "IMAGE_NAME=warrantybee-api-test" >> $GITHUB_ENV
           fi
 
@@ -60,7 +60,8 @@ jobs:
       - name: Update image and redeploy on Koyeb
         run: |
           echo "Patching Koyeb service: ${{ vars.KOYEB_SERVICE_ID }}"
-          curl -v -X PATCH "https://api.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}" \
+
+          curl -v -X PATCH "https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
