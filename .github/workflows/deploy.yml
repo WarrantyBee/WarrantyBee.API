@@ -47,7 +47,7 @@ jobs:
 
       - name: Deploy to Koyeb
         id: deploy-to-koyeb
-        uses: koyeb/action-deploy@v2
+        uses: koyeb-community/koyeb-actions@v2
         with:
           koyeb_token: ${{ secrets.KOYEB_TOKEN }}
           app: ${{ vars.KOYEB_APP_NAME }}
