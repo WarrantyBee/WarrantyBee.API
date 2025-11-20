@@ -4,15 +4,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Holds Better Stack logging configuration details.
+ * Configuration class holding properties required for integrating with
+ * Better Stack logging services.
  */
 @Getter
 @Setter
 public class BetterStackConfiguration {
 
-    /** Better Stack ingesting host URL. */
+    /** The ingestion host URL for sending logs to Better Stack. */
     private String host;
 
-    /** Access token for Better Stack authentication. */
+    /** The access token used for authentication with the Better Stack service. */
     private String accessToken;
 }

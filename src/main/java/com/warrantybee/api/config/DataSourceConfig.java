@@ -4,30 +4,42 @@ import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.DataSourceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.sql.DataSource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import javax.sql.DataSource;
+
 /**
- * Configures the application's DataSource using AppConfiguration.
+ * Spring configuration class responsible for creating and configuring the
+ * application's primary {@link DataSource} bean using connection properties
+ * retrieved from {@link AppConfiguration}.
  */
 @Configuration
 public class DataSourceConfig {
 
-    private final AppConfiguration appConfiguration;
+    private final AppConfiguration _appConfiguration;
 
+    /**
+     * Constructs the DataSourceConfig, injecting the main application configuration.
+     * @param appConfiguration The overall application configuration containing data source settings.
+     */
     public DataSourceConfig(AppConfiguration appConfiguration) {
-        this.appConfiguration = appConfiguration;
+        this._appConfiguration = appConfiguration;
     }
 
     /**
-     * Creates a DataSource bean from DataSourceConfiguration.
-     *
-     * @return configured DataSource
+     * Creates and configures the JDBC {@link DataSource} bean.
+     * <p>
+     * It retrieves connection details (URL, username, password, driver class)
+     * from the {@link DataSourceConfiguration} within {@link AppConfiguration}.
+     * Throws an {@link IllegalStateException} if any required database configuration
+     * parameter is missing.
+     * </p>
+     * @return The configured {@link DriverManagerDataSource} instance.
+     * @throws IllegalStateException if the database configuration is incomplete.
      */
     @Bean
     public DataSource dataSource() {
-        DataSourceConfiguration cfg = appConfiguration.getDataSourceConfiguration();
+        DataSourceConfiguration cfg = _appConfiguration.getDataSourceConfiguration();
 
         if (cfg.getUrl() == null || cfg.getUsername() == null || cfg.getPassword() == null || cfg.getDriver() == null) {
             throw new IllegalStateException("Incomplete database configuration");

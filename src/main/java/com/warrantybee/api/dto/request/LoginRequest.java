@@ -1,23 +1,25 @@
 package com.warrantybee.api.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-/** DTO for user login request */
-@Data
-public class LoginRequest {
+/**
+ * Data Transfer Object (DTO) for capturing the necessary credentials and verification
+ * data when a user attempts to log in.
+ */
+@Getter
+@Setter
+@AllArgsConstructor
+public class LoginRequest implements ILoginRequest {
 
-    /** User email */
-    @Email
-    @NotBlank
+    /** The user's email address, which serves as the login identifier. */
     private String email;
 
-    /** User password */
-    @NotBlank
+    /** The user's plain-text password. */
     private String password;
 
-    /** Captcha response */
-    @NotBlank
+    /** The verification token received from the CAPTCHA service (e.g., reCAPTCHA). */
     private String captchaResponse;
 }

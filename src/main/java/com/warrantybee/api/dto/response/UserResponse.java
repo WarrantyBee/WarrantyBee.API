@@ -1,36 +1,50 @@
 package com.warrantybee.api.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** DTO for user response */
+/**
+ * Data Transfer Object (DTO) containing core user account information.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse {
 
-    /** User's identifier */
+    /**
+     * The unique database identifier of the user.
+     */
     private Long id;
 
-    /** User's first name */
+    /**
+     * The first name (given name) of the user.
+     */
     private String firstname;
 
-    /** User's last name */
+    /**
+     * The last name (surname) of the user.
+     */
     private String lastname;
 
-    /** User's email */
+    /**
+     * The primary email address of the user.
+     */
     private String email;
 
-    /** Additional user profile details */
-    private UserProfileResponse details;
+    /**
+     * The hashed password of the user. This field is ignored during JSON serialization
+     * due to the {@code @JsonIgnore} annotation for security reasons.
+     */
+    @JsonIgnore
+    private String password;
 
-    public UserResponse(Long id, String firstname, String lastname, String email) {
-        this.id = id;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.email = email;
-    }
+    /**
+     * Extended profile details, including geographical and preference information,
+     * provided as a nested {@link UserProfileResponse} DTO.
+     */
+    private UserProfileResponse profile;
 }
