@@ -67,6 +67,9 @@ jobs:
             -d "{
                   \"definition\": {
                     \"name\": \"warrantybee-api\",
+                    \"source\": {
+                      \"type\": \"docker\"
+                    },
                     \"regions\": [\"fra\"],
                     \"instance_types\": [
                       { \"type\": \"free\" }
