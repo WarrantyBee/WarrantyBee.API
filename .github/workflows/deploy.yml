@@ -79,6 +79,12 @@ jobs:
                         \"max\": 1
                       }
                     ],
+                    \"ports\": [
+                      {
+                        \"port\": 8080,
+                        \"protocol\": \"http\"
+                      }
+                    ],
                     \"routes\": [
                       {
                         \"path\": \"/\",
