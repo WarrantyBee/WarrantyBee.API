@@ -58,7 +58,7 @@ jobs:
       - name: Update image and redeploy on Koyeb
         run: |
           curl -X POST \
-            https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}/deployments \
+            https://app.koyeb.com/v1/deployments?service_id=${{ vars.KOYEB_SERVICE_ID }} \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
