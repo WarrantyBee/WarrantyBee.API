@@ -56,19 +56,18 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Update image and redeploy on Koyeb
-        id: redeploy
         run: |
-          curl -X PATCH \
-            https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }} \
+          curl -X POST \
+            https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}/deployments \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
-              \"definition\": {
-                \"container\": {
-                  \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
-                  \"private_registry\": {
-                    \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
+                  \"definition\": {
+                    \"container\": {
+                      \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
+                      \"private_registry\": {
+                        \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
+                      }
+                    }
                   }
-                }
-              }
-            }"
+                }"
