@@ -40,7 +40,7 @@ public class EmailTemplateService implements IEmailTemplateService {
             content = content.replaceAll(macro, entry.getValue());
         }
 
-        Pattern pattern = Pattern.compile("<macro>.*?</macro>");
+        Pattern pattern = Pattern.compile("<macro>.*+</macro>", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(content);
         if (matcher.find()) {
             throw new TemplateMacroCouldNotBeResolvedException("Unresolved macro found: " + matcher.group());
