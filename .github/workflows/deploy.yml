@@ -26,7 +26,7 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
-              -e 's|{{TRIGGERED_AT}}|${{ github.run_started_at }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
               -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_start.html)
@@ -224,11 +224,11 @@ jobs:
           if [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "status=Succeeded" >> $GITHUB_OUTPUT
             echo "color=#28a745" >> $GITHUB_OUTPUT
-            echo "result=✅ Success" >> $GITHUB_OUTPUT
+            echo "result=Success" >> $GITHUB_OUTPUT
           else
             echo "status=Failed" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
-            echo "result=❌ Failure" >> $GITHUB_OUTPUT
+            echo "result=Failure" >> $GITHUB_OUTPUT
           fi
 
       - name: Prepare End Notification Body
@@ -246,7 +246,7 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
-              -e 's|{{TRIGGERED_AT}}|${{ github.run_started_at }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
               -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_end.html)
