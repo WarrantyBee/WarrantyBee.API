@@ -7,10 +7,58 @@ permissions:
   contents: read
 
 jobs:
+  notify-start:
+    name: Send Deployment Start Notification
+    runs-on: ubuntu-latest
+    outputs:
+      mail_subject: ${{ steps.prep_start_subject.outputs.value }}
+      mail_body: ${{ steps.prep_start_email.outputs.body }}
+    steps:
+      - name: Prepare Start Notification Body
+        id: prep_start_email
+        run: |
+          cat <<EOF > template_start.html
+          ${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
+
+          body=$(sed -e 's|{{REPO_NAME}}|${{ github.repository }}|g' \
+              -e 's|{{ENV_NAME}}|${{ github.ref_name }}|g' \
+              -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
+              -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
+              -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e 's|{{TRIGGERED_AT}}|${{ github.run_started_at }}|g' \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_start.html)
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare Start Notification Subject
+        id: prep_start_subject
+        run: |
+          subject='${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ github.ref_name }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
+      - name: Send Deployment Start Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PWD }}
+          subject: ${{ steps.prep_start_subject.outputs.value }}
+          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
+          from: ${{ secrets.SMTP_USER }}
+          html_body: ${{ steps.prep_start_email.outputs.body }}
+
   deploy:
     if: github.ref_name == 'main' || github.ref_name == 'stage' || github.ref_name == 'develop'
     name: Deploy to ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    needs: notify-start
 
     environment:
       name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
@@ -111,7 +159,6 @@ jobs:
 
           if [ "$STATUS" -ne 200 ]; then
             echo "Koyeb PATCH failed with status: $STATUS"
-            echo "Response:"
             cat response.txt
             exit 1
           fi
@@ -120,13 +167,10 @@ jobs:
 
       - name: Poll Koyeb Deployment Status
         run: |
-          echo "Extracting latest_deployment_id from PATCH response..."
-
-          # Parse latest_deployment_id from the PATCH response
           LATEST_DEPLOYMENT_ID=$(jq -r '.service.latest_deployment_id' response.txt)
 
           if [ -z "$LATEST_DEPLOYMENT_ID" ] || [ "$LATEST_DEPLOYMENT_ID" = "null" ]; then
-            echo "Could not extract latest_deployment_id from response.txt"
+            echo "Could not extract latest_deployment_id"
             cat response.txt
             exit 1
           fi
@@ -134,34 +178,23 @@ jobs:
           echo "Latest deployment ID: $LATEST_DEPLOYMENT_ID"
 
           TOKEN="${{ secrets.KOYEB_TOKEN }}"
-
           ATTEMPTS=0
-          MAX_ATTEMPTS=30     # 5 minutes timeout (30 × 10 sec)
+          MAX_ATTEMPTS=30
 
           while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-            echo "Checking deployment status for ID: $LATEST_DEPLOYMENT_ID"
-
             STATUS_CODE=$(curl -s -o deploy.json -w "%{http_code}" \
               -X GET "https://app.koyeb.com/v1/deployments/$LATEST_DEPLOYMENT_ID" \
               -H "Authorization: Bearer $TOKEN")
 
-            if [ "$STATUS_CODE" -ne 200 ]; then
-              echo "Deployment status fetch failed, HTTP $STATUS_CODE"
-              cat deploy.json
-              exit 1
-            fi
-
             DEPLOY_STATUS=$(jq -r '.deployment.status' deploy.json)
 
-            echo "Current deployment status: $DEPLOY_STATUS"
+            echo "Status: $DEPLOY_STATUS"
 
             if [ "$DEPLOY_STATUS" = "HEALTHY" ]; then
-              echo "Deployment is healthy!"
               exit 0
             fi
 
             if [ "$DEPLOY_STATUS" = "FAILED" ] || [ "$DEPLOY_STATUS" = "ERROR" ]; then
-              echo "Deployment failed!"
               cat deploy.json
               exit 1
             fi
@@ -170,5 +203,68 @@ jobs:
             sleep 10
           done
 
-          echo "Deployment did not become healthy within timeout."
+          echo "Timed out"
           exit 1
+
+  notify-end:
+    name: Send Deployment Completion Notification
+    needs: [notify-start, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Deployment Status
+        id: set_status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "status=Succeeded" >> $GITHUB_OUTPUT
+            echo "color=#28a745" >> $GITHUB_OUTPUT
+            echo "result=✅ Success" >> $GITHUB_OUTPUT
+          else
+            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+            echo "result=❌ Failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare End Notification Body
+        id: prep_end_email
+        run: |
+          cat <<EOF > template_end.html
+          ${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
+
+          body=$(sed -e "s|{{DEPLOY_COLOR}}|${{ steps.set_status.outputs.color }}|g" \
+              -e "s|{{DEPLOY_STATUS}}|${{ steps.set_status.outputs.status }}|g" \
+              -e "s|{{DEPLOY_RESULT}}|${{ steps.set_status.outputs.result }}|g" \
+              -e 's|{{REPO_NAME}}|${{ github.repository }}|g' \
+              -e 's|{{ENV_NAME}}|${{ github.ref_name }}|g' \
+              -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
+              -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
+              -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e 's|{{TRIGGERED_AT}}|${{ github.run_started_at }}|g' \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_end.html)
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare End Notification Subject
+        id: prep_end_subject
+        run: |
+          subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ github.ref_name }}'}"
+          subject="${subject//'{{STATUS}}'/'${{ steps.set_status.outputs.status }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
+      - name: Send Deployment End Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PWD }}
+          subject: ${{ steps.prep_end_subject.outputs.value }}
+          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
+          from: ${{ secrets.SMTP_USER }}
+          html_body: ${{ steps.prep_end_email.outputs.body }}
