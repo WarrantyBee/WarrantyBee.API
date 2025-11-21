@@ -31,7 +31,7 @@ jobs:
             echo "IMAGE_NAME=warrantybee-api" >> $GITHUB_ENV
           elif [ "${{ github.ref_name }}" = "stage" ]; then
             echo "IMAGE_NAME=warrantybee-api-stage" >> $GITHUB_ENV
-          elif [ "${{ github.ref_name }}" = "develop" ]; then
+          else
             echo "IMAGE_NAME=warrantybee-api-test" >> $GITHUB_ENV
           fi
 
@@ -57,6 +57,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Decode Base64 secrets for Koyeb
+        run: |
+          echo "${{ secrets.KOYEB_ENV }}" | base64 -d > env.json
+          echo "${{ secrets.KOYEB_SCALINGS }}" | base64 -d > scalings.json
+          echo "${{ secrets.KOYEB_INSTANCE_TYPES }}" | base64 -d > instance_types.json
+          echo "${{ secrets.KOYEB_HEALTH_CHECKS }}" | base64 -d > health_checks.json
+
       - name: Prepare Koyeb JSON body
         id: koyeb_body
         run: |
@@ -73,11 +80,11 @@ jobs:
                 { "port": 8080, "protocol": "http" }
               ],
               "proxy_ports": [],
-              "env": ${{ secrets.KOYEB_ENV }},
+              "env": $(cat env.json),
               "regions": ["fra"],
-              "scalings": ${{ secrets.KOYEB_SCALINGS }},
-              "instance_types": ${{ secrets.KOYEB_INSTANCE_TYPES }},
-              "health_checks": ${{ secrets.KOYEB_HEALTH_CHECKS }},
+              "scalings": $(cat scalings.json),
+              "instance_types": $(cat instance_types.json),
+              "health_checks": $(cat health_checks.json),
               "volumes": [],
               "config_files": [],
               "skip_cache": false,
@@ -97,7 +104,7 @@ jobs:
           cat body.json
           echo "================================================="
 
-      - name: Update image and redeploy on Koyeb
+      - name: Patch Koyeb service
         run: |
           echo "Patching Koyeb service: ${{ secrets.KOYEB_SERVICE_ID }}"
 
