@@ -16,16 +16,16 @@ jobs:
       name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Convert branch name to lowercase
+      - name: Process Branch
         id: string
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ github.ref_name }}
 
-      - name: Determine image name
+      - name: Determine Image
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "IMAGE_NAME=warrantybee-api" >> $GITHUB_ENV
@@ -44,7 +44,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: Build and Push Docker Image
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
@@ -57,7 +57,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Decode Base64 secrets for Koyeb
+      - name: Decode Secrets
         run: |
           echo "${{ secrets.KOYEB_ENV }}" | base64 -d > env.json
           echo "${{ secrets.KOYEB_SCALINGS }}" | base64 -d > scalings.json
@@ -99,7 +99,7 @@ jobs:
           }
           EOF
 
-      - name: Patch Koyeb service
+      - name: Patch Koyeb Service
         id: patch_service
         run: |
           echo "Patching Koyeb service: ${{ secrets.KOYEB_SERVICE_ID }}"
@@ -118,39 +118,57 @@ jobs:
 
           echo "PATCH successful."
 
-      - name: Wait for Koyeb deployment to become healthy
+      - name: Poll Koyeb Deployment Status
         run: |
-          echo "Checking deployment status..."
+          echo "Extracting latest_deployment_id from PATCH response..."
 
-          SERVICE_ID="${{ secrets.KOYEB_SERVICE_ID }}"
+          # Parse latest_deployment_id from the PATCH response
+          LATEST_DEPLOYMENT_ID=$(jq -r '.service.latest_deployment_id' response.txt)
+
+          if [ -z "$LATEST_DEPLOYMENT_ID" ] || [ "$LATEST_DEPLOYMENT_ID" = "null" ]; then
+            echo "Could not extract latest_deployment_id from response.txt"
+            cat response.txt
+            exit 1
+          fi
+
+          echo "Latest deployment ID: $LATEST_DEPLOYMENT_ID"
+
           TOKEN="${{ secrets.KOYEB_TOKEN }}"
 
           ATTEMPTS=0
-          MAX_ATTEMPTS=30   # 30 attempts × 10 seconds = 5 minutes timeout
+          MAX_ATTEMPTS=30     # 5 minutes timeout (30 × 10 sec)
 
-          until [ $ATTEMPTS -ge $MAX_ATTEMPTS ]
-          do
-            DEPLOY=$(curl -s -X GET "https://app.koyeb.com/v1/services/$SERVICE_ID/deployments" \
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            echo "Checking deployment status for ID: $LATEST_DEPLOYMENT_ID"
+
+            STATUS_CODE=$(curl -s -o deploy.json -w "%{http_code}" \
+              -X GET "https://app.koyeb.com/v1/deployments/$LATEST_DEPLOYMENT_ID" \
               -H "Authorization: Bearer $TOKEN")
 
-            STATUS=$(echo "$DEPLOY" | jq -r '.deployments[0].status')
+            if [ "$STATUS_CODE" -ne 200 ]; then
+              echo "Deployment status fetch failed, HTTP $STATUS_CODE"
+              cat deploy.json
+              exit 1
+            fi
 
-            echo "Current status: $STATUS"
+            DEPLOY_STATUS=$(jq -r '.deployment.status' deploy.json)
 
-            if [ "$STATUS" = "HEALTHY" ]; then
+            echo "Current deployment status: $DEPLOY_STATUS"
+
+            if [ "$DEPLOY_STATUS" = "HEALTHY" ]; then
               echo "Deployment is healthy!"
               exit 0
             fi
 
-            if [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "ERROR" ]; then
+            if [ "$DEPLOY_STATUS" = "FAILED" ] || [ "$DEPLOY_STATUS" = "ERROR" ]; then
               echo "Deployment failed!"
-              echo "$DEPLOY"
+              cat deploy.json
               exit 1
             fi
 
-            ATTEMPTS=$((ATTEMPTS+1))
+            ATTEMPTS=$((ATTEMPTS + 1))
             sleep 10
           done
 
-          echo "Deployment did not become healthy in time!"
+          echo "Deployment did not become healthy within timeout."
           exit 1
