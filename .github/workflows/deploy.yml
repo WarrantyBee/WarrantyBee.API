@@ -65,7 +65,6 @@ jobs:
           echo "${{ secrets.KOYEB_HEALTH_CHECKS }}" | base64 -d > health_checks.json
 
       - name: Prepare Koyeb JSON body
-        id: koyeb_body
         run: |
           cat <<EOF > body.json
           {
@@ -100,15 +99,58 @@ jobs:
           }
           EOF
 
-          echo "========== JSON BODY THAT WILL BE SENT =========="
-          cat body.json
-          echo "================================================="
-
       - name: Patch Koyeb service
+        id: patch_service
         run: |
           echo "Patching Koyeb service: ${{ secrets.KOYEB_SERVICE_ID }}"
 
-          curl -v -X PATCH "https://app.koyeb.com/v1/services/${{ secrets.KOYEB_SERVICE_ID }}" \
+          STATUS=$(curl -s -o response.txt -w "%{http_code}" -X PATCH "https://app.koyeb.com/v1/services/${{ secrets.KOYEB_SERVICE_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data @body.json
+            --data @body.json)
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Koyeb PATCH failed with status: $STATUS"
+            echo "Response:"
+            cat response.txt
+            exit 1
+          fi
+
+          echo "PATCH successful."
+
+      - name: Wait for Koyeb deployment to become healthy
+        run: |
+          echo "Checking deployment status..."
+
+          SERVICE_ID="${{ secrets.KOYEB_SERVICE_ID }}"
+          TOKEN="${{ secrets.KOYEB_TOKEN }}"
+
+          ATTEMPTS=0
+          MAX_ATTEMPTS=30   # 30 attempts × 10 seconds = 5 minutes timeout
+
+          until [ $ATTEMPTS -ge $MAX_ATTEMPTS ]
+          do
+            DEPLOY=$(curl -s -X GET "https://app.koyeb.com/v1/services/$SERVICE_ID/deployments" \
+              -H "Authorization: Bearer $TOKEN")
+
+            STATUS=$(echo "$DEPLOY" | jq -r '.deployments[0].status')
+
+            echo "Current status: $STATUS"
+
+            if [ "$STATUS" = "HEALTHY" ]; then
+              echo "Deployment is healthy!"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "ERROR" ]; then
+              echo "Deployment failed!"
+              echo "$DEPLOY"
+              exit 1
+            fi
+
+            ATTEMPTS=$((ATTEMPTS+1))
+            sleep 10
+          done
+
+          echo "Deployment did not become healthy in time!"
+          exit 1
