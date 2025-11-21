@@ -65,37 +65,44 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{
-                  \"definition\": {
-                    \"name\": \"warrantybee-api\",
-                    \"regions\": [\"fra\"],
-                    \"instance_types\": [
-                      { \"type\": \"free\" }
-                    ],
-                    \"scalings\": [
-                      {
-                        \"metric\": \"cpu\",
-                        \"target\": 60,
-                        \"min\": 0,
-                        \"max\": 1
-                      }
-                    ],
-                    \"ports\": [
-                      {
-                        \"port\": 8080,
-                        \"protocol\": \"http\"
-                      }
-                    ],
-                    \"routes\": [
-                      {
-                        \"path\": \"/\",
-                        \"port\": 8080
-                      }
-                    ],
-                    \"container\": {
-                      \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
-                      \"private_registry\": {
-                        \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
-                      }
-                    }
+              \"definition\": {
+                \"name\": \"warrantybee-api\",
+                \"source\": {
+                  \"type\": \"docker\",
+                  \"docker\": {
+                    \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
+                    \"private_registry_secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
                   }
-                }"
+                },
+                \"regions\": [\"fra\"],
+                \"instance_types\": [
+                  { \"type\": \"free\" }
+                ],
+                \"scalings\": [
+                  {
+                    \"metric\": \"cpu\",
+                    \"target\": 60,
+                    \"min\": 0,
+                    \"max\": 1
+                  }
+                ],
+                \"ports\": [
+                  {
+                    \"port\": 8080,
+                    \"protocol\": \"http\"
+                  }
+                ],
+                \"routes\": [
+                  {
+                    \"path\": \"/\",
+                    \"port\": 8080
+                  }
+                ],
+                \"container\": {
+                  \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
+                  \"private_registry\": {
+                    \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
+                  }
+                }
+              }
+            }"
