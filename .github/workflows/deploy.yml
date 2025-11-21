@@ -73,7 +73,6 @@ jobs:
                 { "port": 8080, "protocol": "http" }
               ],
               "proxy_ports": [],
-              "env": ${{ secrets.KOYEB_ENV }},
               "regions": ["fra"],
               "scalings": ${{ secrets.KOYEB_SCALINGS }},
               "instance_types": ${{ secrets.KOYEB_INSTANCE_TYPES }},
