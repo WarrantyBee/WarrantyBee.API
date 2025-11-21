@@ -35,6 +35,12 @@ jobs:
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Debug Start Email Body
+        run: |
+          echo "----- START EMAIL HTML BODY START -----"
+          echo "${{ steps.prep_start_email.outputs.body }}"
+          echo "----- START EMAIL HTML BODY END -----"
+
       - name: Prepare Start Notification Subject
         id: prep_start_subject
         run: |
@@ -248,6 +254,12 @@ jobs:
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Debug End Email Body
+        run: |
+          echo "----- END EMAIL HTML BODY START -----"
+          echo "${{ steps.prep_end_email.outputs.body }}"
+          echo "----- END EMAIL HTML BODY END -----"
 
       - name: Prepare End Notification Subject
         id: prep_end_subject
