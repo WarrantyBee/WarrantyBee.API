@@ -59,50 +59,38 @@ jobs:
 
       - name: Update image and redeploy on Koyeb
         run: |
-          echo "Patching Koyeb service: ${{ vars.KOYEB_SERVICE_ID }}"
+          echo "Patching Koyeb deployment: ${{ secrets.KOYEB_DEPLOYMENT_ID }}"
 
-          curl -v -X PATCH "https://app.koyeb.com/v1/services/${{ vars.KOYEB_SERVICE_ID }}" \
+          curl -v -X PATCH "https://app.koyeb.com/v1/deployments/${{ secrets.KOYEB_DEPLOYMENT_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "{
+            --data "{
               \"definition\": {
-                \"name\": \"warrantybee-api\",
-                \"source\": {
-                  \"type\": \"docker\",
-                  \"docker\": {
-                    \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
-                    \"private_registry_secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
-                  }
-                },
-                \"regions\": [\"fra\"],
-                \"instance_types\": [
-                  { \"type\": \"free\" }
-                ],
-                \"scalings\": [
-                  {
-                    \"metric\": \"cpu\",
-                    \"target\": 60,
-                    \"min\": 0,
-                    \"max\": 1
-                  }
+                \"name\": \"warrantybee-test\",
+                \"type\": \"WEB\",
+                \"strategy\": { \"type\": \"DEPLOYMENT_STRATEGY_TYPE_ROLLING\" },
+                \"routes\": [
+                  { \"port\": 8080, \"path\": \"/\" }
                 ],
                 \"ports\": [
-                  {
-                    \"port\": 8080,
-                    \"protocol\": \"http\"
-                  }
+                  { \"port\": 8080, \"protocol\": \"http\" }
                 ],
-                \"routes\": [
-                  {
-                    \"path\": \"/\",
-                    \"port\": 8080
-                  }
-                ],
-                \"container\": {
+                \"proxy_ports\": [],
+                \"env\": ${{ secrets.KOYEB_ENV }},
+                \"regions\": [\"fra\"],
+                \"scalings\": ${{ secrets.KOYEB_SCALINGS }},
+                \"instance_types\": ${{ secrets.KOYEB_INSTANCE_TYPES }},
+                \"health_checks\": ${{ secrets.KOYEB_HEALTH_CHECKS }},
+                \"volumes\": [],
+                \"config_files\": [],
+                \"skip_cache\": false,
+                \"docker\": {
                   \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
-                  \"private_registry\": {
-                    \"secret\": \"${{ vars.KOYEB_DOCKER_SECRET_NAME }}\"
-                  }
+                  \"command\": \"\",
+                  \"args\": [],
+                  \"image_registry_secret\": \"${{ secrets.KOYEB_DOCKER_SECRET_NAME }}\",
+                  \"entrypoint\": [],
+                  \"privileged\": false
                 }
               }
             }"
