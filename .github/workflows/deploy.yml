@@ -61,7 +61,7 @@ jobs:
         run: |
           echo "Patching Koyeb deployment: ${{ secrets.KOYEB_DEPLOYMENT_ID }}"
 
-          curl -v -X PATCH "https://app.koyeb.com/v1/deployments/${{ secrets.KOYEB_DEPLOYMENT_ID }}" \
+          curl -v -X PATCH "https://app.koyeb.com/v1/services/${{ secrets.KOYEB_SERVICE_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data "{
