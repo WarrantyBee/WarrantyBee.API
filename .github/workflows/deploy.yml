@@ -57,40 +57,51 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Prepare Koyeb JSON body
+        id: koyeb_body
+        run: |
+          cat <<EOF > body.json
+          {
+            "definition": {
+              "name": "warrantybee-test",
+              "type": "WEB",
+              "strategy": { "type": "DEPLOYMENT_STRATEGY_TYPE_ROLLING" },
+              "routes": [
+                { "port": 8080, "path": "/" }
+              ],
+              "ports": [
+                { "port": 8080, "protocol": "http" }
+              ],
+              "proxy_ports": [],
+              "env": ${{ secrets.KOYEB_ENV }},
+              "regions": ["fra"],
+              "scalings": ${{ secrets.KOYEB_SCALINGS }},
+              "instance_types": ${{ secrets.KOYEB_INSTANCE_TYPES }},
+              "health_checks": ${{ secrets.KOYEB_HEALTH_CHECKS }},
+              "volumes": [],
+              "config_files": [],
+              "skip_cache": false,
+              "docker": {
+                "image": "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}",
+                "command": "",
+                "args": [],
+                "image_registry_secret": "${{ secrets.KOYEB_DOCKER_SECRET_NAME }}",
+                "entrypoint": [],
+                "privileged": false
+              }
+            }
+          }
+          EOF
+
+          echo "========== JSON BODY THAT WILL BE SENT =========="
+          cat body.json
+          echo "================================================="
+
       - name: Update image and redeploy on Koyeb
         run: |
-          echo "Patching Koyeb deployment: ${{ secrets.KOYEB_DEPLOYMENT_ID }}"
+          echo "Patching Koyeb service: ${{ secrets.KOYEB_SERVICE_ID }}"
 
           curl -v -X PATCH "https://app.koyeb.com/v1/services/${{ secrets.KOYEB_SERVICE_ID }}" \
             -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data "{
-              \"definition\": {
-                \"name\": \"warrantybee-test\",
-                \"type\": \"WEB\",
-                \"strategy\": { \"type\": \"DEPLOYMENT_STRATEGY_TYPE_ROLLING\" },
-                \"routes\": [
-                  { \"port\": 8080, \"path\": \"/\" }
-                ],
-                \"ports\": [
-                  { \"port\": 8080, \"protocol\": \"http\" }
-                ],
-                \"proxy_ports\": [],
-                \"env\": ${{ secrets.KOYEB_ENV }},
-                \"regions\": [\"fra\"],
-                \"scalings\": ${{ secrets.KOYEB_SCALINGS }},
-                \"instance_types\": ${{ secrets.KOYEB_INSTANCE_TYPES }},
-                \"health_checks\": ${{ secrets.KOYEB_HEALTH_CHECKS }},
-                \"volumes\": [],
-                \"config_files\": [],
-                \"skip_cache\": false,
-                \"docker\": {
-                  \"image\": \"${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\",
-                  \"command\": \"\",
-                  \"args\": [],
-                  \"image_registry_secret\": \"${{ secrets.KOYEB_DOCKER_SECRET_NAME }}\",
-                  \"entrypoint\": [],
-                  \"privileged\": false
-                }
-              }
-            }"
+            --data @body.json
