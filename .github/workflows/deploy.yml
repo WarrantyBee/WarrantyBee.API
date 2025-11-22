@@ -213,9 +213,9 @@ jobs:
             echo "color=#28a745" >> $GITHUB_OUTPUT
             echo "result=Success" >> $GITHUB_OUTPUT
           else
-            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "status=FAILED" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
-            echo "result=FAILED >> $GITHUB_OUTPUT
+            echo "result=Failure" >> $GITHUB_OUTPUT
           fi
 
       - name: Prepare End Notification Body
