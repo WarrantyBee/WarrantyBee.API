@@ -7,12 +7,14 @@ permissions:
   contents: read
 
 jobs:
-  notify-start:
-    name: Send Deployment Start Notification
+  deploy:
+    if: github.ref_name == 'main' || github.ref_name == 'stage' || github.ref_name == 'develop'
+    name: Deploy to ${{ github.ref_name }}
     runs-on: ubuntu-latest
-    outputs:
-      mail_subject: ${{ steps.prep_start_subject.outputs.value }}
-      mail_body: ${{ steps.prep_start_email.outputs.body }}
+
+    environment:
+      name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
+
     steps:
       - name: Prepare Start Notification Body
         id: prep_start_email
@@ -60,16 +62,6 @@ jobs:
           from: ${{ secrets.SMTP_USER }}
           html_body: ${{ steps.prep_start_email.outputs.body }}
 
-  deploy:
-    if: github.ref_name == 'main' || github.ref_name == 'stage' || github.ref_name == 'develop'
-    name: Deploy to ${{ github.ref_name }}
-    runs-on: ubuntu-latest
-    needs: notify-start
-
-    environment:
-      name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
-
-    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -212,16 +204,11 @@ jobs:
           echo "Timed out"
           exit 1
 
-  notify-end:
-    name: Send Deployment Completion Notification
-    needs: [notify-start, deploy]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
       - name: Set Deployment Status
         id: set_status
+        if: always()
         run: |
-          if [ "${{ needs.deploy.result }}" == "success" ]; then
+          if [ "${{ job.status }}" == "success" ]; then
             echo "status=Succeeded" >> $GITHUB_OUTPUT
             echo "color=#28a745" >> $GITHUB_OUTPUT
             echo "result=Success" >> $GITHUB_OUTPUT
@@ -233,6 +220,7 @@ jobs:
 
       - name: Prepare End Notification Body
         id: prep_end_email
+        if: always()
         run: |
           cat <<EOF > template_end.html
           ${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
@@ -256,6 +244,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Debug End Email Body
+        if: always()
         run: |
           echo "----- END EMAIL HTML BODY START -----"
           echo "${{ steps.prep_end_email.outputs.body }}"
@@ -263,6 +252,7 @@ jobs:
 
       - name: Prepare End Notification Subject
         id: prep_end_subject
+        if: always()
         run: |
           subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
           subject="${subject//'{{ENV_NAME}}'/'${{ github.ref_name }}'}"
@@ -270,6 +260,7 @@ jobs:
           echo "value=$subject" >> $GITHUB_OUTPUT
 
       - name: Send Deployment End Notification
+        if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
