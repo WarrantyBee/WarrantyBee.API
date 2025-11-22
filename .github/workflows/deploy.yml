@@ -11,19 +11,75 @@ jobs:
     if: github.ref_name == 'main' || github.ref_name == 'stage' || github.ref_name == 'develop'
     name: Deploy to ${{ github.ref_name }}
     runs-on: ubuntu-latest
+
     environment:
       name: ${{ (github.ref_name == 'main' && 'Prod') || (github.ref_name == 'stage' && 'Stage') || 'Test' }}
-      url: ${{ steps.deploy-to-koyeb.outputs.url }}
 
     steps:
-      - name: Checkout repository
+      - name: Prepare Start Notification Body
+        id: prep_start_email
+        run: |
+          cat <<EOF > template_start.html
+          ${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
+
+          body=$(sed -e 's|{{REPO_NAME}}|${{ github.repository }}|g' \
+              -e 's|{{ENV_NAME}}|${{ github.ref_name }}|g' \
+              -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
+              -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
+              -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_start.html)
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Debug Start Email Body
+        run: |
+          echo "----- START EMAIL HTML BODY START -----"
+          echo "${{ steps.prep_start_email.outputs.body }}"
+          echo "----- START EMAIL HTML BODY END -----"
+
+      - name: Prepare Start Notification Subject
+        id: prep_start_subject
+        run: |
+          subject='${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ github.ref_name }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
+      - name: Send Deployment Start Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PWD }}
+          subject: ${{ steps.prep_start_subject.outputs.value }}
+          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
+          from: ${{ secrets.SMTP_USER }}
+          html_body: ${{ steps.prep_start_email.outputs.body }}
+
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Convert branch name to lowercase
+      - name: Process Branch
         id: string
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ github.ref_name }}
+
+      - name: Determine Image
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "IMAGE_NAME=warrantybee-api" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" = "stage" ]; then
+            echo "IMAGE_NAME=warrantybee-api-stage" >> $GITHUB_ENV
+          else
+            echo "IMAGE_NAME=warrantybee-api-test" >> $GITHUB_ENV
+          fi
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -34,23 +90,184 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: Build and Push Docker Image
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ steps.string.outputs.lowercase }},${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.string.outputs.lowercase }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to Koyeb
-        id: deploy-to-koyeb
-        uses: koyeb/action-deploy@v2
+      - name: Decode Secrets
+        run: |
+          echo "${{ secrets.KOYEB_ENV }}" | base64 -d > env.json
+          echo "${{ secrets.KOYEB_SCALINGS }}" | base64 -d > scalings.json
+          echo "${{ secrets.KOYEB_INSTANCE_TYPES }}" | base64 -d > instance_types.json
+          echo "${{ secrets.KOYEB_HEALTH_CHECKS }}" | base64 -d > health_checks.json
+
+      - name: Prepare Koyeb JSON body
+        run: |
+          cat <<EOF > body.json
+          {
+            "definition": {
+              "name": "warrantybee-test",
+              "type": "WEB",
+              "strategy": { "type": "DEPLOYMENT_STRATEGY_TYPE_ROLLING" },
+              "routes": [
+                { "port": 8080, "path": "/" }
+              ],
+              "ports": [
+                { "port": 8080, "protocol": "http" }
+              ],
+              "proxy_ports": [],
+              "env": $(cat env.json),
+              "regions": ["fra"],
+              "scalings": $(cat scalings.json),
+              "instance_types": $(cat instance_types.json),
+              "health_checks": $(cat health_checks.json),
+              "volumes": [],
+              "config_files": [],
+              "skip_cache": false,
+              "docker": {
+                "image": "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}",
+                "command": "",
+                "args": [],
+                "image_registry_secret": "${{ secrets.KOYEB_DOCKER_SECRET_NAME }}",
+                "entrypoint": [],
+                "privileged": false
+              }
+            }
+          }
+          EOF
+
+      - name: Patch Koyeb Service
+        id: patch_service
+        run: |
+          echo "Patching Koyeb service: ${{ secrets.KOYEB_SERVICE_ID }}"
+
+          STATUS=$(curl -s -o response.txt -w "%{http_code}" -X PATCH "https://app.koyeb.com/v1/services/${{ secrets.KOYEB_SERVICE_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.KOYEB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data @body.json)
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Koyeb PATCH failed with status: $STATUS"
+            cat response.txt
+            exit 1
+          fi
+
+          echo "PATCH successful."
+
+      - name: Poll Koyeb Deployment Status
+        run: |
+          LATEST_DEPLOYMENT_ID=$(jq -r '.service.latest_deployment_id' response.txt)
+
+          if [ -z "$LATEST_DEPLOYMENT_ID" ] || [ "$LATEST_DEPLOYMENT_ID" = "null" ]; then
+            echo "Could not extract latest_deployment_id"
+            cat response.txt
+            exit 1
+          fi
+
+          echo "Latest deployment ID: $LATEST_DEPLOYMENT_ID"
+
+          TOKEN="${{ secrets.KOYEB_TOKEN }}"
+          ATTEMPTS=0
+          MAX_ATTEMPTS=30
+
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            STATUS_CODE=$(curl -s -o deploy.json -w "%{http_code}" \
+              -X GET "https://app.koyeb.com/v1/deployments/$LATEST_DEPLOYMENT_ID" \
+              -H "Authorization: Bearer $TOKEN")
+
+            DEPLOY_STATUS=$(jq -r '.deployment.status' deploy.json)
+
+            echo "Status: $DEPLOY_STATUS"
+
+            if [ "$DEPLOY_STATUS" = "HEALTHY" ]; then
+              exit 0
+            fi
+
+            if [ "$DEPLOY_STATUS" = "FAILED" ] || [ "$DEPLOY_STATUS" = "ERROR" ]; then
+              cat deploy.json
+              exit 1
+            fi
+
+            ATTEMPTS=$((ATTEMPTS + 1))
+            sleep 10
+          done
+
+          echo "Timed out"
+          exit 1
+
+      - name: Set Deployment Status
+        id: set_status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "status=Succeeded" >> $GITHUB_OUTPUT
+            echo "color=#28a745" >> $GITHUB_OUTPUT
+            echo "result=Success" >> $GITHUB_OUTPUT
+          else
+            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+            echo "result=Failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare End Notification Body
+        id: prep_end_email
+        if: always()
+        run: |
+          cat <<EOF > template_end.html
+          ${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
+
+          body=$(sed -e "s|{{DEPLOY_COLOR}}|${{ steps.set_status.outputs.color }}|g" \
+              -e "s|{{DEPLOY_STATUS}}|${{ steps.set_status.outputs.status }}|g" \
+              -e "s|{{DEPLOY_RESULT}}|${{ steps.set_status.outputs.result }}|g" \
+              -e 's|{{REPO_NAME}}|${{ github.repository }}|g' \
+              -e 's|{{ENV_NAME}}|${{ github.ref_name }}|g' \
+              -e 's|{{BRANCH}}|${{ github.ref_name }}|g' \
+              -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
+              -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_end.html)
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Debug End Email Body
+        if: always()
+        run: |
+          echo "----- END EMAIL HTML BODY START -----"
+          echo "${{ steps.prep_end_email.outputs.body }}"
+          echo "----- END EMAIL HTML BODY END -----"
+
+      - name: Prepare End Notification Subject
+        id: prep_end_subject
+        if: always()
+        run: |
+          subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ github.ref_name }}'}"
+          subject="${subject//'{{STATUS}}'/'${{ steps.set_status.outputs.status }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
+      - name: Send Deployment End Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
         with:
-          koyeb_token: ${{ secrets.KOYEB_TOKEN }}
-          app: ${{ vars.KOYEB_APP_NAME }}
-          service: ${{ vars.KOYEB_SERVICE_NAME }}
-          docker_image: "${{ secrets.DOCKERHUB_USERNAME }}/warrantybee-api:${{ github.sha }}"
-          docker_private_registry_secret: ${{ vars.KOYEB_DOCKER_SECRET_NAME }}
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PWD }}
+          subject: ${{ steps.prep_end_subject.outputs.value }}
+          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
+          from: ${{ secrets.SMTP_USER }}
+          html_body: ${{ steps.prep_end_email.outputs.body }}
