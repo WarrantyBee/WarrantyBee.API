@@ -4,6 +4,7 @@ import com.warrantybee.api.dto.internal.LoginTokenDetails;
 import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
+import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
@@ -131,8 +132,7 @@ public class UserRepository implements IUserRepository {
             profile.setPhoneNumber((String) row[7]);
 
             if (row[8] != null) {
-                byte genderValue = ((Number) row[8]).byteValue();
-                profile.setGender(Gender.values()[genderValue]);
+                profile.setGender(((Number) row[8]).byteValue());
             } else {
                 profile.setGender(null);
             }
@@ -304,5 +304,50 @@ public class UserRepository implements IUserRepository {
         }
 
         return passwords;
+    }
+
+    @Override
+    @Transactional
+    public Boolean updateProfile(ProfileUpdateRequest request) {
+        try {
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_UpdateUserProfile");
+
+            query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_address_line1", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_address_line2", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_phone_code", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_phone_number", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_country_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_region_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_city", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_postal_code", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_avatar_url", String.class, ParameterMode.IN);
+
+            query.setParameter("in_user_id", request.getUserId());
+            query.setParameter("in_address_line1", request.getAddressLine1());
+            query.setParameter("in_address_line2", request.getAddressLine2());
+            query.setParameter("in_phone_code", request.getPhoneCode());
+            query.setParameter("in_phone_number", request.getPhoneNumber());
+            query.setParameter("in_country_id", request.getCountryId());
+            query.setParameter("in_region_id", request.getRegionId());
+            query.setParameter("in_city", request.getCity());
+            query.setParameter("in_postal_code", request.getPostalCode());
+            query.setParameter("in_avatar_url", request.getAvatarUrl());
+
+            query.execute();
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> resultList = query.getResultList();
+
+            if (resultList.isEmpty()) {
+                return false;
+            }
+
+            Object[] row = resultList.get(0);
+            int status = ((Number) row[0]).intValue();
+            return status == 1;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

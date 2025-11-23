@@ -45,4 +45,7 @@ public class AppConfiguration {
 
     /** Configuration properties related to user profile management. */
     private ProfileConfiguration profileConfiguration;
+
+    /** Configuration properties related to Cloudinary service. */
+    private CloudinaryConfiguration cloudinaryConfiguration;
 }
