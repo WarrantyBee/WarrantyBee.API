@@ -31,17 +31,19 @@ public class UsersController {
      *
      * @param userId the ID of the user whose avatar is being updated
      * @param avatar the uploaded image file provided as multipart/form-data
-     * @param request the request body containing the captcha response
-     * @return a success {@link APIResponse}, wrapped in a {@link ResponseEntity}
+     * @param captchaResponse the captcha response
+     * @return a success {@link APIResponse} with the new avatar url, wrapped in a {@link ResponseEntity}
      */
 @PostMapping(value = "/{userId}/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<?>> changeAvatar(
+    public ResponseEntity<APIResponse<String>> changeAvatar(
             @PathVariable Long userId,
             @RequestPart("avatar") MultipartFile avatar,
-            @RequestBody AvatarUpdateRequest request) {
+            @RequestPart ("captchaResponse") String captchaResponse) {
+        AvatarUpdateRequest request = new AvatarUpdateRequest();
         request.setUserId(userId);
         request.setAvatar(avatar);
-        _service.changeAvatar(request);
-        return ResponseEntity.ok(new APIResponse<>(null, null));
+        request.setCaptchaResponse(captchaResponse);
+        String url = _service.changeAvatar(request);
+        return ResponseEntity.ok(new APIResponse<String>(url, null));
     }
 }

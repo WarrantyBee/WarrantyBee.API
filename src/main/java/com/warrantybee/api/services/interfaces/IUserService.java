@@ -11,6 +11,7 @@ public interface IUserService {
      * Updates the user's profile picture using the provided avatar update request.
      *
      * @param request the avatar update details
+     * @returns the new avatar url
      */
-    void changeAvatar(AvatarUpdateRequest request);
+    String changeAvatar(AvatarUpdateRequest request);
 }

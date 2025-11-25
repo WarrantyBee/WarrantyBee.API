@@ -33,7 +33,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void changeAvatar(AvatarUpdateRequest request) {
+    public String changeAvatar(AvatarUpdateRequest request) {
         _validate(request);
         boolean isValid = _captchaService.validate(request.getCaptchaResponse());
         if (!isValid) {
@@ -50,6 +50,7 @@ public class UserService implements IUserService {
         if (!Validator.isBlank(previousAvatarUrl)) {
             _cloudinaryService.delete(previousAvatarUrl);
         }
+
         String currentAvatarUrl = _cloudinaryService.upload(request.getAvatar());
         if (Validator.isBlank(currentAvatarUrl)) {
             throw new StorageServiceException("Something went wrong while uploading file to the storage.");
@@ -67,6 +68,8 @@ public class UserService implements IUserService {
                 throw new AvatarCouldNotBeUpdatedException();
             }
         }
+
+        return currentAvatarUrl;
     }
 
     /** Validates the avatar update request. */
