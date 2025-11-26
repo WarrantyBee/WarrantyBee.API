@@ -2,6 +2,8 @@ package com.warrantybee.api.controllers;
 
 import com.warrantybee.api.dto.request.AvatarUpdateRequest;
 import com.warrantybee.api.dto.response.APIResponse;
+import com.warrantybee.api.dto.response.AvatarResponse;
+import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.services.interfaces.IUserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,17 @@ public class UsersController {
     }
 
     /**
+     * Retrieves a user profile from the context.
+     *
+     * @return a {@link ResponseEntity} containing an {@link APIResponse} with the user details
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<APIResponse<UserResponse>> get() {
+        UserResponse user = _service.get();
+        return ResponseEntity.ok(new APIResponse<>(user, null));
+    }
+
+    /**
      * Updates the avatar (profile picture) of the specified user.
      *
      * @param userId the ID of the user whose avatar is being updated
@@ -34,8 +47,8 @@ public class UsersController {
      * @param captchaResponse the captcha response
      * @return a success {@link APIResponse} with the new avatar url, wrapped in a {@link ResponseEntity}
      */
-@PostMapping(value = "/{userId}/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<String>> changeAvatar(
+    @PostMapping(value = "/{userId}/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<APIResponse<AvatarResponse>> changeAvatar(
             @PathVariable Long userId,
             @RequestPart("avatar") MultipartFile avatar,
             @RequestPart ("captchaResponse") String captchaResponse) {
@@ -43,7 +56,7 @@ public class UsersController {
         request.setUserId(userId);
         request.setAvatar(avatar);
         request.setCaptchaResponse(captchaResponse);
-        String url = _service.changeAvatar(request);
-        return ResponseEntity.ok(new APIResponse<String>(url, null));
+        AvatarResponse avatarResponse = _service.changeAvatar(request);
+        return ResponseEntity.ok(new APIResponse<>(avatarResponse, null));
     }
 }
