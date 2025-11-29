@@ -40,6 +40,12 @@ public class Validator {
         "+90", "+993", "+688", "+256", "+380", "+971", "+44", "+598", "+998", "+678",
         "+379", "+58", "+84", "+967", "+260", "+263"
     );
+    private static final String URL_REGEX = "^(https?://)" + "([\\w.-]+)" + "(:\\d+)?" + "(/[\\w./?%&=-]*)?$";
+    private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX, Pattern.CASE_INSENSITIVE);
+    private static final String PHONE_NUMBER_REGEX = "^[0-9]{10}$";
+    private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
+    private static final String POSTAL_CODE_REGEX = "^[0-9]{6}$";
+    private static final Pattern POSTAL_CODE_PATTERN = Pattern.compile(POSTAL_CODE_REGEX);
     private static final List<String> ALLOWED_IMAGE_FORMATS = List.of("jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff");
 
     /**
@@ -194,5 +200,35 @@ public class Validator {
         }
 
         return file.getSize() <= maxSizeInBytes;
+    }
+
+    /**
+     * Checks whether the given string is a valid HTTP or HTTPS URL.
+     *
+     * @param value the string to validate
+     * @return {@code true} if the value is a well-formed HTTP/HTTPS URL; {@code false} otherwise
+     */
+    public static boolean isUrl(String value) {
+        return !isBlank(value) && URL_PATTERN.matcher(value.trim()).matches();
+    }
+
+    /**
+     * Checks whether the given string is a valid 10-digit phone number.
+     *
+     * @param value the phone number string to validate
+     * @return {@code true} if the value is a valid 10-digit number; {@code false} otherwise
+     */
+    public static boolean isPhoneNumber(String value) {
+        return !isBlank(value) && PHONE_NUMBER_PATTERN.matcher(value.trim()).matches();
+    }
+
+    /**
+     * Checks whether the given string is a valid 6-digit postal code.
+     *
+     * @param value the postal code string to validate
+     * @return {@code true} if the value is a valid 6-digit postal code; {@code false} otherwise
+     */
+    public static boolean isPostalCode(String value) {
+        return !isBlank(value) && POSTAL_CODE_PATTERN.matcher(value.trim()).matches();
     }
 }

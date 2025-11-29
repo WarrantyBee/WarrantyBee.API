@@ -22,6 +22,9 @@ public class AppConfiguration {
     /** The runtime environment (e.g., dev, prod, staging). */
     private String environment;
 
+    /** Configuration which tells whether the captcha is enabled or not. */
+    private Boolean isCaptchaEnabled;
+
     /** Configuration properties for the database connection. */
     private DataSourceConfiguration dataSourceConfiguration;
 

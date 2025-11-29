@@ -8,7 +8,10 @@ import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
-import com.warrantybee.api.services.interfaces.*;
+import com.warrantybee.api.services.interfaces.ICaptchaService;
+import com.warrantybee.api.services.interfaces.IHttpContext;
+import com.warrantybee.api.services.interfaces.IStorageService;
+import com.warrantybee.api.services.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +58,10 @@ public class UserService implements IUserService {
 
     @Override
     public AvatarResponse changeAvatar(AvatarUpdateRequest request) {
+        if (request != null) {
+            request.setUserId(_httpContext.getUserId());
+        }
+
         _validate(request);
         boolean isValid = _captchaService.validate(request.getCaptchaResponse());
         if (!isValid) {
@@ -93,8 +100,24 @@ public class UserService implements IUserService {
         return new AvatarResponse(currentAvatarUrl);
     }
 
+    @Override
+    public void updateProfile(ProfileUpdateRequest request) {
+        _validate(request);
+
+        if (_captchaService.validate(request.getCaptchaResponse())) {
+            _repository.updateProfile(request);
+        }
+        else {
+            throw new CaptchaVerificationFailedException();
+        }
+    }
+
     /** Validates the avatar update request. */
     private void _validate(AvatarUpdateRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+
         if (request.getUserId() == null) {
             throw new UserIdentifierRequiredException();
         }
@@ -102,6 +125,37 @@ public class UserService implements IUserService {
             throw new CaptchaResponseRequiredException();
         }
         _validate(request.getAvatar());
+    }
+
+    /** Validates the profile update request. */
+    private void _validate(ProfileUpdateRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        if (Validator.isBlank(request.getCaptchaResponse())) {
+            throw new CaptchaResponseRequiredException();
+        }
+        if (request.getAddressLine1() != null && Validator.isBlank(request.getAddressLine1())) {
+            throw new AddressRequiredException("Proper value of Address Line 1 should be given.");
+        }
+        if (request.getAddressLine2() != null && Validator.isBlank(request.getAddressLine2())) {
+            throw new AddressRequiredException("Proper value of Address Line 2 should be given.");
+        }
+        if (request.getCity() != null && Validator.isBlank(request.getCity())) {
+            throw new CityRequiredException("Proper value of City should be given");
+        }
+        if (request.getPostalCode() != null && !Validator.isPostalCode(request.getPostalCode())) {
+            throw new InvalidPostalCodeException();
+        }
+        if (request.getPhoneCode() != null && !Validator.isPhoneCode(request.getPhoneCode())) {
+            throw new InvalidPhoneCodeException();
+        }
+        if (request.getPhoneNumber() != null && !Validator.isPhoneNumber(request.getPhoneNumber())) {
+            throw new InvalidPhoneNumberException();
+        }
+        if (request.getAvatarUrl() != null && !Validator.isUrl(request.getAvatarUrl())) {
+            throw new InvalidAvatarUrlException();
+        }
     }
 
     /** Validates the file for updating avatar. */

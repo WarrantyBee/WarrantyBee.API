@@ -1,6 +1,7 @@
 package com.warrantybee.api.controllers;
 
 import com.warrantybee.api.dto.request.AvatarUpdateRequest;
+import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.AvatarResponse;
 import com.warrantybee.api.dto.response.UserResponse;
@@ -42,21 +43,31 @@ public class UsersController {
     /**
      * Updates the avatar (profile picture) of the specified user.
      *
-     * @param userId the ID of the user whose avatar is being updated
      * @param avatar the uploaded image file provided as multipart/form-data
      * @param captchaResponse the captcha response
      * @return a success {@link APIResponse} with the new avatar url, wrapped in a {@link ResponseEntity}
      */
-    @PostMapping(value = "/{userId}/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/profile/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<AvatarResponse>> changeAvatar(
-            @PathVariable Long userId,
             @RequestPart("avatar") MultipartFile avatar,
             @RequestPart ("captchaResponse") String captchaResponse) {
         AvatarUpdateRequest request = new AvatarUpdateRequest();
-        request.setUserId(userId);
         request.setAvatar(avatar);
         request.setCaptchaResponse(captchaResponse);
         AvatarResponse avatarResponse = _service.changeAvatar(request);
         return ResponseEntity.ok(new APIResponse<>(avatarResponse, null));
+    }
+
+    /**
+     * Updates the profile details of the currently authenticated user.
+     *
+     * @param request the profile update request containing fields to update
+     * @return {@link ResponseEntity} containing a generic {@link APIResponse} with no payload
+     * @apiNote This is a PATCH operation, meaning only partial fields are expected and updated.
+     */
+    @PatchMapping("/profile")
+    public ResponseEntity<APIResponse<?>> updateProfile(@RequestBody ProfileUpdateRequest request) {
+        _service.updateProfile(request);
+        return ResponseEntity.ok(new APIResponse<>(null, null));
     }
 }

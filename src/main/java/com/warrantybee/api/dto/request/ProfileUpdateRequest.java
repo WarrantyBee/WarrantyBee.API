@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProfileUpdateRequest {
+public class ProfileUpdateRequest extends BaseRequest {
 
     /**
      * The unique identifier of the user whose profile is being updated.
@@ -48,6 +48,11 @@ public class ProfileUpdateRequest {
      * The identifier of the country associated with the user's address.
      */
     private Long countryId;
+
+    /**
+     * The identified of the preferred culture of the user.
+     * */
+    private Long cultureId;
 
     /**
      * The user's phone number without the country/region code.

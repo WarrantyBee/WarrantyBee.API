@@ -6,7 +6,6 @@ import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.*;
-import com.warrantybee.api.enumerations.Gender;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
@@ -319,6 +318,7 @@ public class UserRepository implements IUserRepository {
             query.registerStoredProcedureParameter("in_phone_number", String.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_country_id", Long.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_region_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_culture_id", Long.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_city", String.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_postal_code", String.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_avatar_url", String.class, ParameterMode.IN);
@@ -330,6 +330,7 @@ public class UserRepository implements IUserRepository {
             query.setParameter("in_phone_number", request.getPhoneNumber());
             query.setParameter("in_country_id", request.getCountryId());
             query.setParameter("in_region_id", request.getRegionId());
+            query.setParameter("in_culture_id", request.getCultureId());
             query.setParameter("in_city", request.getCity());
             query.setParameter("in_postal_code", request.getPostalCode());
             query.setParameter("in_avatar_url", request.getAvatarUrl());

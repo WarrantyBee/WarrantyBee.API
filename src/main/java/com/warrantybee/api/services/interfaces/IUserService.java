@@ -1,6 +1,7 @@
 package com.warrantybee.api.services.interfaces;
 
 import com.warrantybee.api.dto.request.AvatarUpdateRequest;
+import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.AvatarResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 
@@ -23,4 +24,11 @@ public interface IUserService {
      * @returns the new avatar details
      */
     AvatarResponse changeAvatar(AvatarUpdateRequest request);
+
+    /**
+     * Updates the user profile with the provided details.
+     *
+     * @param request the profile update payload containing modified user information
+     */
+    void updateProfile(ProfileUpdateRequest request);
 }

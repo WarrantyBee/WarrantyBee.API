@@ -207,7 +207,16 @@ public enum Error {
     AVATAR_COULD_NOT_BE_UPDATED(1065, "Avatar could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The user identifier is required. */
-    USER_IDENTIFIER_REQUIRED(1066, "User identifier is required.", HttpStatus.BAD_REQUEST);
+    USER_IDENTIFIER_REQUIRED(1066, "User identifier is required.", HttpStatus.BAD_REQUEST),
+
+    /** The phone number is invalid. */
+    INVALID_PHONE_NUMBER(1067, "The phone number is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The postal code is invalid. */
+    INVALID_POSTAL_CODE(1068, "The postal code is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The avatar URL is invalid. */
+    INVALID_AVATAR_URL(1069, "The avatar URL is invalid.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
