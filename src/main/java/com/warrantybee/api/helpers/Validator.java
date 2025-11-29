@@ -1,6 +1,7 @@
 package com.warrantybee.api.helpers;
 
 import com.warrantybee.api.enumerations.interfaces.IEnumeration;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +40,13 @@ public class Validator {
         "+90", "+993", "+688", "+256", "+380", "+971", "+44", "+598", "+998", "+678",
         "+379", "+58", "+84", "+967", "+260", "+263"
     );
+    private static final String URL_REGEX = "^(https?://)" + "([\\w.-]+)" + "(:\\d+)?" + "(/[\\w./?%&=-]*)?$";
+    private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX, Pattern.CASE_INSENSITIVE);
+    private static final String PHONE_NUMBER_REGEX = "^[0-9]{10}$";
+    private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
+    private static final String POSTAL_CODE_REGEX = "^[0-9]{6}$";
+    private static final Pattern POSTAL_CODE_PATTERN = Pattern.compile(POSTAL_CODE_REGEX);
+    private static final List<String> ALLOWED_IMAGE_FORMATS = List.of("jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff");
 
     /**
      * Checks if a given String is null, empty ({@code ""}), or contains only whitespace characters.
@@ -50,6 +58,16 @@ public class Validator {
      */
     public static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    /**
+     * Checks whether the given file is null or contains no data.
+     *
+     * @param file the multipart file to check
+     * @return {@code true} if the file is null or empty; otherwise {@code false}
+     */
+    public static boolean isEmpty(MultipartFile file) {
+        return file == null || file.isEmpty();
     }
 
     /**
@@ -141,5 +159,76 @@ public class Validator {
         }
 
         return VALID_PHONE_CODES.contains(value.trim());
+    }
+
+    /**
+     * Determines whether the given {@link MultipartFile} represents a valid image file.
+     *
+     * @param file the multipart file to validate; may be null
+     * @return {@code true} if the file is a non-empty image with a valid MIME type
+     *         and a recognized image extension; {@code false} otherwise.
+     */
+    public static boolean isImage(MultipartFile file) {
+        if (isEmpty(file)) {
+            return false;
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return false;
+        }
+
+        String name = file.getOriginalFilename();
+        if (name == null || !name.contains(".")) {
+            return false;
+        }
+
+        String extension = name.substring(name.lastIndexOf('.') + 1).toLowerCase();
+        return ALLOWED_IMAGE_FORMATS.contains(extension);
+    }
+
+    /**
+     * Checks whether the file is not empty and its size is within the given limit.
+     *
+     * @param file the multipart file to check
+     * @param maxSizeInBytes the maximum allowed file size in bytes
+     * @return {@code true} if the file exists and its size is within limit; otherwise {@code false}
+     */
+    public static boolean hasSize(MultipartFile file, long maxSizeInBytes) {
+        if (isEmpty(file)) {
+            return false;
+        }
+
+        return file.getSize() <= maxSizeInBytes;
+    }
+
+    /**
+     * Checks whether the given string is a valid HTTP or HTTPS URL.
+     *
+     * @param value the string to validate
+     * @return {@code true} if the value is a well-formed HTTP/HTTPS URL; {@code false} otherwise
+     */
+    public static boolean isUrl(String value) {
+        return !isBlank(value) && URL_PATTERN.matcher(value.trim()).matches();
+    }
+
+    /**
+     * Checks whether the given string is a valid 10-digit phone number.
+     *
+     * @param value the phone number string to validate
+     * @return {@code true} if the value is a valid 10-digit number; {@code false} otherwise
+     */
+    public static boolean isPhoneNumber(String value) {
+        return !isBlank(value) && PHONE_NUMBER_PATTERN.matcher(value.trim()).matches();
+    }
+
+    /**
+     * Checks whether the given string is a valid 6-digit postal code.
+     *
+     * @param value the postal code string to validate
+     * @return {@code true} if the value is a valid 6-digit postal code; {@code false} otherwise
+     */
+    public static boolean isPostalCode(String value) {
+        return !isBlank(value) && POSTAL_CODE_PATTERN.matcher(value.trim()).matches();
     }
 }

@@ -189,7 +189,34 @@ public enum Error {
     PHONE_CODE_REQUIRED(1059, "The phone code is required.", HttpStatus.BAD_REQUEST),
 
     /** The phone code is invalid. */
-    INVALID_PHONE_CODE(1060, "The phone code is invalid.", HttpStatus.BAD_REQUEST);
+    INVALID_PHONE_CODE(1060, "The phone code is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The uploaded file is empty. */
+    FILE_IS_EMPTY(1061, "The uploaded file is empty.", HttpStatus.BAD_REQUEST),
+
+    /** The uploaded file has exceeded the allowed size. */
+    FILE_EXCEEDED_ALLOWED_SIZE(1062, "The uploaded file has exceeded the allowed size.", HttpStatus.BAD_REQUEST),
+
+    /** The uploaded file has an invalid format. */
+    INVALID_FILE_FORMAT(1063, "The uploaded file has an invalid format.", HttpStatus.BAD_REQUEST),
+
+    /** There was an error with the storage service. */
+    STORAGE_SERVICE_ERROR(1064, "There was an error with the storage service.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The avatar could not be updated. */
+    AVATAR_COULD_NOT_BE_UPDATED(1065, "Avatar could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The user identifier is required. */
+    USER_IDENTIFIER_REQUIRED(1066, "User identifier is required.", HttpStatus.BAD_REQUEST),
+
+    /** The phone number is invalid. */
+    INVALID_PHONE_NUMBER(1067, "The phone number is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The postal code is invalid. */
+    INVALID_POSTAL_CODE(1068, "The postal code is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The avatar URL is invalid. */
+    INVALID_AVATAR_URL(1069, "The avatar URL is invalid.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

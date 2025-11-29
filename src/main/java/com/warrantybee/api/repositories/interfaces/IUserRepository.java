@@ -4,6 +4,7 @@ import com.warrantybee.api.dto.internal.LoginTokenDetails;
 import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
+import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.UserResponse;
 import org.springframework.stereotype.Repository;
 
@@ -63,4 +64,12 @@ public interface IUserRepository {
      * @return a list of passwords associated with the user
      */
     List<String> getPasswords(Long id);
+
+    /**
+     * Updates the user's profile information based on the provided request data.
+     *
+     * @param request the profile update details; must not be null
+     * @return {@code true} if the profile was updated successfully; otherwise {@code false}
+     */
+    Boolean updateProfile(ProfileUpdateRequest request);
 }
