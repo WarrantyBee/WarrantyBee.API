@@ -2,9 +2,11 @@ package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.ReCaptchaConfiguration;
+import com.warrantybee.api.exceptions.CaptchaResponseRequiredException;
 import com.warrantybee.api.exceptions.CaptchaServiceException;
 import com.warrantybee.api.exceptions.ConfigurationException;
 import com.warrantybee.api.exceptions.InvalidInputException;
+import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.services.interfaces.ICaptchaService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -49,6 +51,10 @@ public class ReCaptchaService implements ICaptchaService {
         try {
             if (!this._enabled) {
                 return true;
+            }
+
+            if (Validator.isBlank(captchaResponse)) {
+                throw new CaptchaResponseRequiredException();
             }
 
             String verifyUrl = _reCaptchaConfiguration.getVerifyUrl() +

@@ -102,10 +102,17 @@ public class UserService implements IUserService {
 
     @Override
     public void updateProfile(ProfileUpdateRequest request) {
+        if (request != null) {
+            request.setUserId(_httpContext.getUserId());
+        }
+
         _validate(request);
 
         if (_captchaService.validate(request.getCaptchaResponse())) {
-            _repository.updateProfile(request);
+            Boolean updated = _repository.updateProfile(request);
+            if (!updated) {
+                throw new ProfileCouldNotBeUpdatedException();
+            }
         }
         else {
             throw new CaptchaVerificationFailedException();
@@ -117,12 +124,8 @@ public class UserService implements IUserService {
         if (request == null) {
             throw new RequestBodyEmptyException();
         }
-
         if (request.getUserId() == null) {
             throw new UserIdentifierRequiredException();
-        }
-        if (Validator.isBlank(request.getCaptchaResponse())) {
-            throw new CaptchaResponseRequiredException();
         }
         _validate(request.getAvatar());
     }
@@ -132,8 +135,8 @@ public class UserService implements IUserService {
         if (request == null) {
             throw new RequestBodyEmptyException();
         }
-        if (Validator.isBlank(request.getCaptchaResponse())) {
-            throw new CaptchaResponseRequiredException();
+        if (request.getUserId() == null) {
+            throw new UserIdentifierRequiredException();
         }
         if (request.getAddressLine1() != null && Validator.isBlank(request.getAddressLine1())) {
             throw new AddressRequiredException("Proper value of Address Line 1 should be given.");
