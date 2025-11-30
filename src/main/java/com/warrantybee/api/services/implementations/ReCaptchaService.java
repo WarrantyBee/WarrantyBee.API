@@ -1,9 +1,12 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.configurations.ReCaptchaConfiguration;
+import com.warrantybee.api.exceptions.CaptchaResponseRequiredException;
 import com.warrantybee.api.exceptions.CaptchaServiceException;
 import com.warrantybee.api.exceptions.ConfigurationException;
 import com.warrantybee.api.exceptions.InvalidInputException;
+import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.services.interfaces.ICaptchaService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -19,6 +22,7 @@ import java.util.Map;
 @Service
 public class ReCaptchaService implements ICaptchaService {
 
+    private final Boolean _enabled;
     private final ReCaptchaConfiguration _reCaptchaConfiguration;
     private final RestTemplate _restTemplate;
 
@@ -27,14 +31,17 @@ public class ReCaptchaService implements ICaptchaService {
      * Initializes a {@link RestTemplate} instance and validates that the
      * reCAPTCHA verification URL and secret key are properly configured.
      *
-     * @param reCaptchaConfiguration the configuration settings for reCAPTCHA verification
+     * @param appConfiguration the configuration settings for the application
      * @throws ConfigurationException if the verification URL or secret key is missing
      */
-    public ReCaptchaService(ReCaptchaConfiguration reCaptchaConfiguration) {
-        this._reCaptchaConfiguration = reCaptchaConfiguration;
+    public ReCaptchaService(AppConfiguration appConfiguration) {
+        this._enabled = appConfiguration.getIsCaptchaEnabled();
+        this._reCaptchaConfiguration = appConfiguration.getRecaptchaConfiguration();
         this._restTemplate = new RestTemplate();
 
-        if (reCaptchaConfiguration.getVerifyUrl() == null || reCaptchaConfiguration.getSecret() == null) {
+        if (this._enabled &&
+            (this._reCaptchaConfiguration.getVerifyUrl() == null ||
+            this._reCaptchaConfiguration.getSecret() == null)) {
             throw new ConfigurationException("ReCaptcha verify URL or secret is not configured");
         }
     }
@@ -42,6 +49,14 @@ public class ReCaptchaService implements ICaptchaService {
     @Override
     public boolean validate(String captchaResponse) {
         try {
+            if (!this._enabled) {
+                return true;
+            }
+
+            if (Validator.isBlank(captchaResponse)) {
+                throw new CaptchaResponseRequiredException();
+            }
+
             String verifyUrl = _reCaptchaConfiguration.getVerifyUrl() +
                     "?secret=" + _reCaptchaConfiguration.getSecret() +
                     "&response=" + captchaResponse;

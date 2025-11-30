@@ -22,6 +22,9 @@ public class AppConfiguration {
     /** The runtime environment (e.g., dev, prod, staging). */
     private String environment;
 
+    /** Configuration which tells whether the captcha is enabled or not. */
+    private Boolean isCaptchaEnabled;
+
     /** Configuration properties for the database connection. */
     private DataSourceConfiguration dataSourceConfiguration;
 
@@ -45,4 +48,7 @@ public class AppConfiguration {
 
     /** Configuration properties related to user profile management. */
     private ProfileConfiguration profileConfiguration;
+
+    /** Configuration properties related to Cloudinary service. */
+    private CloudinaryConfiguration cloudinaryConfiguration;
 }

@@ -29,7 +29,7 @@ public class UserProfileResponse {
     /**
      * The user's gender, represented by the {@link Gender} enumeration.
      */
-    private Gender gender;
+    private Byte gender;
 
     /**
      * The user's date of birth.
