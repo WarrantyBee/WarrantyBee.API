@@ -216,7 +216,10 @@ public enum Error {
     INVALID_POSTAL_CODE(1068, "The postal code is invalid.", HttpStatus.BAD_REQUEST),
 
     /** The avatar URL is invalid. */
-    INVALID_AVATAR_URL(1069, "The avatar URL is invalid.", HttpStatus.BAD_REQUEST);
+    INVALID_AVATAR_URL(1069, "The avatar URL is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The profile could not be updated. */
+    PROFILE_COULD_NOT_BE_UPDATED(1070, "Profile could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

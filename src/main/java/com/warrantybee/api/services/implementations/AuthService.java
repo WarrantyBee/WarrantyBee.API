@@ -269,9 +269,6 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
-            if (Validator.isBlank(request.getCaptchaResponse())) {
-                throw new CaptchaResponseRequiredException();
-            }
             if (Validator.isBlank(request.getEmail())) {
                 throw new EmailRequiredException();
             }
@@ -290,9 +287,6 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
-            if (Validator.isBlank(request.getCaptchaResponse())) {
-                throw new CaptchaResponseRequiredException();
-            }
             if (Validator.isBlank(request.getEmail())) {
                 throw new EmailRequiredException();
             }
@@ -327,9 +321,6 @@ public class AuthService implements IAuthService {
 
             }
 
-            if (Validator.isBlank(request.getCaptchaResponse())) {
-                throw new CaptchaResponseRequiredException();
-            }
             if (Validator.isBlank(request.getFirstname())) {
                 throw new FirstnameRequiredException();
             }
