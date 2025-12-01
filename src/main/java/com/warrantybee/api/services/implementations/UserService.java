@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class UserService implements IUserService {
 
-    private final HttpContext _httpContext;
+    private final IHttpContext _httpContext;
     private final IStorageService _cloudinaryService;
     private final ICaptchaService _captchaService;
     private final IUserRepository _repository;
@@ -38,7 +38,7 @@ public class UserService implements IUserService {
      */
     @Autowired
     public UserService(IHttpContext httpContext, IStorageService cloudinaryService, ICaptchaService captchaService, IUserRepository repository) {
-        this._httpContext = (HttpContext) httpContext;
+        this._httpContext = httpContext;
         this._cloudinaryService = cloudinaryService;
         this._captchaService = captchaService;
         this._repository = repository;
