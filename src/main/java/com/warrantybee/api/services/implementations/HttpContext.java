@@ -23,8 +23,8 @@ import java.util.Map;
 @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class HttpContext implements IHttpContext {
 
-    private final HttpServletRequest request;
-    private final ITokenService tokenService;
+    private final HttpServletRequest _request;
+    private final ITokenService _tokenService;
 
     @Getter
     private Long userId;
@@ -49,19 +49,16 @@ public class HttpContext implements IHttpContext {
      */
     @Autowired
     public HttpContext(HttpServletRequest request, ITokenService tokenService) {
-        this.request = request;
-        this.tokenService = tokenService;
-        initialize();
+        this._request = request;
+        this._tokenService = tokenService;
     }
 
-    /**
-     * Initializes the access token and extracts claim values.
-     */
-    private void initialize() {
+    @Override
+    public void initialize() {
         this.accessToken = extractAccessToken();
 
         if (!Validator.isBlank(this.accessToken)) {
-            Map<String, Object> claims = this.tokenService.validate(this.accessToken);
+            Map<String, Object> claims = this._tokenService.validate(this.accessToken);
 
             this.userId = Long.parseLong(
                     claims.getOrDefault("userId", "-1").toString()
@@ -87,9 +84,9 @@ public class HttpContext implements IHttpContext {
      * @return the Bearer token or {@code null} if not present
      */
     private String extractAccessToken() {
-        if (request == null) return null;
+        if (_request == null) return null;
 
-        String header = request.getHeader("Authorization");
+        String header = _request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);

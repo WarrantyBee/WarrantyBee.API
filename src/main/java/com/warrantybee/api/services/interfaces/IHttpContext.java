@@ -12,6 +12,11 @@ import java.util.List;
 public interface IHttpContext {
 
     /**
+     * Initializes the context and populates context info.
+     * */
+    void initialize();
+
+    /**
      * Gets the unique identifier of the currently authenticated user.
      *
      * @return the user ID as a {@link Long}, or {@code null} if no user is authenticated

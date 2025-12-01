@@ -46,6 +46,7 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse get() {
+        _httpContext.initialize();
         UserSearchFilter filter = new UserSearchFilter(_httpContext.getUserId(), null);
         UserResponse user = _repository.get(filter);
 
@@ -59,6 +60,7 @@ public class UserService implements IUserService {
     @Override
     public AvatarResponse changeAvatar(AvatarUpdateRequest request) {
         if (request != null) {
+            _httpContext.initialize();
             request.setUserId(_httpContext.getUserId());
         }
 

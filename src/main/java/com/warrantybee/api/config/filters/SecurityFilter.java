@@ -59,6 +59,7 @@ public class SecurityFilter implements HandlerInterceptor {
         }
 
         if (annotation != null) {
+            _httpContext.initialize();
             SecurityRole userRole = _httpContext.getRole();
             Set<SecurityPermission> userPermissions = new HashSet<>(_httpContext.getPermissions());
 

@@ -32,14 +32,12 @@ import java.util.Map;
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenService _tokenService;
     private final IHttpContext _httpContext;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    public AuthenticationFilter(JwtTokenService tokenService, IHttpContext httpContext) {
-        this._tokenService = tokenService;
+    public AuthenticationFilter(IHttpContext httpContext) {
         this._httpContext = httpContext;
     }
 
@@ -79,11 +77,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = _httpContext.getAccessToken();
 
         try {
-            Map<String, Object> claims = _tokenService.validate(token);
-
+            _httpContext.initialize();
             Long userId = _httpContext.getUserId();
             Object principal = _httpContext.getEmail();
             SecurityRole userRole = _httpContext.getRole();
