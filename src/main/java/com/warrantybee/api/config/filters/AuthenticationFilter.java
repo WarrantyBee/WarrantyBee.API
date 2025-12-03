@@ -8,7 +8,6 @@ import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.enumerations.SecurityRole;
 import com.warrantybee.api.exceptions.InvalidTokenException;
 import com.warrantybee.api.exceptions.SessionExpiredException;
-import com.warrantybee.api.services.implementations.JwtTokenService;
 import com.warrantybee.api.services.interfaces.IHttpContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {

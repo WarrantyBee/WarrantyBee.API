@@ -9,10 +9,7 @@ import com.warrantybee.api.dto.response.MFALoginResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.UserResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
-import com.warrantybee.api.enumerations.Gender;
-import com.warrantybee.api.enumerations.LogLevel;
-import com.warrantybee.api.enumerations.NotificationType;
-import com.warrantybee.api.enumerations.OtpRequestReason;
+import com.warrantybee.api.enumerations.*;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
@@ -442,6 +439,16 @@ public class AuthService implements IAuthService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId().toString());
         claims.put("email", user.getEmail());
+        claims.put("role", user.getAuthorizationContext().getRole().getName());
+        claims.put("permissions",
+            String.join(",",
+                user.getAuthorizationContext()
+                    .getPermissions()
+                    .stream()
+                    .map(SecurityPermission::getName)
+                    .toList()
+            )
+        );
         return _tokenService.generate(claims);
     }
 

@@ -5,9 +5,9 @@ import com.warrantybee.api.annotations.RequireSecurity;
 import com.warrantybee.api.dto.response.APIError;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.enumerations.Error;
-import com.warrantybee.api.services.interfaces.IHttpContext;
-import com.warrantybee.api.enumerations.SecurityRole;
 import com.warrantybee.api.enumerations.SecurityPermission;
+import com.warrantybee.api.enumerations.SecurityRole;
+import com.warrantybee.api.services.interfaces.IHttpContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Arrays;
 
 /**
  * Filter that enforces security based on {@link RequireSecurity} annotations.

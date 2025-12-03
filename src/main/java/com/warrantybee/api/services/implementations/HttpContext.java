@@ -69,7 +69,7 @@ public class HttpContext implements IHttpContext {
                     : null;
 
             this.role = claims.getOrDefault("role", null) != null
-                    ? SecurityRole.getValue(Integer.parseInt(claims.get("role").toString()))
+                    ? SecurityRole.getValue(claims.get("role").toString())
                     : SecurityRole.NONE;
 
             this.permissions = claims.getOrDefault("permissions", null) != null
