@@ -219,7 +219,10 @@ public enum Error {
     INVALID_AVATAR_URL(1069, "The avatar URL is invalid.", HttpStatus.BAD_REQUEST),
 
     /** The profile could not be updated. */
-    PROFILE_COULD_NOT_BE_UPDATED(1070, "Profile could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR);
+    PROFILE_COULD_NOT_BE_UPDATED(1070, "Profile could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The user does not have required security role or permissions. */
+    REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

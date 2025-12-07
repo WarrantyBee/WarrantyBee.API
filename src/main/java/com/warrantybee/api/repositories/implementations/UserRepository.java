@@ -1,11 +1,11 @@
 package com.warrantybee.api.repositories.implementations;
 
-import com.warrantybee.api.dto.internal.LoginTokenDetails;
-import com.warrantybee.api.dto.internal.PasswordResetRequest;
-import com.warrantybee.api.dto.internal.UserCreationRequest;
-import com.warrantybee.api.dto.internal.UserSearchFilter;
+import com.warrantybee.api.dto.internal.*;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.*;
+import com.warrantybee.api.enumerations.SecurityPermission;
+import com.warrantybee.api.enumerations.SecurityRole;
+import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
@@ -190,12 +190,23 @@ public class UserRepository implements IUserRepository {
             lang.setNativeName((String) row[42]);
             culture.setLanguage(lang);
 
+            UserAuthorization authorizationContext = new UserAuthorization();
+            authorizationContext.setRole(SecurityRole.getValue((String) row[44]));
+            String permission = (String) row[45];
+            if (!Validator.isBlank(permission)) {
+                String[] permissions = permission.split(",");
+                for (String perm : permissions) {
+                    authorizationContext.addPermission(SecurityPermission.getValue(perm));
+                }
+            }
+
             profile.setAddress(address);
             profile.setTimezone(timezone);
             profile.setCurrency(currency);
             profile.setCulture(culture);
             profile.setSettings(settings);
             userResponse.setProfile(profile);
+            userResponse.setAuthorizationContext(authorizationContext);
             userResponse.setPassword((String)row[34]);
 
             return userResponse;

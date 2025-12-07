@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.warrantybee.api.dto.response.APIError;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.enumerations.Error;
+import com.warrantybee.api.enumerations.SecurityPermission;
+import com.warrantybee.api.enumerations.SecurityRole;
 import com.warrantybee.api.exceptions.InvalidTokenException;
 import com.warrantybee.api.exceptions.SessionExpiredException;
-import com.warrantybee.api.services.implementations.JwtTokenService;
+import com.warrantybee.api.services.interfaces.IHttpContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,30 +23,24 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenService _tokenService;
+    private final IHttpContext _httpContext;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    public AuthenticationFilter(JwtTokenService tokenService) {
-        this._tokenService = tokenService;
+    public AuthenticationFilter(IHttpContext httpContext) {
+        this._httpContext = httpContext;
     }
 
-    private static final List<String> PUBLIC_URLS = List.of(
-            "/api/status",
-            "/status.html",
-            "/api/auth/login",
-            "/api/auth/signup",
-            "/api/auth/forgotpassword",
-            "/api/auth/resetpassword",
-            "/api/countries"
-    );
+    @Value("${APP_WHITELISTED_ENDPOINTS:}")
+    private String _WHITELISTED_ENDPOINTS;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -51,7 +48,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (PUBLIC_URLS.stream().anyMatch(url -> request.getRequestURI().equals(url))) {
+        final List<String> whitelistedEndpoints = Arrays.stream(_WHITELISTED_ENDPOINTS.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty()).toList();
+
+        if (whitelistedEndpoints.stream().anyMatch(url -> request.getRequestURI().equals(url))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -74,25 +75,29 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = header.substring(7);
 
         try {
-            Map<String, Object> claims = _tokenService.validate(token);
+            _httpContext.initialize();
+            Long userId = _httpContext.getUserId();
+            Object principal = _httpContext.getEmail();
+            SecurityRole userRole = _httpContext.getRole();
+            List<SecurityPermission> userPermissions = _httpContext.getPermissions();
 
-            String userId = claims.get("userId").toString();
-            String email = claims.get("email").toString();
+            List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getName()));
 
-            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+            for (SecurityPermission permission : userPermissions) {
+                authorities.add(new SimpleGrantedAuthority(permission.getName()));
+            }
 
             var authToken = new UsernamePasswordAuthenticationToken(
-                    email,
+                    principal,
                     null,
                     authorities
             );
+
             authToken.setDetails(userId);
-
             SecurityContextHolder.getContext().setAuthentication(authToken);
-
         } catch (SessionExpiredException | InvalidTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);

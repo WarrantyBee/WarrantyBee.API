@@ -1,10 +1,14 @@
 package com.warrantybee.api.controllers;
 
+import com.warrantybee.api.annotations.RequireSecurity;
+import com.warrantybee.api.annotations.RolePermission;
 import com.warrantybee.api.dto.request.AvatarUpdateRequest;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.AvatarResponse;
 import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.enumerations.SecurityPermission;
+import com.warrantybee.api.enumerations.SecurityRole;
 import com.warrantybee.api.services.interfaces.IUserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +38,9 @@ public class UsersController {
      *
      * @return a {@link ResponseEntity} containing an {@link APIResponse} with the user details
      */
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.CUSTOMER, permissions = { SecurityPermission.ACCESS_PROFILE })
+    })
     @GetMapping("/profile")
     public ResponseEntity<APIResponse<UserResponse>> get() {
         UserResponse user = _service.get();
@@ -47,6 +54,9 @@ public class UsersController {
      * @param captchaResponse the captcha response
      * @return a success {@link APIResponse} with the new avatar url, wrapped in a {@link ResponseEntity}
      */
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.CUSTOMER, permissions = { SecurityPermission.CHANGE_AVATAR })
+    })
     @PostMapping(value = "/profile/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<AvatarResponse>> changeAvatar(
             @RequestPart("avatar") MultipartFile avatar,
@@ -65,6 +75,9 @@ public class UsersController {
      * @return {@link ResponseEntity} containing a generic {@link APIResponse} with no payload
      * @apiNote This is a PATCH operation, meaning only partial fields are expected and updated.
      */
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.CUSTOMER, permissions = { SecurityPermission.EDIT_PROFILE })
+    })
     @PatchMapping("/profile")
     public ResponseEntity<APIResponse<?>> updateProfile(@RequestBody ProfileUpdateRequest request) {
         _service.updateProfile(request);

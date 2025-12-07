@@ -1,6 +1,7 @@
 package com.warrantybee.api.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.warrantybee.api.dto.internal.UserAuthorization;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,4 +48,11 @@ public class UserResponse {
      * provided as a nested {@link UserProfileResponse} DTO.
      */
     private UserProfileResponse profile;
+
+    /**
+     * Authorization details (role and permissions) for the user.
+     * Ignored during JSON serialization.
+     */
+    @JsonIgnore
+    private UserAuthorization authorizationContext;
 }

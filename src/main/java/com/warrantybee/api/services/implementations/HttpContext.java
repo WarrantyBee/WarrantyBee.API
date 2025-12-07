@@ -1,5 +1,7 @@
 package com.warrantybee.api.services.implementations;
 
+import com.warrantybee.api.enumerations.SecurityPermission;
+import com.warrantybee.api.enumerations.SecurityRole;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.services.interfaces.IHttpContext;
 import com.warrantybee.api.services.interfaces.ITokenService;
@@ -10,6 +12,8 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,8 +23,8 @@ import java.util.Map;
 @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class HttpContext implements IHttpContext {
 
-    private final HttpServletRequest request;
-    private final ITokenService tokenService;
+    private final HttpServletRequest _request;
+    private final ITokenService _tokenService;
 
     @Getter
     private Long userId;
@@ -31,6 +35,12 @@ public class HttpContext implements IHttpContext {
     @Getter
     private String accessToken;
 
+    @Getter
+    private SecurityRole role;
+
+    @Getter
+    private List<SecurityPermission> permissions;
+
     /**
      * Constructs a new {@code HttpContext} for the current HTTP request.
      *
@@ -39,19 +49,16 @@ public class HttpContext implements IHttpContext {
      */
     @Autowired
     public HttpContext(HttpServletRequest request, ITokenService tokenService) {
-        this.request = request;
-        this.tokenService = tokenService;
-        initialize();
+        this._request = request;
+        this._tokenService = tokenService;
     }
 
-    /**
-     * Initializes the access token and extracts claim values.
-     */
-    private void initialize() {
+    @Override
+    public void initialize() {
         this.accessToken = extractAccessToken();
 
         if (!Validator.isBlank(this.accessToken)) {
-            Map<String, Object> claims = this.tokenService.validate(this.accessToken);
+            Map<String, Object> claims = this._tokenService.validate(this.accessToken);
 
             this.userId = Long.parseLong(
                     claims.getOrDefault("userId", "-1").toString()
@@ -60,6 +67,14 @@ public class HttpContext implements IHttpContext {
             this.email = claims.getOrDefault("email", null) != null
                     ? claims.get("email").toString()
                     : null;
+
+            this.role = claims.getOrDefault("role", null) != null
+                    ? SecurityRole.getValue(claims.get("role").toString())
+                    : SecurityRole.NONE;
+
+            this.permissions = claims.getOrDefault("permissions", null) != null
+                    ? getPermissions(claims.get("permissions").toString())
+                    : new ArrayList<SecurityPermission>();
         }
     }
 
@@ -69,13 +84,37 @@ public class HttpContext implements IHttpContext {
      * @return the Bearer token or {@code null} if not present
      */
     private String extractAccessToken() {
-        if (request == null) return null;
+        if (_request == null) return null;
 
-        String header = request.getHeader("Authorization");
+        String header = _request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
         return null;
+    }
+
+    /**
+     * Converts a comma-separated list of permission names into a list of
+     * {@link SecurityPermission} enum constants. Invalid or unknown values
+     * are ignored.
+     *
+     * @param permissions a comma-separated string of permission names
+     * @return a list of valid {@code SecurityPermission} constants; never null
+     */
+    private List<SecurityPermission> getPermissions(String permissions) {
+        List<SecurityPermission> permissionObjects = new ArrayList<>();
+
+        if (!Validator.isBlank(permissions)) {
+            String[] rawPermissions = permissions.split(",");
+            for (String rawPermission : rawPermissions) {
+                SecurityPermission permissionObject = SecurityPermission.getValue(rawPermission);
+                if (permissionObject != SecurityPermission.NONE) {
+                    permissionObjects.add(permissionObject);
+                }
+            }
+        }
+
+        return permissionObjects;
     }
 }
