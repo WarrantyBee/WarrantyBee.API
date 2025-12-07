@@ -20,14 +20,14 @@ public enum SecurityPermission implements IEnumeration {
     EDIT_PROFILE(1, "EDIT_PROFILE"),
 
     /**
-     * Allows a user to register a newly purchased product in the system.
+     * Allows a user to change the profile avatar.
      */
-    REGISTER_PRODUCT(2, "REGISTER_PRODUCT"),
+    CHANGE_AVATAR(2, "CHANGE_AVATAR"),
 
     /**
-     * Allows a user to upload invoices or warranty documents for a product.
+     * Allows users to access their profile.
      */
-    REGISTER_WARRANTY(3, "REGISTER_WARRANTY");
+    ACCESS_PROFILE(3, "ACCESS_PROFILE");
 
     /**
      * The unique, persistent integer code associated with this permission.

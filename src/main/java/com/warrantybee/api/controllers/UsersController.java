@@ -38,6 +38,9 @@ public class UsersController {
      *
      * @return a {@link ResponseEntity} containing an {@link APIResponse} with the user details
      */
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.CUSTOMER, permissions = { SecurityPermission.ACCESS_PROFILE })
+    })
     @GetMapping("/profile")
     public ResponseEntity<APIResponse<UserResponse>> get() {
         UserResponse user = _service.get();
@@ -51,6 +54,9 @@ public class UsersController {
      * @param captchaResponse the captcha response
      * @return a success {@link APIResponse} with the new avatar url, wrapped in a {@link ResponseEntity}
      */
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.CUSTOMER, permissions = { SecurityPermission.CHANGE_AVATAR })
+    })
     @PostMapping(value = "/profile/changeavatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<AvatarResponse>> changeAvatar(
             @RequestPart("avatar") MultipartFile avatar,
