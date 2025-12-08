@@ -222,7 +222,10 @@ public enum Error {
     PROFILE_COULD_NOT_BE_UPDATED(1070, "Profile could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The user does not have required security role or permissions. */
-    REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN);
+    REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN),
+
+    /** The specified login provider is not supported. */
+    LOGIN_PROVIDER_NOT_SUPPORTED(1072, "The specified login provider is not supported.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
