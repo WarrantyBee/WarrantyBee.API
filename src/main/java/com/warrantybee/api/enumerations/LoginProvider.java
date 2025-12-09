@@ -1,50 +1,53 @@
 package com.warrantybee.api.enumerations;
 
-import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 import lombok.Getter;
 
 /**
  * Represents the supported login providers within the WarrantyBee application.
  */
 @Getter
-public enum LoginProvider implements IEnumeration {
+public enum LoginProvider {
 
     /**
      * Indicates that no login provider is selected or applicable.
      */
-    NONE(0),
+    NONE((byte) 0),
 
     /**
      * Internal application-based authentication handled by WarrantyBee.
      */
-    INTERNAL(1),
+    INTERNAL((byte) 1),
 
     /**
      * Authentication provided through Meta platforms such as Facebook.
      */
-    FACEBOOK(2),
+    FACEBOOK((byte) 2),
 
     /**
      * Authentication using Google OAuth services.
      */
-    GOOGLE(3),
+    GOOGLE((byte) 3),
 
     /**
      * Authentication using LinkedIn OAuth services.
      */
-    LINKEDIN(4);
+    LINKEDIN((byte) 4);
 
     /**
      * Unique integer representation of the login provider.
      */
-    private final int code;
+    private final Byte code;
+
+    public Byte getCode() {
+        return code;
+    }
 
     /**
      * Creates a LoginProvider with its associated code.
      *
      * @param code the unique code representing the provider
      */
-    LoginProvider(int code) {
+    LoginProvider(Byte code) {
         this.code = code;
     }
 }
