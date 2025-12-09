@@ -14,6 +14,8 @@ import com.warrantybee.api.exceptions.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 /**
  * Provides common OAuth validation and dispatching logic
  * shared across all OAuth provider implementations.
@@ -21,8 +23,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CommonOAuthService implements IOAuthService {
 
+    private final ICaptchaService _captchaService;
+    private final Map<String, IOAuthService> _oAuthServices;
+
     @Autowired
-    private ICaptchaService _captchaService;
+    public CommonOAuthService(ICaptchaService captchaService, Map<String, IOAuthService> oAuthServices) {
+        this._captchaService = captchaService;
+        this._oAuthServices = oAuthServices;
+    }
 
     /**
      * Validates the request, checks captcha, resolves the appropriate OAuth service,
@@ -36,7 +44,13 @@ public class CommonOAuthService implements IOAuthService {
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
-            IOAuthService oAuthService = IOAuthService.getInstance(request.getProvider());
+            String serviceName = request.getProvider().toLowerCase() + "OAuthService";
+            IOAuthService oAuthService = _oAuthServices.get(serviceName);
+
+            if (oAuthService == null) {
+                throw new AuthProviderNotSupportedException();
+            }
+
             final String accessToken = oAuthService.getAccessToken(request.getCode());
             return oAuthService.getProfile(accessToken);
         }

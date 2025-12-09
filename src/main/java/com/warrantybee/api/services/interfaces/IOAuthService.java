@@ -10,37 +10,6 @@ import com.warrantybee.api.services.implementations.FacebookOAuthService;
  */
 public interface IOAuthService {
     /**
-     * Factory method for creating an {@link IOAuthService} instance based on the selected
-     * {@link AuthProvider}.
-     *
-     * @param provider the OAuth login provider for which an implementation is requested
-     * @return an instance of {@link IOAuthService} corresponding to the given provider
-     */
-    static IOAuthService getInstance(AuthProvider provider) {
-        IOAuthService instance = null;
-
-        if (provider == AuthProvider.FACEBOOK) {
-            instance = new FacebookOAuthService();
-        } else {
-            throw new AuthProviderNotSupportedException();
-        }
-
-        return instance;
-    }
-
-    /**
-     * Convenience factory method that resolves an {@link AuthProvider} from its string
-     * representation and returns the corresponding {@link IOAuthService} instance.
-     *
-     * @param provider the name of the authentication provider (e.g., "facebook", "google")
-     * @return an {@link IOAuthService} instance for the resolved provider
-     */
-    static IOAuthService getInstance(String provider) {
-        AuthProvider authProvider = AuthProvider.getValue(provider);
-        return getInstance(authProvider);
-    }
-
-    /**
      * Exchanges an OAuth authorization code for an access token.
      *
      * @param authCode the authorization code received from the OAuth provider
