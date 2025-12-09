@@ -310,14 +310,12 @@ public class AuthService implements IAuthService {
         else {
             if (request.getHasAcceptedTermsAndConditions() == null ||
                 !request.getHasAcceptedTermsAndConditions()) {
-
+                throw new TermsAndConditionsAreNotAcceptedException();
             }
-
             if (request.getHasAcceptedPrivacyPolicy() == null ||
                 !request.getHasAcceptedPrivacyPolicy()) {
-
+                throw new PrivacyPolicyNotAcceptedException();
             }
-
             if (Validator.isBlank(request.getFirstname())) {
                 throw new FirstnameRequiredException();
             }

@@ -224,8 +224,14 @@ public enum Error {
     /** The user does not have required security role or permissions. */
     REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN),
 
-    /** The specified login provider is not supported. */
-    LOGIN_PROVIDER_NOT_SUPPORTED(1072, "The specified login provider is not supported.", HttpStatus.BAD_REQUEST);
+    /** The specified auth provider is not supported. */
+    AUTH_PROVIDER_NOT_SUPPORTED(1072, "The specified auth provider is not supported.", HttpStatus.BAD_REQUEST),
+
+    /** The authorization code is required. */
+    AUTHORIZATION_CODE_REQUIRED(1073, "The authorization code is required.", HttpStatus.BAD_REQUEST),
+
+    /** The method is not implemented. */
+    NOT_IMPLEMENTED(1074, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
