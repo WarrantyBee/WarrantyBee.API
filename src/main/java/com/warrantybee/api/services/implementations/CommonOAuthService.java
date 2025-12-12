@@ -44,7 +44,8 @@ public class CommonOAuthService implements IOAuthService {
         boolean hasValidCaptcha = _captchaService.validate(request.getCaptchaResponse());
 
         if (hasValidCaptcha) {
-            String serviceName = request.getProvider().toLowerCase() + "OAuthService";
+            AuthProvider provider = AuthProvider.getValue(request.getProvider());
+            String serviceName = provider.getName().toLowerCase() + "OAuthService";
             IOAuthService oAuthService = _oAuthServices.get(serviceName);
 
             if (oAuthService == null) {
@@ -82,7 +83,9 @@ public class CommonOAuthService implements IOAuthService {
         if (Validator.isBlank(request.getCode())) {
             throw new AuthorizationCodeRequired();
         }
-        if (AuthProvider.getValue(request.getProvider()) == AuthProvider.NONE) {
+
+        AuthProvider provider = AuthProvider.getValue(request.getProvider());
+        if (provider == AuthProvider.NONE || provider == AuthProvider.INTERNAL) {
             throw new AuthProviderNotSupportedException();
         }
     }

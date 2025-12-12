@@ -116,30 +116,12 @@ public class AuthService implements IAuthService {
         if (hasValidCaptcha) {
             UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
             UserResponse user = _userRepository.get(filter);
-            String passwordHash = HashHelper.getHash(request.getPassword());
+            String passwordHash = request.getAuthProvider() == AuthProvider.INTERNAL.getCode() ?
+                    HashHelper.getHash(request.getPassword()) : null;
+            request.setPassword(passwordHash);
 
             if (user == null) {
-                UserCreationRequest userCreationRequest = new UserCreationRequest(
-                    request.getFirstname(),
-                    request.getLastname(),
-                    request.getEmail(),
-                    passwordHash,
-                    request.getHasAcceptedTermsAndConditions(),
-                    request.getHasAcceptedPrivacyPolicy(),
-                    request.getGender(),
-                    request.getDateOfBirth(),
-                    request.getPhoneCode(),
-                    request.getPhoneNumber(),
-                    request.getAddressLine1(),
-                    request.getAddressLine2(),
-                    request.getCity(),
-                    request.getRegionId(),
-                    request.getCountryId(),
-                    request.getPostalCode(),
-                    request.getAvatarUrl(),
-                    request.getCultureId()
-                );
-                Long userId = _userRepository.create(userCreationRequest);
+                Long userId = _userRepository.create(request);
 
                 if (userId == null) {
                     throw new UserRegistrationFailedException();
@@ -328,11 +310,23 @@ public class AuthService implements IAuthService {
             if (!Validator.isEmail(request.getEmail())) {
                 throw new InvalidEmailException();
             }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
+            AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
+            if (provider == AuthProvider.NONE) {
+                throw new AuthProviderNotSupportedException();
             }
-            if (!Validator.isStrongPassword(request.getPassword())) {
-                throw new StrongPasswordRequiredException();
+            if (provider == AuthProvider.INTERNAL) {
+                if (Validator.isBlank(request.getPassword())) {
+                    throw new PasswordRequiredException();
+                }
+                if (!Validator.isStrongPassword(request.getPassword())) {
+                    throw new StrongPasswordRequiredException();
+                }
+            }
+            else {
+                if (Validator.isBlank(request.getAuthProviderUserId())) {
+                    throw new AuthProviderUserIdentifierRequiredException();
+                }
+                request.setPassword(null);
             }
             if (!Validator.isEnum(request.getGender(), Gender.class)) {
                 throw new InvalidGenderValueException();

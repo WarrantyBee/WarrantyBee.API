@@ -20,10 +20,10 @@ public class SocialUserProfileResponse {
     private String id;
 
     /**
-     * The name of the OAuth provider (e.g., "facebook", "google", "linkedin")
+     * The code of the OAuth provider (e.g., 2 for "facebook", 3 for "google", 4 for "linkedin")
      * from which this profile data was retrieved.
      */
-    private String provider;
+    private int provider;
 
     /**
      * The email address associated with the user's social account.

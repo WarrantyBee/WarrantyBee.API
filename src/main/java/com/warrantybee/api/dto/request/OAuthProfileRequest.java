@@ -18,8 +18,8 @@ public class OAuthProfileRequest extends BaseRequest {
     private String code;
 
     /**
-     * The identifier of the OAuth provider (e.g., "facebook", "google", "linkedin")
+     * The identifier of the OAuth provider (e.g., 2 for "facebook", 3 for "google", 4 for "linkedin")
      * from which the authorization code was received.
      */
-    private String provider;
+    private Integer provider;
 }

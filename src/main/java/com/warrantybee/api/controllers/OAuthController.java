@@ -1,6 +1,7 @@
 package com.warrantybee.api.controllers;
 
 import com.warrantybee.api.dto.request.OAuthProfileRequest;
+import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.SocialUserProfileResponse;
 import com.warrantybee.api.services.implementations.CommonOAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,8 @@ public class OAuthController {
      * @return a {@link ResponseEntity} containing the user's social profile on success
      */
     @PostMapping("/profile")
-    public ResponseEntity<?> get(@RequestBody OAuthProfileRequest request) {
+    public ResponseEntity<APIResponse<SocialUserProfileResponse>> get(@RequestBody OAuthProfileRequest request) {
         SocialUserProfileResponse userProfile = _commonOAuthService.getProfile(request);
-        return ResponseEntity.ok(userProfile);
+        return ResponseEntity.ok(new APIResponse<>(userProfile, null));
     }
 }

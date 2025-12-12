@@ -5,6 +5,7 @@ import com.warrantybee.api.dto.internal.PasswordResetRequest;
 import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
+import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.UserResponse;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +24,7 @@ public interface IUserRepository {
      * @param request A DTO containing all necessary data for user creation.
      * @return The unique system-generated ID of the newly created user.
      */
-    Long create(UserCreationRequest request);
+    Long create(SignUpRequest request);
 
     /**
      * Retrieves a user based on specific search criteria, such as ID or email.

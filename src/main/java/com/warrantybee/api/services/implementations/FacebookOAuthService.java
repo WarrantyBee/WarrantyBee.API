@@ -53,7 +53,7 @@ public class FacebookOAuthService implements IOAuthService {
         User user = client.fetchObject("me", User.class, Parameter.with("fields", "id,email,first_name,last_name"));
         return new SocialUserProfileResponse(
             user.getId(),
-            AuthProvider.FACEBOOK.getName(),
+            AuthProvider.FACEBOOK.getCode(),
             user.getEmail(),
             user.getFirstName(),
             user.getLastName()

@@ -230,8 +230,11 @@ public enum Error {
     /** The authorization code is required. */
     AUTHORIZATION_CODE_REQUIRED(1073, "The authorization code is required.", HttpStatus.BAD_REQUEST),
 
+    /** The user identifier from the auth provider is required. */
+    AUTH_PROVIDER_USER_IDENTIFIER_REQUIRED(1074, "The user identifier from the auth provider is required.", HttpStatus.BAD_REQUEST),
+
     /** The method is not implemented. */
-    NOT_IMPLEMENTED(1074, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
+    NOT_IMPLEMENTED(1075, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

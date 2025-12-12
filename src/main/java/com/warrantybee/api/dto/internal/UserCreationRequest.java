@@ -68,4 +68,10 @@ public class UserCreationRequest {
 
     /** Identifier for the user's preferred culture. */
     private Long cultureId;
+
+    /** User's auth provider (e.g. Meta, LinkedIn, etc.) */
+    private Byte authProvider;
+
+    /** User's unique identifier provided by the auth platform. */
+    private String authProviderUserId;
 }
