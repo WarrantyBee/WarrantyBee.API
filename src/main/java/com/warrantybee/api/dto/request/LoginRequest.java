@@ -27,16 +27,4 @@ import lombok.Setter;
 public class LoginRequest extends BaseRequest {
     /** The user's email address, which serves as the login identifier. */
     private String email;
-
-    /** The user's plain-text password. */
-    private String password;
-
-    /** Indicates which authentication provider was used (e.g., local, Google, Facebook). */
-    private Byte authProvider;
-
-    /**
-     * Stores the OAuth authorization code received
-     * from the authentication provider after user consent.
-     */
-    private String authCode;
 }

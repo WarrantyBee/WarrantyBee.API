@@ -252,7 +252,12 @@ public class AuthService implements IAuthService {
             throw new RequestBodyEmptyException();
         }
         else {
-            _validate((LoginRequest) request);
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
+            }
             if (Validator.isBlank(request.getToken())) {
                 throw new TokenRequiredException();
             }
@@ -266,13 +271,16 @@ public class AuthService implements IAuthService {
      * Validates the given login request.
      * @param request the login request to validate
      */
-    private void _validate(LoginRequest request) {
+    private void _validate(SimpleLoginRequest request) {
         if (request == null) {
             throw new RequestBodyEmptyException();
         }
         else {
             if (Validator.isBlank(request.getEmail())) {
                 throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
             }
             if (Validator.isBlank(request.getPassword())) {
                 throw new PasswordRequiredException();
@@ -468,7 +476,7 @@ public class AuthService implements IAuthService {
      * @return A {@link ILoginResponse} object, which can be a {@link LoginResponse} or {@link MFALoginResponse}.
      */
     private ILoginResponse _process(SimpleLoginRequest request) {
-        _validate((LoginRequest) request);
+        _validate(request);
 
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
@@ -507,13 +515,10 @@ public class AuthService implements IAuthService {
      */
     private LoginResponse _process(MFALoginRequest request) {
         _validate(request);
-
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
 
         if (user != null) {
-            _validateCredentials(request, user);
-
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
                 Boolean isValid = _userRepository.validate(token);
@@ -548,7 +553,7 @@ public class AuthService implements IAuthService {
      * @param request the incoming login request
      * @param user the stored user details
      */
-    private void _validateCredentials(LoginRequest request, UserResponse user) {
+    private void _validateCredentials(SimpleLoginRequest request, UserResponse user) {
         AuthProvider requestedProvider = AuthProvider.getValue(request.getAuthProvider());
         AuthProvider provider = AuthProvider.getValue(user.getAuthProvider());
 
