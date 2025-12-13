@@ -3,7 +3,7 @@ package com.warrantybee.api.controllers;
 import com.warrantybee.api.dto.request.ForgotPasswordRequest;
 import com.warrantybee.api.dto.request.ResetPasswordRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
-import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
+import com.warrantybee.api.dto.request.LoginRequest;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
@@ -40,7 +40,7 @@ public class AuthController {
      * @throws Exception if an authentication or unexpected error occurs.
      */
     @PostMapping("/login")
-    public ResponseEntity<APIResponse<ILoginResponse>> login(@RequestBody ILoginRequest request) throws Exception {
+    public ResponseEntity<APIResponse<ILoginResponse>> login(@RequestBody LoginRequest request) throws Exception {
         return ResponseEntity.ok(new APIResponse<>(_authService.login(request)));
     }
 

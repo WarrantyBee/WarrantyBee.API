@@ -3,14 +3,11 @@ package com.warrantybee.api.services.implementations;
 import com.warrantybee.api.dto.request.OAuthProfileRequest;
 import com.warrantybee.api.dto.response.SocialUserProfileResponse;
 import com.warrantybee.api.enumerations.AuthProvider;
-import com.warrantybee.api.exceptions.AuthorizationCodeRequired;
-import com.warrantybee.api.exceptions.AuthProviderNotSupportedException;
-import com.warrantybee.api.exceptions.CaptchaVerificationFailedException;
-import com.warrantybee.api.exceptions.RequestBodyEmptyException;
+import com.warrantybee.api.enumerations.OAuthCallback;
+import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.services.interfaces.ICaptchaService;
 import com.warrantybee.api.services.interfaces.IOAuthService;
-import com.warrantybee.api.exceptions.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +33,7 @@ public class CommonOAuthService implements IOAuthService {
      * Validates the request, checks captcha, resolves the appropriate OAuth service,
      * exchanges the authorization code for an access token, and retrieves the user profile.
      *
-     * @param request the OAuth profile request containing provider and auth code
+     * @param request the OAuth profile request containing provider, auth code and callback type.
      * @return the user's social profile information
      */
     public SocialUserProfileResponse getProfile(OAuthProfileRequest request) {
@@ -52,7 +49,8 @@ public class CommonOAuthService implements IOAuthService {
                 throw new AuthProviderNotSupportedException();
             }
 
-            final String accessToken = oAuthService.getAccessToken(request.getCode());
+            OAuthCallback callback = OAuthCallback.getValue(request.getCallbackType());
+            final String accessToken = oAuthService.getAccessToken(request.getCode(), callback);
             return oAuthService.getProfile(accessToken);
         }
         else {
@@ -61,7 +59,7 @@ public class CommonOAuthService implements IOAuthService {
     }
 
     @Override
-    public String getAccessToken(String authCode) {
+    public String getAccessToken(String authCode, OAuthCallback callback) {
         throw new NotImplementedException();
     }
 
@@ -72,7 +70,7 @@ public class CommonOAuthService implements IOAuthService {
 
     /**
      * Validates the incoming OAuth profile request.
-     * Ensures request body, authorization code, and provider are valid.
+     * Ensures request body, authorization code, provider, and callback type are valid.
      *
      * @param request the incoming OAuth profile request
      */
@@ -87,6 +85,11 @@ public class CommonOAuthService implements IOAuthService {
         AuthProvider provider = AuthProvider.getValue(request.getProvider());
         if (provider == AuthProvider.NONE || provider == AuthProvider.INTERNAL) {
             throw new AuthProviderNotSupportedException();
+        }
+
+        OAuthCallback callback = OAuthCallback.getValue(request.getCallbackType());
+        if (callback == OAuthCallback.NONE) {
+            throw new OAuthCallbackNotSupportedException();
         }
     }
 }

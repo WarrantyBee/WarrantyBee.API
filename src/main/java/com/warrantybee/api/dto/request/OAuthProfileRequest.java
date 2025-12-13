@@ -1,6 +1,8 @@
 package com.warrantybee.api.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -9,6 +11,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OAuthProfileRequest extends BaseRequest {
 
     /**
@@ -21,5 +25,11 @@ public class OAuthProfileRequest extends BaseRequest {
      * The identifier of the OAuth provider (e.g., 2 for "facebook", 3 for "google", 4 for "linkedin")
      * from which the authorization code was received.
      */
-    private Integer provider;
+    private Byte provider;
+
+    /**
+     * Stores the OAuth callback type code indicating
+     * the authentication flow (e.g., sign-in or sign-up).
+     */
+    private Byte callbackType;
 }

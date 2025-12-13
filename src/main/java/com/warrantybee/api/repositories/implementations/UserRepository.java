@@ -212,7 +212,8 @@ public class UserRepository implements IUserRepository {
             userResponse.setProfile(profile);
             userResponse.setAuthorizationContext(authorizationContext);
             userResponse.setPassword((String)row[34]);
-
+            userResponse.setAuthProvider(Byte.valueOf((String) row[46]));
+            userResponse.setAuthProviderUserId((String) row[47]);
             return userResponse;
 
         } catch (Exception e) {

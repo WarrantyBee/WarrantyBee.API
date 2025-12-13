@@ -2,7 +2,6 @@ package com.warrantybee.api.repositories.interfaces;
 
 import com.warrantybee.api.dto.internal.LoginTokenDetails;
 import com.warrantybee.api.dto.internal.PasswordResetRequest;
-import com.warrantybee.api.dto.internal.UserCreationRequest;
 import com.warrantybee.api.dto.internal.UserSearchFilter;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;

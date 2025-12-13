@@ -3,11 +3,8 @@ package com.warrantybee.api.services.implementations;
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.dto.internal.*;
 import com.warrantybee.api.dto.request.*;
-import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
-import com.warrantybee.api.dto.response.LoginResponse;
-import com.warrantybee.api.dto.response.MFALoginResponse;
-import com.warrantybee.api.dto.response.SignUpResponse;
-import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.enumerations.*;
 import com.warrantybee.api.exceptions.*;
@@ -42,6 +39,7 @@ public class AuthService implements IAuthService {
     private final ITelemetryService _telemetryService;
     private final IUserRepository _userRepository;
     private final IOtpRepository _otpRepository;
+    private final CommonOAuthService _oAuthService;
 
     /**
      * Constructs a new {@code AuthService} instance with all required dependencies.
@@ -55,11 +53,13 @@ public class AuthService implements IAuthService {
      * @param telemetryService   the service used to capture and log authentication telemetry data
      * @param userRepository     the repository used to access and manage user account data
      * @param otpRepository      the repository used to store and retrieve OTP records
+     * @param oAuthService       the generic OAuthService which is integrated with multiple auth providers
      */
     @Autowired
     public AuthService(AppConfiguration appConfiguration, ITokenService tokenService, ICacheService cacheService,
                        ICaptchaService captchaService, IOtpService otpService, IEmailService emailService,
-                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository) {
+                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository,
+                       CommonOAuthService oAuthService) {
         this._appConfiguration = appConfiguration;
         this._tokenService = tokenService;
         this._cacheService = cacheService;
@@ -69,26 +69,27 @@ public class AuthService implements IAuthService {
         this._telemetryService = telemetryService;
         this._userRepository = userRepository;
         this._otpRepository = otpRepository;
+        this._oAuthService = oAuthService;
     }
 
     @Override
-    public ILoginResponse login(ILoginRequest request) {
-        LoginRequest loginRequest = null;
+    public ILoginResponse login(LoginRequest request) {
+        SimpleLoginRequest simpleLoginRequest = null;
         MFALoginRequest mfaLoginRequest = null;
         boolean hasValidCaptcha = false;
         ILoginResponse response = null;
 
-        if (request instanceof LoginRequest obj) {
-            loginRequest = obj;
+        if (request instanceof SimpleLoginRequest obj) {
+            simpleLoginRequest = obj;
         }
         if (request instanceof MFALoginRequest obj) {
             mfaLoginRequest = obj;
         }
 
-        if (loginRequest != null) {
-            hasValidCaptcha = _captchaService.validate(loginRequest.getCaptchaResponse());
+        if (simpleLoginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(simpleLoginRequest.getCaptchaResponse());
             if (hasValidCaptcha) {
-                response = _process(loginRequest);
+                response = _process(simpleLoginRequest);
             }
         }
         else if (mfaLoginRequest != null) {
@@ -119,6 +120,9 @@ public class AuthService implements IAuthService {
             String passwordHash = request.getAuthProvider() == AuthProvider.INTERNAL.getCode() ?
                     HashHelper.getHash(request.getPassword()) : null;
             request.setPassword(passwordHash);
+            String authProviderUserId = request.getAuthProvider() == AuthProvider.INTERNAL.getCode() ?
+                    null : HashHelper.getHash(request.getAuthProviderUserId());
+            request.setAuthProviderUserId(authProviderUserId);
 
             if (user == null) {
                 Long userId = _userRepository.create(request);
@@ -240,6 +244,25 @@ public class AuthService implements IAuthService {
     }
 
     /**
+     * Validates the given multifactor authentication login request.
+     * @param request the multifactor authentication request
+     */
+    private void _validate(MFALoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            _validate((LoginRequest) request);
+            if (Validator.isBlank(request.getToken())) {
+                throw new TokenRequiredException();
+            }
+            if (Validator.isBlank(request.getOtp())) {
+                throw new OtpRequiredException();
+            }
+        }
+    }
+
+    /**
      * Validates the given login request.
      * @param request the login request to validate
      */
@@ -254,29 +277,13 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getPassword())) {
                 throw new PasswordRequiredException();
             }
-        }
-    }
 
-    /**
-     * Validates the given multifactor authentication login request.
-     * @param request the multifactor authentication request
-     */
-    private void _validate(MFALoginRequest request) {
-        if (request == null) {
-            throw new RequestBodyEmptyException();
-        }
-        else {
-            if (Validator.isBlank(request.getEmail())) {
-                throw new EmailRequiredException();
+            AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
+            if (provider == AuthProvider.NONE) {
+                throw new AuthProviderNotSupportedException();
             }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
-            }
-            if (Validator.isBlank(request.getToken())) {
-                throw new TokenRequiredException();
-            }
-            if (Validator.isBlank(request.getOtp())) {
-                throw new OtpRequiredException();
+            if (provider != AuthProvider.INTERNAL && Validator.isBlank(request.getAuthCode())) {
+                throw new AuthorizationCodeRequired();
             }
         }
     }
@@ -460,16 +467,14 @@ public class AuthService implements IAuthService {
      * @param request The login request containing user email and password.
      * @return A {@link ILoginResponse} object, which can be a {@link LoginResponse} or {@link MFALoginResponse}.
      */
-    private ILoginResponse _process(LoginRequest request) {
-        _validate(request);
+    private ILoginResponse _process(SimpleLoginRequest request) {
+        _validate((LoginRequest) request);
 
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
 
         if (user != null) {
-            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
-                throw new InvalidCredentialsException();
-            }
+            _validateCredentials(request, user);
 
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), HashHelper.generateToken());
@@ -507,9 +512,7 @@ public class AuthService implements IAuthService {
         UserResponse user = _userRepository.get(searchFilter);
 
         if (user != null) {
-            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
-                throw new InvalidCredentialsException();
-            }
+            _validateCredentials(request, user);
 
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
@@ -536,6 +539,38 @@ public class AuthService implements IAuthService {
         }
         else {
             throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Validates the user's credentials based on the configured authentication provider.
+     *
+     * @param request the incoming login request
+     * @param user the stored user details
+     */
+    private void _validateCredentials(LoginRequest request, UserResponse user) {
+        AuthProvider requestedProvider = AuthProvider.getValue(request.getAuthProvider());
+        AuthProvider provider = AuthProvider.getValue(user.getAuthProvider());
+
+        if (provider == AuthProvider.NONE || requestedProvider != provider) {
+            throw new AuthProviderNotConfiguredException();
+        }
+
+        if (provider == AuthProvider.INTERNAL) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+        }
+        else {
+            OAuthProfileRequest profileRequest = new OAuthProfileRequest(
+                request.getAuthCode(),
+                request.getAuthProvider(),
+                (byte) OAuthCallback.SIGN_IN.getCode()
+            );
+            SocialUserProfileResponse socialProfile = _oAuthService.getProfile(profileRequest);
+            if (!HashHelper.verify(socialProfile.getId(), user.getAuthProviderUserId())) {
+                throw new InvalidCredentialsException();
+            }
         }
     }
 
