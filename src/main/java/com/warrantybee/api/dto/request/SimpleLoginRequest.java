@@ -1,6 +1,8 @@
 package com.warrantybee.api.dto.request;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import com.warrantybee.api.enumerations.AuthProvider;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,14 +11,14 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 public class SimpleLoginRequest extends LoginRequest {
     /** The user's plain-text password. */
     private String password;
 
     /** Indicates which authentication provider was used (e.g., local, Google, Facebook). */
-    private Byte authProvider;
+    @JsonSetter(nulls = Nulls.SKIP)
+    private Byte authProvider = (byte) AuthProvider.INTERNAL.getCode();
 
-    /** Stores the OAuth authorization code received from the authentication provider after user consent. */
-    private String authCode;
+    /** Unique user identifier provided by the external authentication provider. */
+    private String authProviderUserId;
 }

@@ -39,7 +39,6 @@ public class AuthService implements IAuthService {
     private final ITelemetryService _telemetryService;
     private final IUserRepository _userRepository;
     private final IOtpRepository _otpRepository;
-    private final CommonOAuthService _oAuthService;
 
     /**
      * Constructs a new {@code AuthService} instance with all required dependencies.
@@ -53,13 +52,11 @@ public class AuthService implements IAuthService {
      * @param telemetryService   the service used to capture and log authentication telemetry data
      * @param userRepository     the repository used to access and manage user account data
      * @param otpRepository      the repository used to store and retrieve OTP records
-     * @param oAuthService       the generic OAuthService which is integrated with multiple auth providers
      */
     @Autowired
     public AuthService(AppConfiguration appConfiguration, ITokenService tokenService, ICacheService cacheService,
                        ICaptchaService captchaService, IOtpService otpService, IEmailService emailService,
-                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository,
-                       CommonOAuthService oAuthService) {
+                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository) {
         this._appConfiguration = appConfiguration;
         this._tokenService = tokenService;
         this._cacheService = cacheService;
@@ -69,7 +66,6 @@ public class AuthService implements IAuthService {
         this._telemetryService = telemetryService;
         this._userRepository = userRepository;
         this._otpRepository = otpRepository;
-        this._oAuthService = oAuthService;
     }
 
     @Override
@@ -282,16 +278,18 @@ public class AuthService implements IAuthService {
             if (!Validator.isEmail(request.getEmail())) {
                 throw new InvalidEmailException();
             }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
-            }
 
             AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
             if (provider == AuthProvider.NONE) {
                 throw new AuthProviderNotSupportedException();
             }
-            if (provider != AuthProvider.INTERNAL && Validator.isBlank(request.getAuthCode())) {
-                throw new AuthorizationCodeRequired();
+            else if (provider == AuthProvider.INTERNAL) {
+                if (Validator.isBlank(request.getPassword())) {
+                    throw new PasswordRequiredException();
+                }
+            }
+            else if (Validator.isBlank(request.getAuthProviderUserId())) {
+                throw new AuthProviderUserIdentifierRequiredException();
             }
         }
     }
@@ -567,13 +565,7 @@ public class AuthService implements IAuthService {
             }
         }
         else {
-            OAuthProfileRequest profileRequest = new OAuthProfileRequest(
-                request.getAuthCode(),
-                request.getAuthProvider(),
-                (byte) OAuthCallback.SIGN_IN.getCode()
-            );
-            SocialUserProfileResponse socialProfile = _oAuthService.getProfile(profileRequest);
-            if (!HashHelper.verify(socialProfile.getId(), user.getAuthProviderUserId())) {
+            if (!HashHelper.verify(request.getAuthProviderUserId(), user.getAuthProviderUserId())) {
                 throw new InvalidCredentialsException();
             }
         }

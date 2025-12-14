@@ -25,7 +25,7 @@ public class OAuthProfileRequest extends BaseRequest {
      * The identifier of the OAuth provider (e.g., 2 for "facebook", 3 for "google", 4 for "linkedin")
      * from which the authorization code was received.
      */
-    private Byte provider;
+    private Byte authProvider;
 
     /**
      * Stores the OAuth callback type code indicating
