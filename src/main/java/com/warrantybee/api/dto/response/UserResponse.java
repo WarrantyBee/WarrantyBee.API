@@ -44,6 +44,18 @@ public class UserResponse {
     private String password;
 
     /**
+     * Indicates the authentication provider used for the user account.
+     */
+    @JsonIgnore
+    private Byte authProvider;
+
+    /**
+     * Stores the unique user identifier provided by the external authentication provider.
+     */
+    @JsonIgnore
+    private String authProviderUserId;
+
+    /**
      * Extended profile details, including geographical and preference information,
      * provided as a nested {@link UserProfileResponse} DTO.
      */

@@ -3,11 +3,8 @@ package com.warrantybee.api.services.implementations;
 import com.warrantybee.api.configurations.AppConfiguration;
 import com.warrantybee.api.dto.internal.*;
 import com.warrantybee.api.dto.request.*;
-import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
-import com.warrantybee.api.dto.response.LoginResponse;
-import com.warrantybee.api.dto.response.MFALoginResponse;
-import com.warrantybee.api.dto.response.SignUpResponse;
-import com.warrantybee.api.dto.response.UserResponse;
+import com.warrantybee.api.dto.request.LoginRequest;
+import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 import com.warrantybee.api.enumerations.*;
 import com.warrantybee.api.exceptions.*;
@@ -72,23 +69,23 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public ILoginResponse login(ILoginRequest request) {
-        LoginRequest loginRequest = null;
+    public ILoginResponse login(LoginRequest request) {
+        SimpleLoginRequest simpleLoginRequest = null;
         MFALoginRequest mfaLoginRequest = null;
         boolean hasValidCaptcha = false;
         ILoginResponse response = null;
 
-        if (request instanceof LoginRequest obj) {
-            loginRequest = obj;
+        if (request instanceof SimpleLoginRequest obj) {
+            simpleLoginRequest = obj;
         }
         if (request instanceof MFALoginRequest obj) {
             mfaLoginRequest = obj;
         }
 
-        if (loginRequest != null) {
-            hasValidCaptcha = _captchaService.validate(loginRequest.getCaptchaResponse());
+        if (simpleLoginRequest != null) {
+            hasValidCaptcha = _captchaService.validate(simpleLoginRequest.getCaptchaResponse());
             if (hasValidCaptcha) {
-                response = _process(loginRequest);
+                response = _process(simpleLoginRequest);
             }
         }
         else if (mfaLoginRequest != null) {
@@ -116,30 +113,15 @@ public class AuthService implements IAuthService {
         if (hasValidCaptcha) {
             UserSearchFilter filter = new UserSearchFilter(null, request.getEmail());
             UserResponse user = _userRepository.get(filter);
-            String passwordHash = HashHelper.getHash(request.getPassword());
+            String passwordHash = request.getAuthProvider() == AuthProvider.INTERNAL.getCode() ?
+                    HashHelper.getHash(request.getPassword()) : null;
+            request.setPassword(passwordHash);
+            String authProviderUserId = request.getAuthProvider() == AuthProvider.INTERNAL.getCode() ?
+                    null : HashHelper.getHash(request.getAuthProviderUserId());
+            request.setAuthProviderUserId(authProviderUserId);
 
             if (user == null) {
-                UserCreationRequest userCreationRequest = new UserCreationRequest(
-                    request.getFirstname(),
-                    request.getLastname(),
-                    request.getEmail(),
-                    passwordHash,
-                    request.getHasAcceptedTermsAndConditions(),
-                    request.getHasAcceptedPrivacyPolicy(),
-                    request.getGender(),
-                    request.getDateOfBirth(),
-                    request.getPhoneCode(),
-                    request.getPhoneNumber(),
-                    request.getAddressLine1(),
-                    request.getAddressLine2(),
-                    request.getCity(),
-                    request.getRegionId(),
-                    request.getCountryId(),
-                    request.getPostalCode(),
-                    request.getAvatarUrl(),
-                    request.getCultureId()
-                );
-                Long userId = _userRepository.create(userCreationRequest);
+                Long userId = _userRepository.create(request);
 
                 if (userId == null) {
                     throw new UserRegistrationFailedException();
@@ -258,24 +240,6 @@ public class AuthService implements IAuthService {
     }
 
     /**
-     * Validates the given login request.
-     * @param request the login request to validate
-     */
-    private void _validate(LoginRequest request) {
-        if (request == null) {
-            throw new RequestBodyEmptyException();
-        }
-        else {
-            if (Validator.isBlank(request.getEmail())) {
-                throw new EmailRequiredException();
-            }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
-            }
-        }
-    }
-
-    /**
      * Validates the given multifactor authentication login request.
      * @param request the multifactor authentication request
      */
@@ -287,14 +251,45 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getEmail())) {
                 throw new EmailRequiredException();
             }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
             }
             if (Validator.isBlank(request.getToken())) {
                 throw new TokenRequiredException();
             }
             if (Validator.isBlank(request.getOtp())) {
                 throw new OtpRequiredException();
+            }
+        }
+    }
+
+    /**
+     * Validates the given login request.
+     * @param request the login request to validate
+     */
+    private void _validate(SimpleLoginRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        else {
+            if (Validator.isBlank(request.getEmail())) {
+                throw new EmailRequiredException();
+            }
+            if (!Validator.isEmail(request.getEmail())) {
+                throw new InvalidEmailException();
+            }
+
+            AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
+            if (provider == AuthProvider.NONE) {
+                throw new AuthProviderNotSupportedException();
+            }
+            else if (provider == AuthProvider.INTERNAL) {
+                if (Validator.isBlank(request.getPassword())) {
+                    throw new PasswordRequiredException();
+                }
+            }
+            else if (Validator.isBlank(request.getAuthProviderUserId())) {
+                throw new AuthProviderUserIdentifierRequiredException();
             }
         }
     }
@@ -310,14 +305,12 @@ public class AuthService implements IAuthService {
         else {
             if (request.getHasAcceptedTermsAndConditions() == null ||
                 !request.getHasAcceptedTermsAndConditions()) {
-
+                throw new TermsAndConditionsAreNotAcceptedException();
             }
-
             if (request.getHasAcceptedPrivacyPolicy() == null ||
                 !request.getHasAcceptedPrivacyPolicy()) {
-
+                throw new PrivacyPolicyNotAcceptedException();
             }
-
             if (Validator.isBlank(request.getFirstname())) {
                 throw new FirstnameRequiredException();
             }
@@ -330,11 +323,23 @@ public class AuthService implements IAuthService {
             if (!Validator.isEmail(request.getEmail())) {
                 throw new InvalidEmailException();
             }
-            if (Validator.isBlank(request.getPassword())) {
-                throw new PasswordRequiredException();
+            AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
+            if (provider == AuthProvider.NONE) {
+                throw new AuthProviderNotSupportedException();
             }
-            if (!Validator.isStrongPassword(request.getPassword())) {
-                throw new StrongPasswordRequiredException();
+            if (provider == AuthProvider.INTERNAL) {
+                if (Validator.isBlank(request.getPassword())) {
+                    throw new PasswordRequiredException();
+                }
+                if (!Validator.isStrongPassword(request.getPassword())) {
+                    throw new StrongPasswordRequiredException();
+                }
+            }
+            else {
+                if (Validator.isBlank(request.getAuthProviderUserId())) {
+                    throw new AuthProviderUserIdentifierRequiredException();
+                }
+                request.setPassword(null);
             }
             if (!Validator.isEnum(request.getGender(), Gender.class)) {
                 throw new InvalidGenderValueException();
@@ -468,16 +473,14 @@ public class AuthService implements IAuthService {
      * @param request The login request containing user email and password.
      * @return A {@link ILoginResponse} object, which can be a {@link LoginResponse} or {@link MFALoginResponse}.
      */
-    private ILoginResponse _process(LoginRequest request) {
+    private ILoginResponse _process(SimpleLoginRequest request) {
         _validate(request);
 
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
 
         if (user != null) {
-            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
-                throw new InvalidCredentialsException();
-            }
+            _validateCredentials(request, user);
 
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), HashHelper.generateToken());
@@ -510,15 +513,10 @@ public class AuthService implements IAuthService {
      */
     private LoginResponse _process(MFALoginRequest request) {
         _validate(request);
-
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
 
         if (user != null) {
-            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
-                throw new InvalidCredentialsException();
-            }
-
             if (user.getProfile().getSettings().getIs2FAEnabled()) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
                 Boolean isValid = _userRepository.validate(token);
@@ -544,6 +542,31 @@ public class AuthService implements IAuthService {
         }
         else {
             throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Validates the user's credentials based on the configured authentication provider.
+     *
+     * @param request the incoming login request
+     * @param user the stored user details
+     */
+    private void _validateCredentials(SimpleLoginRequest request, UserResponse user) {
+        AuthProvider requestedProvider = AuthProvider.getValue(request.getAuthProvider());
+        AuthProvider provider = AuthProvider.getValue(user.getAuthProvider());
+
+        if (requestedProvider == AuthProvider.INTERNAL) {
+            if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException();
+            }
+        }
+        else if (requestedProvider == AuthProvider.NONE || requestedProvider != provider) {
+            throw new AuthProviderNotConfiguredException();
+        }
+        else {
+            if (!HashHelper.verify(request.getAuthProviderUserId(), user.getAuthProviderUserId())) {
+                throw new InvalidCredentialsException();
+            }
         }
     }
 

@@ -3,7 +3,7 @@ package com.warrantybee.api.services.interfaces;
 import com.warrantybee.api.dto.request.ForgotPasswordRequest;
 import com.warrantybee.api.dto.request.ResetPasswordRequest;
 import com.warrantybee.api.dto.request.SignUpRequest;
-import com.warrantybee.api.dto.request.interfaces.ILoginRequest;
+import com.warrantybee.api.dto.request.LoginRequest;
 import com.warrantybee.api.dto.response.SignUpResponse;
 import com.warrantybee.api.dto.response.interfaces.ILoginResponse;
 
@@ -18,7 +18,7 @@ public interface IAuthService {
      * @param request the login request containing user credentials and related details
      * @return an {@link ILoginResponse} representing the outcome of the login process
      */
-    ILoginResponse login(ILoginRequest request);
+    ILoginResponse login(LoginRequest request);
 
     /**
      * Registers a new user with the provided sign-up details.

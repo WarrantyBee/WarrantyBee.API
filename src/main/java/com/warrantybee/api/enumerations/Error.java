@@ -222,7 +222,43 @@ public enum Error {
     PROFILE_COULD_NOT_BE_UPDATED(1070, "Profile could not be updated.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     /** The user does not have required security role or permissions. */
-    REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN);
+    REQUIRE_SECURITY(1071, "User does not have required security role or permissions.", HttpStatus.FORBIDDEN),
+
+    /** The specified auth provider is not supported. */
+    AUTH_PROVIDER_NOT_SUPPORTED(1072, "The specified auth provider is not supported.", HttpStatus.BAD_REQUEST),
+
+    /** The authorization code is required. */
+    AUTHORIZATION_CODE_REQUIRED(1073, "The authorization code is required.", HttpStatus.BAD_REQUEST),
+
+    /** The user identifier from the auth provider is required. */
+    AUTH_PROVIDER_USER_IDENTIFIER_REQUIRED(1074, "The user identifier from the auth provider is required.", HttpStatus.BAD_REQUEST),
+
+    /** The specified auth provider is not configured. */
+    AUTH_PROVIDER_NOT_CONFIGURED(1076, "The specified auth provider is not configured.", HttpStatus.BAD_REQUEST),
+
+    /** The specified oAuth callback is not supported. */
+    OAUTH_CALLBACK_NOT_SUPPORTED(1077, "The specified oAuth callback is not supported.", HttpStatus.BAD_REQUEST),
+
+    /** The authorization code is invalid. */
+    INVALID_AUTHORIZATION_CODE(1078, "The authorization code is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The auth provider is unavailable. */
+    AUTH_PROVIDER_UNAVAILABLE(1079, "The auth provider is unavailable.", HttpStatus.SERVICE_UNAVAILABLE),
+
+    /** The access token exchange failed. */
+    ACCESS_TOKEN_EXCHANGE_FAILED(1080, "The access token exchange failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The access token is invalid. */
+    INVALID_ACCESS_TOKEN(1081, "The access token is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** Failed to fetch the OAuth profile. */
+    OAUTH_PROFILE_FETCH_FAILED(1082, "Failed to fetch the OAuth profile.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The OAuth profile is invalid. */
+    INVALID_OAUTH_PROFILE(1083, "The OAuth profile is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The method is not implemented. */
+    NOT_IMPLEMENTED(1075, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

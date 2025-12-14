@@ -1,6 +1,7 @@
 package com.warrantybee.api.exceptions;
 
 import com.warrantybee.api.enumerations.Error;
+import com.warrantybee.api.helpers.Validator;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -37,7 +38,7 @@ public class APIException extends RuntimeException {
     public APIException(Error error, String customMessage) {
         super(customMessage);
         this.error = error;
-        this.message = customMessage;
+        this.message = Validator.isBlank(customMessage) ? error.getMessage() : customMessage;
     }
 
     /**

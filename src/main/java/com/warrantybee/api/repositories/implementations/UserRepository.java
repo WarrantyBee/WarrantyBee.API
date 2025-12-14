@@ -2,6 +2,7 @@ package com.warrantybee.api.repositories.implementations;
 
 import com.warrantybee.api.dto.internal.*;
 import com.warrantybee.api.dto.request.ProfileUpdateRequest;
+import com.warrantybee.api.dto.request.SignUpRequest;
 import com.warrantybee.api.dto.response.*;
 import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.enumerations.SecurityRole;
@@ -27,7 +28,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     @Transactional
-    public Long create(UserCreationRequest request) {
+    public Long create(SignUpRequest request) {
         try {
             List<List<Object[]>> results = new ArrayList<>();
             StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_RegisterUser");
@@ -50,12 +51,14 @@ public class UserRepository implements IUserRepository {
             query.registerStoredProcedureParameter("in_postal_code", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_avatar_url", String.class, jakarta.persistence.ParameterMode.IN);
             query.registerStoredProcedureParameter("in_culture_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_auth_provider", Byte.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_auth_provider_user_id", String.class, ParameterMode.IN);
 
             query.setParameter("in_firstname", request.getFirstname());
             query.setParameter("in_lastname", request.getLastname());
             query.setParameter("in_email", request.getEmail());
             query.setParameter("in_password", request.getPassword());
-            query.setParameter("in_accepted_tnc", request.getHasAcceptedTnC());
+            query.setParameter("in_accepted_tnc", request.getHasAcceptedTermsAndConditions());
             query.setParameter("in_accepted_pp", request.getHasAcceptedPrivacyPolicy());
             query.setParameter("in_phone_code", request.getPhoneCode());
             query.setParameter("in_phone_number", request.getPhoneNumber());
@@ -69,7 +72,8 @@ public class UserRepository implements IUserRepository {
             query.setParameter("in_postal_code", request.getPostalCode());
             query.setParameter("in_avatar_url", request.getAvatarUrl());
             query.setParameter("in_culture_id", request.getCultureId());
-
+            query.setParameter("in_auth_provider", request.getAuthProvider());
+            query.setParameter("in_auth_provider_user_id", request.getAuthProviderUserId());
             query.execute();
 
             do {
@@ -208,7 +212,8 @@ public class UserRepository implements IUserRepository {
             userResponse.setProfile(profile);
             userResponse.setAuthorizationContext(authorizationContext);
             userResponse.setPassword((String)row[34]);
-
+            userResponse.setAuthProvider(Byte.valueOf(row[46].toString()));
+            userResponse.setAuthProviderUserId((String) row[47]);
             return userResponse;
 
         } catch (Exception e) {

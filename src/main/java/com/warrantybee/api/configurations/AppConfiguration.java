@@ -51,4 +51,7 @@ public class AppConfiguration {
 
     /** Configuration properties related to Cloudinary service. */
     private CloudinaryConfiguration cloudinaryConfiguration;
+
+    /** Configuration properties related to Facebook. */
+    private FacebookConfiguration facebookConfiguration;
 }
