@@ -115,10 +115,31 @@ jobs:
           cat <<EOF > body.json
           {
             "definition": {
+              "name": "warrantybee-test",
+              "type": "WEB",
+              "strategy": { "type": "DEPLOYMENT_STRATEGY_TYPE_ROLLING" },
+              "routes": [
+                { "port": 8080, "path": "/" }
+              ],
+              "ports": [
+                { "port": 8080, "protocol": "http" }
+              ],
+              "proxy_ports": [],
               "env": $(cat env.json),
+              "regions": ["fra"],
+              "scalings": $(cat scalings.json),
+              "instance_types": $(cat instance_types.json),
+              "health_checks": $(cat health_checks.json),
+              "volumes": [],
+              "config_files": [],
+              "skip_cache": false,
               "docker": {
                 "image": "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}",
-                "image_registry_secret": "${{ secrets.KOYEB_DOCKER_SECRET_NAME }}"
+                "command": "",
+                "args": [],
+                "image_registry_secret": "${{ secrets.KOYEB_DOCKER_SECRET_NAME }}",
+                "entrypoint": [],
+                "privileged": false
               }
             }
           }
