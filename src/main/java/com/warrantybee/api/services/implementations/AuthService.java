@@ -555,14 +555,13 @@ public class AuthService implements IAuthService {
         AuthProvider requestedProvider = AuthProvider.getValue(request.getAuthProvider());
         AuthProvider provider = AuthProvider.getValue(user.getAuthProvider());
 
-        if (provider == AuthProvider.NONE || requestedProvider != provider) {
-            throw new AuthProviderNotConfiguredException();
-        }
-
-        if (provider == AuthProvider.INTERNAL) {
+        if (requestedProvider == AuthProvider.INTERNAL) {
             if (!HashHelper.verify(request.getPassword(), user.getPassword())) {
                 throw new InvalidCredentialsException();
             }
+        }
+        else if (requestedProvider == AuthProvider.NONE || requestedProvider != provider) {
+            throw new AuthProviderNotConfiguredException();
         }
         else {
             if (!HashHelper.verify(request.getAuthProviderUserId(), user.getAuthProviderUserId())) {

@@ -16,8 +16,7 @@ public class SimpleLoginRequest extends LoginRequest {
     private String password;
 
     /** Indicates which authentication provider was used (e.g., local, Google, Facebook). */
-    @JsonSetter(nulls = Nulls.SKIP)
-    private Byte authProvider = (byte) AuthProvider.INTERNAL.getCode();
+    private Byte authProvider;
 
     /** Unique user identifier provided by the external authentication provider. */
     private String authProviderUserId;
