@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @AllArgsConstructor
-public class SignUpRequest {
+public class SignUpRequest extends BaseRequest {
 
     /** User's first name */
     private String firstname;
@@ -66,6 +66,9 @@ public class SignUpRequest {
     /** User's preferred culture's identifier */
     private Long cultureId;
 
-    /** Captcha response. */
-    private String captchaResponse;
+    /** User's auth provider (e.g. Meta, LinkedIn, etc.) */
+    private Byte authProvider;
+
+    /** User's unique identifier provided by the auth platform. */
+    private String authProviderUserId;
 }

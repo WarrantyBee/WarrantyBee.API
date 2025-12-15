@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 /**
  * Helper class providing secure hashing and verification methods
@@ -40,12 +41,8 @@ public class HashHelper {
             throw new IllegalArgumentException("Password cannot be null");
         }
 
-        return argon2.hash(
-                _ITERATIONS,
-                _MEMORY,
-                _PARALLELISM,
-                text.getBytes(StandardCharsets.UTF_8)
-        );
+        String argonHash = argon2.hash(_ITERATIONS, _MEMORY, _PARALLELISM, text.getBytes(StandardCharsets.UTF_8));
+        return _encodeBase64(argonHash);
     }
 
     /**
@@ -61,7 +58,8 @@ public class HashHelper {
             return false;
         }
 
-        return argon2.verify(storedHash, text.getBytes(StandardCharsets.UTF_8));
+        String decodedHash = _decodeBase64(storedHash);
+        return argon2.verify(decodedHash, text.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -78,7 +76,7 @@ public class HashHelper {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             byte[] hashedBytes = messageDigest.digest(randomBytes);
 
-            return bytesToHex(hashedBytes);
+            return _bytesToHex(hashedBytes);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found", e);
         }
@@ -91,7 +89,7 @@ public class HashHelper {
      * @param bytes the byte array to convert
      * @return a hexadecimal string representation of the given bytes
      */
-    private static String bytesToHex(byte[] bytes) {
+    private static String _bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder(2 * bytes.length);
         for (byte b : bytes) {
             String hex = Integer.toHexString(0xff & b);
@@ -101,5 +99,26 @@ public class HashHelper {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    /**
+     * Encodes the given string into a Base64-encoded string.
+     *
+     * @param value the plain text to encode
+     * @return the Base64-encoded representation of the input
+     */
+    private static String _encodeBase64(String value) {
+        return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Decodes the given Base64-encoded string back to its original text.
+     *
+     * @param base64 the Base64 string to decode
+     * @return the decoded plain text
+     */
+    private static String _decodeBase64(String base64) {
+        byte[] decoded = Base64.getDecoder().decode(base64);
+        return new String(decoded, StandardCharsets.UTF_8);
     }
 }
