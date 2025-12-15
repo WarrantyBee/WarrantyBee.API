@@ -105,10 +105,21 @@ jobs:
 
       - name: Decode Secrets
         run: |
-          echo "${{ secrets.KOYEB_ENV }}" | base64 -d > env.json
-          echo "${{ secrets.KOYEB_SCALINGS }}" | base64 -d > scalings.json
-          echo "${{ secrets.KOYEB_INSTANCE_TYPES }}" | base64 -d > instance_types.json
-          echo "${{ secrets.KOYEB_HEALTH_CHECKS }}" | base64 -d > health_checks.json
+          cat << 'EOF' | base64 --decode > env.json
+          ${{ secrets.KOYEB_ENV }}
+          EOF
+
+          cat << 'EOF' | base64 --decode > scalings.json
+          ${{ secrets.KOYEB_SCALINGS }}
+          EOF
+
+          cat << 'EOF' | base64 --decode > instance_types.json
+          ${{ secrets.KOYEB_INSTANCE_TYPES }}
+          EOF
+
+          cat << 'EOF' | base64 --decode > health_checks.json
+          ${{ secrets.KOYEB_HEALTH_CHECKS }}
+          EOF
 
       - name: Prepare Koyeb JSON body
         run: |
