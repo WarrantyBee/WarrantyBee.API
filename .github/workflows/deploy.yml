@@ -145,6 +145,12 @@ jobs:
           }
           EOF
 
+      - name: Debug Koyeb JSON Body
+        run: |
+          echo "------- KOYEB DEPLOYMENT JSON START -------"
+          cat body.json
+          echo "------- KOYEB DEPLOYMENT JSON END -------"
+
       - name: Patch Koyeb Service
         id: patch_service
         run: |
