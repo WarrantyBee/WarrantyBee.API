@@ -261,7 +261,13 @@ public enum Error {
     NOT_IMPLEMENTED(1075, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
     
     /** The business hours is invalid. */
-    INVALID_BUSINESS_HOURS(1084, "The business hours is invalid.", HttpStatus.BAD_REQUEST);
+    INVALID_BUSINESS_HOURS(1084, "The business hours is invalid.", HttpStatus.BAD_REQUEST),
+
+    /** The vendor contact is required. */
+    VENDOR_CONTACT_REQUIRED(1085, "The vendor contact is required.", HttpStatus.BAD_REQUEST),
+
+    /** The vendor contact type is invalid. */
+    INVALID_VENDOR_CONTACT_TYPE(1086, "The vendor contact type is invalid.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

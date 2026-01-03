@@ -16,7 +16,7 @@ import lombok.Setter;
 public class VendorContact {
 
     /** The type of vendor contact (e.g., support, sales, billing). */
-    private VendorContactType type;
+    private Integer type;
 
     /** The contact email address. */
     private String email;

@@ -107,25 +107,23 @@ public class Validator {
     }
 
     /**
-     * Checks if the given Byte value corresponds to a valid code within the specified enum type.
+     * Checks if the given Integer value corresponds to a valid code within the specified enum type.
      * <p>
      * This method requires the enum type {@code T} to implement the {@link com.warrantybee.api.enumerations.interfaces.IEnumeration} interface,
      * which exposes the {@code getCode()} method for comparison.
      *
      * @param <T> The enumeration type, constrained to implement {@link com.warrantybee.api.enumerations.interfaces.IEnumeration}.
-     * @param value The Byte value (code) to validate.
+     * @param value The Integer value (code) to validate.
      * @param enumType The Class object of the target enumeration (e.g., {@code Gender.class}).
      * @return {@code true} if a matching enum constant is found; {@code false} otherwise.
      */
-    public static <T extends Enum<T> & IEnumeration> boolean isEnum(Byte value, Class<T> enumType) {
-        if (value == null || enumType == null) {
+    public static <T extends Enum<T> & IEnumeration> boolean isEnum(Integer value, Class<T> enumType) {
+        if (value == null || value == 0 || enumType == null) {
             return false;
         }
 
-        int targetCode = value.intValue();
-
         for (T enumConstant : enumType.getEnumConstants()) {
-            if (enumConstant.getCode() == targetCode) {
+            if (enumConstant.getCode() == value) {
                 return true;
             }
         }

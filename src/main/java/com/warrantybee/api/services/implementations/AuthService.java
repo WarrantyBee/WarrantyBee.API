@@ -331,7 +331,7 @@ public class AuthService implements IAuthService {
                 if (Validator.isBlank(request.getPassword())) {
                     throw new PasswordRequiredException();
                 }
-                if (!Validator.isStrongPassword(request.getPassword())) {
+                if (Validator.isStrongPassword(request.getPassword())) {
                     throw new StrongPasswordRequiredException();
                 }
             }
@@ -414,7 +414,7 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getNewPassword())) {
                 throw new PasswordRequiredException();
             }
-            if (!Validator.isStrongPassword(request.getNewPassword())) {
+            if (Validator.isStrongPassword(request.getNewPassword())) {
                 throw new StrongPasswordRequiredException();
             }
         }
