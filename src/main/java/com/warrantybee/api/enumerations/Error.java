@@ -259,6 +259,9 @@ public enum Error {
 
     /** The method is not implemented. */
     NOT_IMPLEMENTED(1075, "The method is not implemented.", HttpStatus.NOT_IMPLEMENTED);
+    
+    /** The business hours is invalid. */
+    INVALID_BUSINESS_HOURS(1084, "The business hours is invalid.", HttpStatus.BAD_REQUEST);
 
     /** Custom numeric code for API-level identification. */
     private final int code;
