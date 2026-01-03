@@ -3,40 +3,36 @@ package com.warrantybee.api.enumerations;
 import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 import lombok.Getter;
 
-/**
- * Defines the set of security permissions supported in the WarrantyBee platform.
- */
+/** Defines the set of security permissions supported in the WarrantyBee platform. */
 @Getter
 public enum SecurityPermission implements IEnumeration {
 
-    /**
-     * Represents no permission or an undefined permission.
-     */
+    /** Represents no permission or an undefined permission. */
     NONE(0, "NONE"),
 
-    /**
-     * Allows a user to edit their personal profile information.
-     */
+    /** Allows a user to edit their personal profile information. */
     EDIT_PROFILE(1, "EDIT_PROFILE"),
 
-    /**
-     * Allows a user to change the profile avatar.
-     */
+    /** Allows a user to change the profile avatar. */
     CHANGE_AVATAR(2, "CHANGE_AVATAR"),
 
-    /**
-     * Allows users to access their profile.
-     */
+    /** Allows users to access their profile. */
     ACCESS_PROFILE(3, "ACCESS_PROFILE"),
 
+    /** Permission to register vendor. */
+    REGISTER_VENDOR(4, "REGISTER_VENDOR"),
+
     /** Permission to add a new vendor contact. */
-    ADD_VENDOR_CONTACT(4, "ADD_VENDOR_CONTACT"),
+    ADD_VENDOR_CONTACT(5, "ADD_VENDOR_CONTACT"),
 
     /** Permission to update an existing vendor contact. */
-    UPDATE_VENDOR_CONTACT(5, "UPDATE_VENDOR_CONTACT"),
+    UPDATE_VENDOR_CONTACT(6, "UPDATE_VENDOR_CONTACT"),
 
     /** Permission to remove a vendor contact. */
-    REMOVE_VENDOR_CONTACT(6, "REMOVE_VENDOR_CONTACT");
+    REMOVE_VENDOR_CONTACT(7, "REMOVE_VENDOR_CONTACT"),
+
+    /** Permission to create vendor logins. */
+    CREATE_VENDOR_LOGIN(8, "CREATE_VENDOR_LOGIN");
 
     /**
      * The unique, persistent integer code associated with this permission.

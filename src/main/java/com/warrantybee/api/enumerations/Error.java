@@ -270,7 +270,16 @@ public enum Error {
     INVALID_VENDOR_CONTACT_TYPE(1086, "The vendor contact type is invalid.", HttpStatus.BAD_REQUEST),
 
     /** The vendor contact could not be created. */
-    VENDOR_CONTACT_CREATION_FAILED(1087, "The vendor contact could not be created.", HttpStatus.INTERNAL_SERVER_ERROR);
+    VENDOR_CONTACT_CREATION_FAILED(1087, "The vendor contact could not be created.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    /** The vendor identifier is required. */
+    VENDOR_IDENTIFIER_REQUIRED(1088, "The vendor identifier is required.", HttpStatus.BAD_REQUEST),
+
+    /** At least one permission is required. */
+    PERMISSION_REQUIRED(1089, "At least one permission is required.", HttpStatus.BAD_REQUEST),
+
+    /** A login for this vendor already exists. */
+    VENDOR_LOGIN_EXISTS(1090, "A login for this vendor already exists.", HttpStatus.CONFLICT);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

@@ -1,6 +1,8 @@
 package com.warrantybee.api.repositories.implementations;
 
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
+import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.repositories.interfaces.IVendorRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /** Repository implementation for vendor contact persistence operations. */
 @Repository
@@ -98,5 +101,42 @@ public class VendorRepository implements IVendorRepository {
                 .setParameter("id", contactId)
                 .setParameter("vendor_id", vendorId)
                 .executeUpdate();
+    }
+
+    @Override
+    public Long createVendorLogin(Long vendorId, VendorLoginCreationRequest request) {
+        try {
+            List<List<Object[]>> results = new ArrayList<>();
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_CreateVendorLogin");
+            query.registerStoredProcedureParameter("in_vendor_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_password", String.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_enable_2fa", Boolean.class, ParameterMode.IN);
+            query.setParameter("in_vendor_id", vendorId);
+            query.setParameter("in_user_id", request.getUserId());
+            query.setParameter("in_password", request.getPassword());
+            query.setParameter("in_enable_2fa", request.getIs2FAEnabled());
+            final String permissions = request.getPermissions().stream()
+                    .map(SecurityPermission::getValue)
+                    .map(SecurityPermission::getName)
+                    .collect(Collectors.joining(","));
+            query.setParameter("in_permissions", permissions);
+            query.execute();
+
+            do {
+                @SuppressWarnings("unchecked")
+                List<Object[]> resultList = query.getResultList();
+                results.add(resultList);
+            } while (query.hasMoreResults());
+
+            if (results.getLast().isEmpty() || results.getLast().get(0)[0] == null) {
+                return null;
+            }
+
+            return ((Number) results.getLast().getFirst()[0]).longValue();
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 }

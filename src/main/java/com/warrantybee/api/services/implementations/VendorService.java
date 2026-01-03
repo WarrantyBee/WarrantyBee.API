@@ -1,8 +1,11 @@
 package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
+import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.enumerations.VendorContactType;
 import com.warrantybee.api.exceptions.*;
+import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.repositories.interfaces.IVendorRepository;
 import com.warrantybee.api.services.interfaces.IHttpContext;
@@ -53,6 +56,41 @@ public class VendorService implements IVendorService {
     public void removeContact(Long contactId) {
         Long vendorId = _httpContext.getUserId();
         _repository.removeContact(vendorId, contactId);
+    }
+
+    @Override
+    public Long createVendorLogin(Long vendorId, VendorLoginCreationRequest request) {
+        _validate(request);
+        final String hashedPassword = HashHelper.getHash(request.getPassword());
+        request.setPassword(hashedPassword);
+        Long id = _repository.createVendorLogin(vendorId, request);
+        if (id == null) {
+            throw new VendorLoginExistsException();
+        }
+        return id;
+    }
+
+    /**
+     * Validates the vendor login creation request.
+     * @param request request to validate
+     */
+    private void _validate(VendorLoginCreationRequest request) {
+        if (request == null) {
+            throw new RequestBodyEmptyException();
+        }
+        if (request.getUserId() == null) {
+            throw new UserIdentifierRequiredException();
+        }
+        if (Validator.isBlank(request.getPassword())) {
+            throw new PasswordRequiredException();
+        }
+        if (!Validator.isStrongPassword(request.getPassword())) {
+            throw new StrongPasswordRequiredException();
+        }
+        boolean hasInvalidPermission = request.getPermissions().stream().anyMatch(r -> !Validator.isEnum(r, SecurityPermission.class));
+        if (hasInvalidPermission) {
+            throw new PermissionRequiredException();
+        }
     }
 
     /**

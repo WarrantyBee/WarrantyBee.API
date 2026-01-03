@@ -1,6 +1,7 @@
 package com.warrantybee.api.repositories.interfaces;
 
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
 
 /** Provides data access operations for managing vendors and their details. */
 public interface IVendorRepository {
@@ -30,4 +31,12 @@ public interface IVendorRepository {
      * @param contactId the unique identifier of the contact to be deleted
      */
     void removeContact(Long vendorId, Long contactId);
+
+    /**
+     * Creates a login for a vendor user.
+     * @param vendorId the vendor identifier
+     * @param request vendor login creation request
+     * @returns newly created vendor login identifier
+     */
+    Long createVendorLogin(Long vendorId, VendorLoginCreationRequest request);
 }

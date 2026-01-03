@@ -3,6 +3,7 @@ package com.warrantybee.api.controllers;
 import com.warrantybee.api.annotations.RequireSecurity;
 import com.warrantybee.api.annotations.RolePermission;
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
 import com.warrantybee.api.dto.response.APIResponse;
 import com.warrantybee.api.dto.response.BaseResponse;
 import com.warrantybee.api.enumerations.SecurityPermission;
@@ -18,6 +19,15 @@ public class VendorsController {
 
     public VendorsController(IVendorService service) {
         this._service = service;
+    }
+
+    @RequireSecurity({
+        @RolePermission(role = SecurityRole.SUPER_ADMIN, permissions = { SecurityPermission.CREATE_VENDOR_LOGIN }),
+    })
+    @PostMapping("/{vendorId}/logins")
+    public ResponseEntity<APIResponse<BaseResponse>> createVendorLogin(@PathVariable Long vendorId, VendorLoginCreationRequest request) {
+        Long id = _service.createVendorLogin(vendorId, request);
+        return ResponseEntity.ok(new APIResponse<>(new BaseResponse(id), null));
     }
 
     @RequireSecurity({
