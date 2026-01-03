@@ -341,7 +341,7 @@ public class AuthService implements IAuthService {
                 }
                 request.setPassword(null);
             }
-            if (!Validator.isEnum(request.getGender(), Gender.class)) {
+            if (!Validator.isEnum(request.getGender().intValue(), Gender.class)) {
                 throw new InvalidGenderValueException();
             }
             if (!Validator.hasLegalAge(request.getDateOfBirth())) {

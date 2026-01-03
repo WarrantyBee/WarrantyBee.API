@@ -27,7 +27,16 @@ public enum SecurityPermission implements IEnumeration {
     /**
      * Allows users to access their profile.
      */
-    ACCESS_PROFILE(3, "ACCESS_PROFILE");
+    ACCESS_PROFILE(3, "ACCESS_PROFILE"),
+
+    /** Permission to add a new vendor contact. */
+    ADD_VENDOR_CONTACT(4, "ADD_VENDOR_CONTACT"),
+
+    /** Permission to update an existing vendor contact. */
+    UPDATE_VENDOR_CONTACT(5, "UPDATE_VENDOR_CONTACT"),
+
+    /** Permission to remove a vendor contact. */
+    REMOVE_VENDOR_CONTACT(6, "REMOVE_VENDOR_CONTACT");
 
     /**
      * The unique, persistent integer code associated with this permission.

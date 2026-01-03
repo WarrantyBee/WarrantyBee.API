@@ -1,66 +1,106 @@
 package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.dto.internal.VendorContact;
-import com.warrantybee.api.dto.request.VendorContactCreationRequest;
 import com.warrantybee.api.enumerations.VendorContactType;
 import com.warrantybee.api.exceptions.*;
 import com.warrantybee.api.helpers.Validator;
+import com.warrantybee.api.repositories.interfaces.IVendorRepository;
 import com.warrantybee.api.services.interfaces.IHttpContext;
 import com.warrantybee.api.services.interfaces.IVendorService;
 import org.springframework.stereotype.Service;
 
-import javax.naming.directory.InvalidAttributeIdentifierException;
-
+/**
+ * Service implementation for managing vendor contacts.
+ * <p>
+ * Applies validation rules and delegates persistence operations using the authenticated vendor context.
+ * </p>
+ */
 @Service
 public class VendorService implements IVendorService {
     private final IHttpContext _httpContext;
+    private final IVendorRepository _repository;
 
-    VendorService(IHttpContext httpContext) {
+    /**
+     * Creates a new {@code VendorService} with required dependencies.
+     *
+     * @param httpContext provides access to the current authenticated vendor context
+     * @param repository  repository for vendor-related persistence operations
+     */
+    VendorService(IHttpContext httpContext, IVendorRepository repository) {
         this._httpContext = httpContext;
+        this._repository = repository;
     }
 
     @Override
-    public void updateContact(VendorContact contact) {
+    public Long addContact(VendorContact contact) {
+        _validate(contact, false);
         Long vendorId = _httpContext.getUserId();
-
+        Long contactId = _repository.addContact(vendorId, contact);
+        if (contactId == null) {
+            throw new VendorContactCreationFailedException();
+        }
+        return contactId;
     }
 
     @Override
-    public void removeContact(Integer vendorContactId) {
+    public void updateContact(Long contactId, VendorContact contact) {
+        _validate(contact, true);
         Long vendorId = _httpContext.getUserId();
+        _repository.updateContact(vendorId, contactId, contact);
+    }
+
+    @Override
+    public void removeContact(Long contactId) {
+        Long vendorId = _httpContext.getUserId();
+        _repository.removeContact(vendorId, contactId);
     }
 
     /**
-     * Validates the vendor contact request payload.
-     * @param request the {@link VendorContact} request to validate
+     * Validates the vendor contact payload.
+     * @param contact the {@link VendorContact} details to validate
+     * @param forUpdate indicates whether the contact is for update operation or not
      */
-    private void _validate(VendorContact request) {
-        if (request == null) {
+    private void _validate(VendorContact contact, boolean forUpdate) {
+        if (contact == null) {
             throw new RequestBodyEmptyException();
         }
-        if (request.getType() == null) {
+        if (!forUpdate && contact.getType() == null) {
             throw new VendorContactRequiredException();
         }
-        if (!Validator.isEnum(request.getType(), VendorContactType.class)) {
-            throw new InvalidVendorContactTypeException();
+        if (!forUpdate || contact.getType() != null) {
+            if (!Validator.isEnum(contact.getType(), VendorContactType.class)) {
+                throw new InvalidVendorContactTypeException();
+            }
         }
-        if (!Validator.isEmail(request.getEmail())) {
-            throw new EmailRequiredException();
+        if (!forUpdate || contact.getEmail() != null) {
+            if (!Validator.isEmail(contact.getEmail())) {
+                throw new EmailRequiredException();
+            }
         }
-        if (!Validator.isPhoneNumber(request.getPhoneNumber())) {
-            throw new InvalidPhoneNumberException();
+        if (!forUpdate || contact.getPhoneNumber() != null) {
+            if (!Validator.isPhoneNumber(contact.getPhoneNumber())) {
+                throw new InvalidPhoneNumberException();
+            }
         }
-        if (!Validator.isPhoneCode(request.getPhoneCode())) {
-            throw new InvalidPhoneCodeException();
+        if (!forUpdate || contact.getPhoneCode() != null) {
+            if (!Validator.isPhoneCode(contact.getPhoneCode())) {
+                throw new InvalidPhoneCodeException();
+            }
         }
-        if (request.getCultureId() == null) {
-            throw new CultureRequiredException();
+        if (!forUpdate || contact.getCultureId() != null) {
+            if (contact.getCultureId() == null) {
+                throw new CultureRequiredException();
+            }
         }
-        if (request.getCountryId() == null) {
-            throw new CountryRequiredException();
+        if (!forUpdate || contact.getCountryId() != null) {
+            if (contact.getCountryId() == null) {
+                throw new CountryRequiredException();
+            }
         }
-        if (!Validator.isValidBusinessHours(request.getBusinessHours())) {
-            throw new InvalidBusinessHoursException();
+        if (!forUpdate || contact.getBusinessHours() != null) {
+            if (!Validator.isValidBusinessHours(contact.getBusinessHours())) {
+                throw new InvalidBusinessHoursException();
+            }
         }
     }
 }

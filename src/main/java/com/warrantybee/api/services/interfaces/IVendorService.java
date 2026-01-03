@@ -2,20 +2,27 @@ package com.warrantybee.api.services.interfaces;
 
 import com.warrantybee.api.dto.internal.VendorContact;
 
-/**
- * Defines operations related to vendor management within the system.
- */
+/** Defines vendor-related operations within the system. */
 public interface IVendorService {
 
     /**
-     * Updates an existing vendor contact or creates a new one if it does not already exist.
-     * @param contact the vendor contact details to be updated
+     * Adds a new vendor contact.
+     *
+     * @param contact the vendor contact details to persist
+     * @return the unique identifier of the created contact, or {@code null} if creation fails
      */
-    void updateContact(VendorContact contact);
+    Long addContact(VendorContact contact);
 
     /**
-     * Removes a vendor contact from the system using its unique identifier.
-     * @param vendorContactId the unique identifier of the vendor contact to be removed
+     * Creates a new vendor contact or updates an existing one.
+     * @param contactId the unique identifier of the contact to update.
+     * @param contact   the vendor contact details
      */
-    void removeContact(Integer vendorContactId);
+    void updateContact(Long contactId, VendorContact contact);
+
+    /**
+     * Removes a vendor contact identified by its unique ID.
+     * @param contactId the unique identifier of the vendor contact to remove
+     */
+    void removeContact(Long contactId);
 }
