@@ -1,9 +1,13 @@
 package com.warrantybee.api.helpers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.warrantybee.api.dto.internal.BusinessHours;
+import com.warrantybee.api.dto.internal.TimeSlot;
 import com.warrantybee.api.enumerations.interfaces.IEnumeration;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -47,6 +51,7 @@ public class Validator {
     private static final String POSTAL_CODE_REGEX = "^[0-9]{6}$";
     private static final Pattern POSTAL_CODE_PATTERN = Pattern.compile(POSTAL_CODE_REGEX);
     private static final List<String> ALLOWED_IMAGE_FORMATS = List.of("jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff");
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Checks if a given String is null, empty ({@code ""}), or contains only whitespace characters.
@@ -230,5 +235,86 @@ public class Validator {
      */
     public static boolean isPostalCode(String value) {
         return !isBlank(value) && POSTAL_CODE_PATTERN.matcher(value.trim()).matches();
+    }
+
+    /**
+     * Validates a JSON representation of weekly business hours.
+     * <p>
+     * Ensures all days of the week are present and that each day's time slots
+     * are valid and non-overlapping.
+     * </p>
+     *
+     * @param json the JSON string representing {@link BusinessHours}
+     * @return {@code true} if the business hours are valid; {@code false} otherwise
+     */
+    public static boolean isValidBusinessHours(String json) {
+        try {
+            BusinessHours businessHours = mapper.readValue(json, BusinessHours.class);
+
+            if (businessHours.getMonday() == null ||
+                    businessHours.getTuesday() == null ||
+                    businessHours.getWednesday() == null ||
+                    businessHours.getThursday() == null ||
+                    businessHours.getFriday() == null ||
+                    businessHours.getSaturday() == null ||
+                    businessHours.getSunday() == null) {
+                return false;
+            }
+
+            return validateDay(businessHours.getMonday())
+                    && validateDay(businessHours.getTuesday())
+                    && validateDay(businessHours.getWednesday())
+                    && validateDay(businessHours.getThursday())
+                    && validateDay(businessHours.getFriday())
+                    && validateDay(businessHours.getSaturday())
+                    && validateDay(businessHours.getSunday());
+
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Validates a list of time slots for a single day.
+     * <p>
+     * Ensures all slots have valid start and end times, each slot starts before it ends,
+     * and no time slots overlap with each other.
+     * </p>
+     *
+     * @param slots the list of {@link TimeSlot} objects representing a day's schedule
+     * @return {@code true} if the day schedule is valid; {@code false} otherwise
+     */
+    private static boolean validateDay(List<TimeSlot> slots) {
+        if (slots == null) {
+            return false;
+        }
+
+        if (slots.isEmpty()) {
+            return true;
+        }
+
+        for (TimeSlot slot : slots) {
+            if (slot.getStart() == null || slot.getEnd() == null) {
+                return false;
+            }
+
+            if (!slot.getStart().before(slot.getEnd())) {
+                return false;
+            }
+        }
+
+        slots.sort(Comparator.comparing(TimeSlot::getStart));
+
+        for (int i = 0; i < slots.size() - 1; i++) {
+            TimeSlot current = slots.get(i);
+            TimeSlot next = slots.get(i + 1);
+
+            if (current.getEnd().after(next.getStart())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
