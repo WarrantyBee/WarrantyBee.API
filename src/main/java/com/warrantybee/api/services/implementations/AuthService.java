@@ -12,6 +12,7 @@ import com.warrantybee.api.helpers.HashHelper;
 import com.warrantybee.api.helpers.Validator;
 import com.warrantybee.api.repositories.interfaces.IOtpRepository;
 import com.warrantybee.api.repositories.interfaces.IUserRepository;
+import com.warrantybee.api.repositories.interfaces.IVendorRepository;
 import com.warrantybee.api.services.interfaces.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class AuthService implements IAuthService {
     private final ITelemetryService _telemetryService;
     private final IUserRepository _userRepository;
     private final IOtpRepository _otpRepository;
+    private final IVendorRepository _vendorRepository;
 
     /**
      * Constructs a new {@code AuthService} instance with all required dependencies.
@@ -56,7 +58,8 @@ public class AuthService implements IAuthService {
     @Autowired
     public AuthService(AppConfiguration appConfiguration, ITokenService tokenService, ICacheService cacheService,
                        ICaptchaService captchaService, IOtpService otpService, IEmailService emailService,
-                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository) {
+                       ITelemetryService telemetryService, IUserRepository userRepository, IOtpRepository otpRepository,
+                       IVendorRepository vendorRepository) {
         this._appConfiguration = appConfiguration;
         this._tokenService = tokenService;
         this._cacheService = cacheService;
@@ -66,6 +69,7 @@ public class AuthService implements IAuthService {
         this._telemetryService = telemetryService;
         this._userRepository = userRepository;
         this._otpRepository = otpRepository;
+        this._vendorRepository = vendorRepository;
     }
 
     @Override
@@ -260,6 +264,9 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getOtp())) {
                 throw new OtpRequiredException();
             }
+            if (!Validator.isEnum(request.getRole(), SecurityRole.class)) {
+                throw new LoginRoleRequiredException();
+            }
         }
     }
 
@@ -277,6 +284,9 @@ public class AuthService implements IAuthService {
             }
             if (!Validator.isEmail(request.getEmail())) {
                 throw new InvalidEmailException();
+            }
+            if (!Validator.isEnum(request.getRole(), SecurityRole.class)) {
+                throw new LoginRoleRequiredException();
             }
 
             AuthProvider provider = AuthProvider.getValue(request.getAuthProvider());
@@ -331,7 +341,7 @@ public class AuthService implements IAuthService {
                 if (Validator.isBlank(request.getPassword())) {
                     throw new PasswordRequiredException();
                 }
-                if (!Validator.isStrongPassword(request.getPassword())) {
+                if (Validator.isStrongPassword(request.getPassword())) {
                     throw new StrongPasswordRequiredException();
                 }
             }
@@ -341,7 +351,7 @@ public class AuthService implements IAuthService {
                 }
                 request.setPassword(null);
             }
-            if (!Validator.isEnum(request.getGender(), Gender.class)) {
+            if (!Validator.isEnum(request.getGender().intValue(), Gender.class)) {
                 throw new InvalidGenderValueException();
             }
             if (!Validator.hasLegalAge(request.getDateOfBirth())) {
@@ -414,7 +424,7 @@ public class AuthService implements IAuthService {
             if (Validator.isBlank(request.getNewPassword())) {
                 throw new PasswordRequiredException();
             }
-            if (!Validator.isStrongPassword(request.getNewPassword())) {
+            if (Validator.isStrongPassword(request.getNewPassword())) {
                 throw new StrongPasswordRequiredException();
             }
         }
@@ -478,11 +488,17 @@ public class AuthService implements IAuthService {
 
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
+        SecurityRole loginRole = SecurityRole.getValue(request.getRole());
 
         if (user != null) {
+            if (loginRole == SecurityRole.VENDOR) {
+                _fetchVendorLoginInfo(user);
+            }
+
+            boolean is2FAEnabled = user.getProfile().getSettings().getIs2FAEnabled();
             _validateCredentials(request, user);
 
-            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+            if (is2FAEnabled) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), HashHelper.generateToken());
                 Boolean isStored = _userRepository.store(token);
 
@@ -515,9 +531,15 @@ public class AuthService implements IAuthService {
         _validate(request);
         UserSearchFilter searchFilter = new UserSearchFilter(null, request.getEmail());
         UserResponse user = _userRepository.get(searchFilter);
+        SecurityRole loginRole = SecurityRole.getValue(request.getRole());
 
         if (user != null) {
-            if (user.getProfile().getSettings().getIs2FAEnabled()) {
+            if (loginRole == SecurityRole.VENDOR) {
+                _fetchVendorLoginInfo(user);
+            }
+
+            boolean is2FAEnabled = user.getProfile().getSettings().getIs2FAEnabled();
+            if (is2FAEnabled) {
                 LoginTokenDetails token = new LoginTokenDetails(user.getId(), request.getToken());
                 Boolean isValid = _userRepository.validate(token);
 
@@ -542,6 +564,29 @@ public class AuthService implements IAuthService {
         }
         else {
             throw new UserNotRegisteredException();
+        }
+    }
+
+    /**
+     * Fetches vendor-specific login information and applies it to the user response.
+     *
+     * @param user the user response object to be updated
+     * @throws VendorAccessDeniedException if vendor login information is not found
+     */
+    private void _fetchVendorLoginInfo(UserResponse user) {
+        VendorLoginUser loginUser = null;
+        loginUser = _vendorRepository.getLoginUser(user.getId());
+        if (loginUser != null) {
+            user.setPassword(loginUser.getPassword());
+            user.setAuthProvider(loginUser.getAuthProvider());
+            user.setAuthProviderUserId(loginUser.getAuthProviderUserId());
+            boolean is2FAEnabled = loginUser.getIs2FAEnabled();
+            user.getProfile().getSettings().setIs2FAEnabled(is2FAEnabled);
+            user.getAuthorizationContext().setRole(SecurityRole.VENDOR);
+            user.getAuthorizationContext().setPermissions(loginUser.getPermissions());
+        }
+        else {
+            throw new VendorAccessDeniedException();
         }
     }
 
