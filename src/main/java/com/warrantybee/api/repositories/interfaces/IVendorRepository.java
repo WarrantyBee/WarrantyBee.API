@@ -1,6 +1,7 @@
 package com.warrantybee.api.repositories.interfaces;
 
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.internal.VendorLoginUser;
 import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
 
 /** Provides data access operations for managing vendors and their details. */
@@ -39,4 +40,12 @@ public interface IVendorRepository {
      * @returns newly created vendor login identifier
      */
     Long createVendorLogin(Long vendorId, VendorLoginCreationRequest request);
+
+    /**
+     * Retrieves the login details of a vendor user by user ID.
+     *
+     * @param userId the unique identifier of the user
+     * @return the vendor login user details
+     */
+    VendorLoginUser getLoginUser(Long userId);
 }

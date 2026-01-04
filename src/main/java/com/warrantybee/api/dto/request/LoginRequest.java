@@ -2,6 +2,7 @@ package com.warrantybee.api.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.warrantybee.api.enumerations.SecurityRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,11 @@ import lombok.Setter;
 public class LoginRequest extends BaseRequest {
     /** The user's email address, which serves as the login identifier. */
     private String email;
+
+    /**
+     * The security role of the user attempting to authenticate.
+     * This determines the authentication flow and access level
+     * applied during the login process.
+     */
+    private Integer role;
 }

@@ -279,7 +279,13 @@ public enum Error {
     PERMISSION_REQUIRED(1089, "At least one permission is required.", HttpStatus.BAD_REQUEST),
 
     /** A login for this vendor already exists. */
-    VENDOR_LOGIN_EXISTS(1090, "A login for this vendor already exists.", HttpStatus.CONFLICT);
+    VENDOR_LOGIN_EXISTS(1090, "A login for this vendor already exists.", HttpStatus.CONFLICT),
+
+    /** The login role is required. */
+    LOGIN_ROLE_REQUIRED(1091, "The login role is required.", HttpStatus.BAD_REQUEST),
+
+    /** The vendor access is denied. */
+    VENDOR_ACCESS_DENIED(1092, "The vendor access is denied.", HttpStatus.FORBIDDEN);
 
     /** Custom numeric code for API-level identification. */
     private final int code;

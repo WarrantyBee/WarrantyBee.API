@@ -1,6 +1,7 @@
 package com.warrantybee.api.repositories.implementations;
 
 import com.warrantybee.api.dto.internal.VendorContact;
+import com.warrantybee.api.dto.internal.VendorLoginUser;
 import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
 import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.repositories.interfaces.IVendorRepository;
@@ -134,6 +135,47 @@ public class VendorRepository implements IVendorRepository {
             }
 
             return ((Number) results.getLast().getFirst()[0]).longValue();
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public VendorLoginUser getLoginUser(Long userId) {
+        try {
+            StoredProcedureQuery query = _entityManager.createStoredProcedureQuery("usp_GetVendorLogin");
+            query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
+            query.setParameter("in_user_id", userId);
+            query.execute();
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> statusResult = query.getResultList();
+
+            if (statusResult.isEmpty() || ((Number) statusResult.get(0)[0]).intValue() != 0) {
+                return null;
+            }
+
+            if (!query.hasMoreResults()) {
+                return null;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Object[]> results = query.getResultList();
+
+            if (results.isEmpty()) {
+                return null;
+            }
+
+            Object[] row = results.get(0);
+            VendorLoginUser user = new VendorLoginUser();
+            user.setId(((Number) row[0]).longValue());
+            user.setPassword((String) row[1]);
+            user.setIs2FAEnabled(Boolean.valueOf(String.valueOf(row[2])));
+            user.setAuthProvider(Byte.valueOf(row[3].toString()));
+            user.setAuthProviderUserId((String) row[4]);
+
+            return user;
         }
         catch (Exception e) {
             return null;
