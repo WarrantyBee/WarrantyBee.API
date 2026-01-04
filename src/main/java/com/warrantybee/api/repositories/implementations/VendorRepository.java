@@ -113,6 +113,8 @@ public class VendorRepository implements IVendorRepository {
             query.registerStoredProcedureParameter("in_user_id", Long.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_password", String.class, ParameterMode.IN);
             query.registerStoredProcedureParameter("in_enable_2fa", Boolean.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_auth_provider", Byte.class, ParameterMode.IN);
+            query.registerStoredProcedureParameter("in_auth_provider_user_id", String.class, ParameterMode.IN);
             query.setParameter("in_vendor_id", vendorId);
             query.setParameter("in_user_id", request.getUserId());
             query.setParameter("in_password", request.getPassword());
@@ -122,6 +124,8 @@ public class VendorRepository implements IVendorRepository {
                     .map(SecurityPermission::getName)
                     .collect(Collectors.joining(","));
             query.setParameter("in_permissions", permissions);
+            query.setParameter("in_auth_provider", request.getAuthProvider().byteValue());
+            query.setParameter("in_auth_provider_user_id", request.getAuthProviderUserId());
             query.execute();
 
             do {

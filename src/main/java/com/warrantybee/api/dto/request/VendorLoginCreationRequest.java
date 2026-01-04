@@ -25,4 +25,10 @@ public class VendorLoginCreationRequest {
 
     /** permissions associated with the vendor login. */
     private List<Integer> permissions;
+
+    /** Identifier of the authentication provider used for login. */
+    private Integer authProvider;
+
+    /** Unique user identifier returned by the authentication provider. */
+    private String authProviderUserId;
 }

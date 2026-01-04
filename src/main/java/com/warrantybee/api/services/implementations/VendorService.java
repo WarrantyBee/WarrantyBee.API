@@ -2,6 +2,7 @@ package com.warrantybee.api.services.implementations;
 
 import com.warrantybee.api.dto.internal.VendorContact;
 import com.warrantybee.api.dto.request.VendorLoginCreationRequest;
+import com.warrantybee.api.enumerations.AuthProvider;
 import com.warrantybee.api.enumerations.SecurityPermission;
 import com.warrantybee.api.enumerations.VendorContactType;
 import com.warrantybee.api.exceptions.*;
@@ -11,6 +12,8 @@ import com.warrantybee.api.repositories.interfaces.IVendorRepository;
 import com.warrantybee.api.services.interfaces.IHttpContext;
 import com.warrantybee.api.services.interfaces.IVendorService;
 import org.springframework.stereotype.Service;
+
+import java.security.Permission;
 
 /**
  * Service implementation for managing vendor contacts.
@@ -78,18 +81,29 @@ public class VendorService implements IVendorService {
         if (request == null) {
             throw new RequestBodyEmptyException();
         }
+
+        AuthProvider authProvider = AuthProvider.getValue(request.getAuthProvider());
         if (request.getUserId() == null) {
             throw new UserIdentifierRequiredException();
         }
-        if (Validator.isBlank(request.getPassword())) {
+        if (!Validator.isEnum(request.getAuthProvider(), AuthProvider.class)) {
+            throw new AuthProviderNotSupportedException();
+        }
+        if (authProvider == AuthProvider.INTERNAL && Validator.isBlank(request.getPassword())) {
             throw new PasswordRequiredException();
         }
         if (!Validator.isStrongPassword(request.getPassword())) {
             throw new StrongPasswordRequiredException();
         }
+        if (!Validator.any(request.getPermissions())) {
+            throw new PermissionRequiredException();
+        }
         boolean hasInvalidPermission = request.getPermissions().stream().anyMatch(r -> !Validator.isEnum(r, SecurityPermission.class));
         if (hasInvalidPermission) {
             throw new PermissionRequiredException();
+        }
+        if (authProvider != AuthProvider.INTERNAL && Validator.isBlank(request.getAuthProviderUserId())) {
+            throw new AuthProviderUserIdentifierRequiredException();
         }
     }
 

@@ -76,6 +76,17 @@ public class Validator {
     }
 
     /**
+     * Checks whether the given list contains at least one element.
+     *
+     * @param list the list to check
+     * @param <T> the type of elements in the list
+     * @return {@code true} if the list is not null and not empty, otherwise {@code false}
+     */
+    public static <T> boolean any(List<T> list) {
+        return list != null && !list.isEmpty();
+    }
+
+    /**
      * Checks if the given String is a valid email address format.
      * * The validation first ensures the string is not blank, and then checks
      * its format against a standard regular expression pattern.
