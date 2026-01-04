@@ -582,6 +582,8 @@ public class AuthService implements IAuthService {
             user.setAuthProviderUserId(loginUser.getAuthProviderUserId());
             boolean is2FAEnabled = loginUser.getIs2FAEnabled();
             user.getProfile().getSettings().setIs2FAEnabled(is2FAEnabled);
+            user.getAuthorizationContext().setRole(SecurityRole.VENDOR);
+            user.getAuthorizationContext().setPermissions(loginUser.getPermissions());
         }
         else {
             throw new VendorAccessDeniedException();

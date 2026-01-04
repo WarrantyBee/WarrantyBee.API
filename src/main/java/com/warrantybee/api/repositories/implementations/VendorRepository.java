@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -178,6 +179,9 @@ public class VendorRepository implements IVendorRepository {
             user.setIs2FAEnabled(Boolean.valueOf(String.valueOf(row[2])));
             user.setAuthProvider(Byte.valueOf(row[3].toString()));
             user.setAuthProviderUserId((String) row[4]);
+            String strPermissions = row[5] != null ? row[5].toString() : "";
+            List<SecurityPermission> permissions = Arrays.stream(strPermissions.split(",")).map(SecurityPermission::getValue).toList();
+            user.setPermissions(permissions);
 
             return user;
         }

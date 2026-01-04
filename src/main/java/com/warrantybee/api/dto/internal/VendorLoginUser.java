@@ -1,9 +1,12 @@
 package com.warrantybee.api.dto.internal;
 
+import com.warrantybee.api.enumerations.SecurityPermission;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 /**
  * Represents internal login-related details of a vendor user.
@@ -29,4 +32,7 @@ public class VendorLoginUser {
 
     /** Stores the unique user identifier provided by the external authentication provider. */
     private String authProviderUserId;
+
+    /** The set of security permissions assigned to the user. */
+    private List<SecurityPermission> permissions;
 }
