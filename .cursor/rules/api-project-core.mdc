@@ -1,0 +1,41 @@
+---
+description: WarrantyBee.API project context, layering, and non-negotiable conventions
+alwaysApply: true
+---
+
+# WarrantyBee.API — Core
+
+REST API for warranty management. **Java 21 / Spring Boot 3.5**. Data access = **MySQL stored procedures** via JPA `StoredProcedureQuery`, not entity CRUD.
+
+## Response envelope
+
+All endpoints return:
+
+```json
+{ "data": { ... }, "error": { "code": 1001, "message": "..." } }
+```
+
+Use `APIResponse<T>`, `APIError`, and `Error` enum — never ad-hoc error JSON.
+
+## Layer rules
+
+| Layer | Responsibility |
+|-------|----------------|
+| Controller | HTTP mapping, `@RequireSecurity`, delegate to service |
+| Service | Validation, captcha, tokens, email, business flow |
+| Repository | `usp_*` calls only |
+| DTO | Request/response shapes; no DB logic |
+
+## Naming
+
+- `IUserService` / `UserService`, `IUserRepository` / `UserRepository`
+- Private fields: `_fieldName`
+- Stored proc params: `in_*` matching SQL
+
+## Config
+
+Secrets via environment → `AppConfiguration` nested objects. Never hardcode credentials.
+
+## Current domains
+
+Auth (login/signup/MFA/reset), users (profile/avatar), countries, OAuth (Facebook), vendors (logins/contacts). Products/warranties **not implemented** — do not add endpoints without DB schema.
