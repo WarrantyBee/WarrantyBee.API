@@ -144,3 +144,13 @@ D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\obj\Debug\net8.0\ref\Warran
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Castle.Core.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\FluentAssertions.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.DotNet.PlatformAbstractions.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Tests\bin\Debug\net8.0\Moq.dll
