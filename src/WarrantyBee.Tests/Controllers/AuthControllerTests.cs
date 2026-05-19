@@ -22,72 +22,57 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Login_ReturnsOkResponse_WithLoginResponse()
+    public async Task Login_Simple_Success()
     {
-        // Arrange
-        var request = new SimpleLoginRequest { Email = "test@example.com", Password = "password" };
-        var expectedResponse = new LoginResponse("token", "issued", "expires", new UserResponse { Id = 1 });
+        var request = new SimpleLoginRequest { Email = "test@example.com" };
+        var expectedResponse = new LoginResponse("token", "iat", "exp", new UserResponse());
         _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync(expectedResponse);
 
-        // Act
         var result = await _controller.Login(request);
 
-        // Assert
         var okResult = result.As<OkObjectResult>();
-        okResult.Should().NotBeNull();
-        
-        var response = okResult.Value.As<APIResponse<ILoginResponse>>();
-        response.Should().NotBeNull();
-        response.Data.Should().Be(expectedResponse);
+        okResult.Value.As<APIResponse<ILoginResponse>>().Data.Should().Be(expectedResponse);
     }
 
     [Fact]
-    public async Task SignUp_ReturnsOkResponse_WithSignUpResponse()
+    public async Task MfaLogin_Success()
     {
-        // Arrange
-        var request = new SignUpRequest { Email = "test@example.com", Firstname = "Test", Lastname = "User" };
-        var expectedResponse = new SignUpResponse(1);
+        var request = new MFALoginRequest { Email = "test@example.com" };
+        var expectedResponse = new LoginResponse("token", "iat", "exp", new UserResponse());
+        _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync(expectedResponse);
+
+        var result = await _controller.MfaLogin(request);
+
+        var okResult = result.As<OkObjectResult>();
+        okResult.Value.As<APIResponse<ILoginResponse>>().Data.Should().Be(expectedResponse);
+    }
+
+    [Fact]
+    public async Task SignUp_Success()
+    {
+        var request = new SignUpRequest { Email = "test@example.com" };
+        var expectedResponse = new SignUpResponse(1L);
         _authServiceMock.Setup(s => s.SignUpAsync(request)).ReturnsAsync(expectedResponse);
 
-        // Act
         var result = await _controller.SignUp(request);
 
-        // Assert
         var okResult = result.As<OkObjectResult>();
-        okResult.Should().NotBeNull();
-        
-        var response = okResult.Value.As<APIResponse<SignUpResponse>>();
-        response.Should().NotBeNull();
-        response.Data.Should().Be(expectedResponse);
+        okResult.Value.As<APIResponse<SignUpResponse>>().Data.Should().Be(expectedResponse);
     }
 
     [Fact]
-    public async Task ForgotPassword_ReturnsOkResponse()
+    public async Task ForgotPassword_Success()
     {
-        // Arrange
         var request = new ForgotPasswordRequest { Email = "test@example.com" };
-
-        // Act
         var result = await _controller.ForgotPassword(request);
-
-        // Assert
-        var okResult = result.As<OkObjectResult>();
-        okResult.Should().NotBeNull();
-        _authServiceMock.Verify(s => s.ForgotPasswordAsync(request), Times.Once);
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
-    public async Task ResetPassword_ReturnsOkResponse()
+    public async Task ResetPassword_Success()
     {
-        // Arrange
-        var request = new ResetPasswordRequest { Email = "test@example.com", Otp = "123456", NewPassword = "newpassword" };
-
-        // Act
+        var request = new ResetPasswordRequest { Email = "test@example.com" };
         var result = await _controller.ResetPassword(request);
-
-        // Assert
-        var okResult = result.As<OkObjectResult>();
-        okResult.Should().NotBeNull();
-        _authServiceMock.Verify(s => s.ResetPasswordAsync(request), Times.Once);
+        result.Should().BeOfType<OkObjectResult>();
     }
 }

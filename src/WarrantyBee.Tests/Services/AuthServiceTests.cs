@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Application.Common;
 using WarrantyBee.Application.Configuration;
 using WarrantyBee.Application.Contracts.Identity;
 using WarrantyBee.Application.Contracts.Users;
@@ -38,7 +39,8 @@ public class AuthServiceTests
         _cacheServiceMock = new Mock<ICacheService>();
         _configMock = new Mock<IOptions<AppConfiguration>>();
         
-        _configMock.Setup(c => c.Value).Returns(new AppConfiguration());
+        var config = new AppConfiguration { Profile = new ProfileConfiguration { PasswordResetWindow = 60 } };
+        _configMock.Setup(c => c.Value).Returns(config);
 
         _service = new AuthService(
             _configMock.Object,
@@ -52,57 +54,147 @@ public class AuthServiceTests
             _otpRepositoryMock.Object);
     }
 
+    #region Login Tests
+
     [Fact]
     public async Task LoginAsync_InvalidCaptcha_ThrowsApiException()
     {
-        // Arrange
         var request = new SimpleLoginRequest { Email = "test@example.com", CaptchaResponse = "wrong" };
         _captchaServiceMock.Setup(s => s.ValidateAsync("wrong")).ReturnsAsync(false);
-
-        // Act
         var act = () => _service.LoginAsync(request);
-
-        // Assert
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.InvalidCaptcha);
     }
 
     [Fact]
-    public async Task LoginAsync_UserNotFound_ThrowsApiException()
+    public async Task LoginAsync_Simple_UserNotRegistered_ThrowsApiException()
     {
-        // Arrange
-        var request = new SimpleLoginRequest { Email = "none@example.com", CaptchaResponse = "ok" };
+        var request = new SimpleLoginRequest { Email = "none@example.com", CaptchaResponse = "ok", Password = "Password123!" };
         _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
         _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync((UserResponse?)null);
-
-        // Act
         var act = () => _service.LoginAsync(request);
-
-        // Assert
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.UserNotRegistered);
     }
 
     [Fact]
-    public async Task SignUpAsync_UserAlreadyExists_ThrowsApiException()
+    public async Task LoginAsync_Simple_MfaEnabled_ReturnsMfaResponse()
     {
-        // Arrange
+        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = "Password123!" };
+        var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _userRepositoryMock.Setup(r => r.StoreTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(true);
+        _otpServiceMock.Setup(s => s.Generate()).Returns("123456");
+        var result = await _service.LoginAsync(request);
+        result.Should().BeOfType<MFALoginResponse>();
+    }
+
+    [Fact]
+    public async Task LoginAsync_Simple_TokenSaveFailure_ThrowsApiException()
+    {
+        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = "Password123!" };
+        var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _userRepositoryMock.Setup(r => r.StoreTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(false);
+        var act = () => _service.LoginAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.LoginTokenCouldNotBeSaved);
+    }
+
+    [Fact]
+    public async Task LoginAsync_Mfa_Success_ReturnsLoginResponse()
+    {
+        var otp = "123456";
+        var otpHash = HashHelper.GetHash(otp);
+        var request = new MFALoginRequest { Email = "mfa@example.com", Token = "token", Otp = otp, CaptchaResponse = "ok" };
+        var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _userRepositoryMock.Setup(r => r.ValidateTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(true);
+        _otpRepositoryMock.Setup(r => r.GetAsync(It.IsAny<OtpSearchFilter>())).ReturnsAsync(otpHash);
+        _cacheServiceMock.Setup(s => s.GetAsync(It.IsAny<string>())).ReturnsAsync("cached_token");
+        _tokenServiceMock.Setup(s => s.Validate("cached_token")).Returns(new Dictionary<string, object> { ["iat"] = 0, ["exp"] = 0 });
+        var result = await _service.LoginAsync(request);
+        result.Should().BeOfType<LoginResponse>();
+    }
+
+    [Fact]
+    public async Task LoginAsync_Mfa_NotEnabled_ThrowsApiException()
+    {
+        var request = new MFALoginRequest { Email = "test@example.com", CaptchaResponse = "ok" };
+        var user = new UserResponse { Id = 1, Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = false } } };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        var act = () => _service.LoginAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.MfaNotEnabled);
+    }
+
+    #endregion
+
+    #region SignUp Tests
+
+    [Fact]
+    public async Task SignUpAsync_UserCreationFailure_ThrowsApiException()
+    {
         var request = new SignUpRequest 
         { 
-            Email = "exists@example.com", 
-            HasAcceptedTermsAndConditions = true, 
-            HasAcceptedPrivacyPolicy = true,
-            Firstname = "Test",
-            Lastname = "User",
-            Password = "StrongPassword123!",
-            AuthProvider = (byte)AuthProvider.Internal,
-            CaptchaResponse = "valid"
+            Email = "fail@example.com", HasAcceptedTermsAndConditions = true, HasAcceptedPrivacyPolicy = true,
+            Firstname = "John", Lastname = "Doe", Password = "StrongPassword123!",
+            AuthProvider = (byte)AuthProvider.Internal, CaptchaResponse = "valid"
         };
         _captchaServiceMock.Setup(s => s.ValidateAsync("valid")).ReturnsAsync(true);
-        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(new UserResponse());
-
-        // Act
+        _userRepositoryMock.Setup(r => r.CreateAsync(request)).ReturnsAsync(0L);
         var act = () => _service.SignUpAsync(request);
-
-        // Assert
-        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.UserAlreadyRegistered);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.UserRegistrationFailed);
     }
+
+    [Fact]
+    public async Task SignUpAsync_Success_TriggersWelcomeEmail()
+    {
+        var request = new SignUpRequest 
+        { 
+            Email = "new@example.com", HasAcceptedTermsAndConditions = true, HasAcceptedPrivacyPolicy = true,
+            Firstname = "John", Lastname = "Doe", Password = "StrongPassword123!",
+            AuthProvider = (byte)AuthProvider.Internal, CaptchaResponse = "valid"
+        };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("valid")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.CreateAsync(request)).ReturnsAsync(1L);
+        var result = await _service.SignUpAsync(request);
+        result.Id.Should().Be(1L);
+        _emailServiceMock.Verify(s => s.SendAsync(It.Is<NotificationPayload>(p => p.Type == NotificationType.Welcome)), Times.Once);
+    }
+
+    #endregion
+
+    #region Forgot Password Tests
+
+    [Fact]
+    public async Task ForgotPasswordAsync_RecentlyUpdated_ThrowsApiException()
+    {
+        var user = new UserResponse { Email = "recent@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { PasswordUpdatedAt = DateTime.UtcNow.AddMinutes(-5) } } };
+        var request = new ForgotPasswordRequest { Email = "recent@example.com", CaptchaResponse = "ok" };
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        var act = () => _service.ForgotPasswordAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.PasswordRecentlyUpdated);
+    }
+
+    #endregion
+
+    #region Reset Password Tests
+
+    [Fact]
+    public async Task ResetPasswordAsync_PasswordAlreadyUsed_ThrowsApiException()
+    {
+        var request = new ResetPasswordRequest { Email = "test@example.com", Otp = "123456", NewPassword = "OldPassword123!", CaptchaResponse = "ok" };
+        var user = new UserResponse { Id = 1, Email = "test@example.com" };
+        var otpHash = HashHelper.GetHash("123456");
+        _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _otpRepositoryMock.Setup(r => r.GetAsync(It.IsAny<OtpSearchFilter>())).ReturnsAsync(otpHash);
+        _userRepositoryMock.Setup(r => r.GetPasswordsAsync(1L)).ReturnsAsync(new List<string> { HashHelper.GetHash("OldPassword123!") });
+        var act = () => _service.ResetPasswordAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.PasswordAlreadyUsed);
+    }
+
+    #endregion
 }

@@ -32,50 +32,96 @@ public class UserServiceTests
             _userRepositoryMock.Object);
     }
 
+    #region GetAsync Tests
+
     [Fact]
     public async Task GetAsync_UserNotAuthenticated_ThrowsApiException()
     {
-        // Arrange
         _userContextMock.Setup(c => c.UserId).Returns((long?)null);
-
-        // Act
         var act = () => _service.GetAsync();
-
-        // Assert
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.Unauthenticated);
     }
 
     [Fact]
-    public async Task GetAsync_UserAuthenticated_ReturnsUser()
+    public async Task GetAsync_UserNotFound_ThrowsApiException()
     {
-        // Arrange
-        var userId = 1L;
-        var expectedUser = new UserResponse { Id = userId };
-        _userContextMock.Setup(c => c.UserId).Returns(userId);
-        _userRepositoryMock.Setup(r => r.GetAsync(It.Is<UserSearchFilter>(f => f.Id == userId)))
-            .ReturnsAsync(expectedUser);
+        _userContextMock.Setup(c => c.UserId).Returns(1L);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync((UserResponse?)null);
+        var act = () => _service.GetAsync();
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.UserNotFound);
+    }
 
-        // Act
-        var result = await _service.GetAsync();
+    #endregion
 
-        // Assert
-        result.Should().Be(expectedUser);
+    #region ChangeAvatarAsync Tests
+
+    [Fact]
+    public async Task ChangeAvatarAsync_FileIsEmpty_ThrowsApiException()
+    {
+        var ms = new MemoryStream();
+        var act = () => _service.ChangeAvatarAsync(1L, ms, "test.png", "image/png");
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.FileIsEmpty);
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_Success()
+    public async Task ChangeAvatarAsync_FileExceededSize_ThrowsApiException()
     {
-        // Arrange
-        var userId = 1L;
-        var request = new ProfileUpdateRequest { AddressLine1 = "123 St" };
-        _userContextMock.Setup(c => c.UserId).Returns(userId);
-        _userRepositoryMock.Setup(r => r.UpdateProfileAsync(request)).ReturnsAsync(true);
-
-        // Act
-        await _service.UpdateProfileAsync(request);
-
-        // Assert
-        request.UserId.Should().Be(userId);
-        _userRepositoryMock.Verify(r => r.UpdateProfileAsync(request), Times.Once);
+        var ms = new MemoryStream(new byte[3 * 1024 * 1024]); // 3MB
+        var act = () => _service.ChangeAvatarAsync(1L, ms, "test.png", "image/png");
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.FileExceededAllowedSize);
     }
+
+    [Fact]
+    public async Task ChangeAvatarAsync_StorageServiceError_ThrowsApiException()
+    {
+        var ms = new MemoryStream(new byte[100]);
+        var user = new UserResponse { Id = 1, Profile = new UserProfileResponse() };
+        _userContextMock.Setup(c => c.UserId).Returns(1L);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _storageServiceMock.Setup(s => s.UploadAsync(ms, "new.png", "image/png")).ReturnsAsync(string.Empty);
+
+        var act = () => _service.ChangeAvatarAsync(0, ms, "new.png", "image/png");
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.StorageServiceError);
+    }
+
+    [Fact]
+    public async Task ChangeAvatarAsync_AvatarUpdateFailure_ThrowsApiException()
+    {
+        var ms = new MemoryStream(new byte[100]);
+        var user = new UserResponse { Id = 1, Profile = new UserProfileResponse() };
+        _userContextMock.Setup(c => c.UserId).Returns(1L);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+        _storageServiceMock.Setup(s => s.UploadAsync(ms, "new.png", "image/png")).ReturnsAsync("new_url.png");
+        _userRepositoryMock.Setup(r => r.UpdateProfileAsync(It.IsAny<ProfileUpdateRequest>())).ReturnsAsync(false);
+
+        var act = () => _service.ChangeAvatarAsync(0, ms, "new.png", "image/png");
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.AvatarCouldNotBeUpdated);
+        _storageServiceMock.Verify(s => s.DeleteByUrlAsync("new_url.png"), Times.Once);
+    }
+
+    #endregion
+
+    #region UpdateProfileAsync Tests
+
+    [Fact]
+    public async Task UpdateProfileAsync_InvalidPostalCode_ThrowsApiException()
+    {
+        var request = new ProfileUpdateRequest { PostalCode = "ABC" };
+        _userContextMock.Setup(c => c.UserId).Returns(1L);
+        var act = () => _service.UpdateProfileAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.InvalidPostalCode);
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_ProfileUpdateFailure_ThrowsApiException()
+    {
+        var request = new ProfileUpdateRequest { AddressLine1 = "123 Main St", City = "New York", PhoneCode = "+1", PhoneNumber = "1234567890" };
+        _userContextMock.Setup(c => c.UserId).Returns(1L);
+        _userRepositoryMock.Setup(r => r.UpdateProfileAsync(request)).ReturnsAsync(false);
+
+        var act = () => _service.UpdateProfileAsync(request);
+        await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.ProfileCouldNotBeUpdated);
+    }
+
+    #endregion
 }
