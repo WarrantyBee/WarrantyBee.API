@@ -1,10 +1,45 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+## .NET Core / C# / Visual Studio
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
 
-### STS ###
+## Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+## JetBrains (Rider, IntelliJ)
+.idea/
+*.iws
+*.iml
+*.ipr
+
+## Temporary files
+*.log
+*.p12
+*.tmp
+*.temp
+
+## OS generated
+.DS_Store
+Thumbs.db
+
+## Infrastructure / Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+## Java / Maven (Cleanup from previous stack)
+target/
+.mvn/
+mvnw
+mvnw.cmd
 .apt_generated
 .classpath
 .factorypath
@@ -12,25 +47,9 @@ target/
 .settings
 .springBeans
 .sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-*.log
-*.p12
