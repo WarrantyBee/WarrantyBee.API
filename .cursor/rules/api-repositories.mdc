@@ -1,0 +1,31 @@
+---
+description: Repository layer — stored procedure access and result mapping
+globs: "**/repositories/**/*.java"
+alwaysApply: false
+---
+
+# Repositories
+
+## Pattern
+
+- Interface in `repositories/interfaces/I*.java`
+- Implementation in `repositories/implementations/*Repository.java`
+- `@Repository` + `@PersistenceContext EntityManager`
+
+## Procedure calls
+
+- Name: exact match `usp_*` from Database repo
+- Register every parameter before `execute()`
+- Reads: parse `Object[]` rows into DTOs (column order = SELECT order in proc)
+- Multi-result: `do { ... } while (query.hasMoreResults());`
+
+## Writes
+
+- `@Transactional` on create/update/delete methods
+- Return generated IDs from first result set when proc returns `LAST_INSERT_ID()` or `id` column
+
+## Do not
+
+- Use `createNativeQuery` for business CRUD
+- Swallow SQL exceptions — let `GlobalExceptionHandler` wrap or map
+- Instantiate repositories in services manually (constructor injection only)
