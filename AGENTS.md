@@ -1,6 +1,6 @@
 # WarrantyBee.API — Agent Guide
 
-You are the backend agent for **WarrantyBee**, a warranty-management platform. This service is the authoritative REST layer over **MySQL stored procedures** — not a typical JPA entity application.
+You are the backend agent for **WarrantyBee**, a warranty-management platform. This service is the authoritative REST layer over **MySQL stored procedures**.
 
 ## Mission
 
@@ -8,72 +8,61 @@ Deliver secure, consistent APIs for customers, vendors, and (future) manufacture
 
 ## Tech stack
 
-- Java **21**, Spring Boot **3.5.6**
-- Spring Web, Security, Validation, Mail, Data JPA (for `EntityManager` + stored procs only)
-- **Auth0 java-jwt**, **Argon2** (via `HashHelper`), **MySQL**
-- Integrations: Upstash cache, reCAPTCHA, SMTP, Cloudinary, Facebook OAuth, Better Stack telemetry
+- **.NET 8**, ASP.NET Core Web API
+- Dapper (for stored procedure calls)
+- **MySqlConnector**, **MailKit**, **CloudinaryDotNet**
+- **BCrypt.Net** / **Argon2** (via `HashHelper`), **JWT**
+- Integrations: Upstash cache (Redis), reCAPTCHA, SMTP, Facebook OAuth, Better Stack telemetry
 
 ## Architecture
 
 ```
 HTTP → Controller → Service → Repository → usp_* (MySQL)
-         ↑ @RequireSecurity enforced by SecurityFilter (interceptor)
-         ↑ JWT validated by AuthenticationFilter
+         ↑ [Authorize] enforced by JWT Middleware
 ```
 
-- **Controllers**: thin; return `ResponseEntity<APIResponse<T>>`.
-- **Services**: business rules, captcha, OTP, token generation, orchestration.
-- **Repositories**: `createStoredProcedureQuery("usp_Name")`; map `Object[]` result sets.
-- **Exceptions**: extend `APIException`; map via `GlobalExceptionHandler` + `Error` enum (numeric codes).
+- **Controllers**: Thin; return `ActionResult<APIResponse<T>>`.
+- **Services**: Business rules, captcha, OTP, token generation, orchestration.
+- **Repositories**: `connection.QueryAsync("CALL usp_Name(...)")`; map result sets using Dapper.
+- **Exceptions**: Extend `ApiException`; mapped via `GlobalExceptionHandler` middleware.
 
-## Package layout
+## Solution Structure
 
-`com.warrantybee.api.{controllers,services,.repositories,dto,enumerations,exceptions,config,configurations,helpers,annotations,advices,constants}`
+`src/WarrantyBee.Api`: Web API, Controllers, Middleware, Program.cs
+`src/WarrantyBee.Application`: Business Logic, Services, Abstractions, Contracts (DTOs)
+`src/WarrantyBee.Domain`: Enums, Exceptions, Core Logic
+`src/WarrantyBee.Infrastructure`: Persistence (Repositories), External Services (Email, Storage)
 
 ## Security model
 
-1. `AuthenticationFilter` — Bearer JWT required except whitelisted paths (`APP_WHITELISTED_ENDPOINTS`).
-2. `SecurityFilter` — `@RequireSecurity` + `@RolePermission(role, permissions[])` on methods.
-3. JWT claims: `userId`, `email`, `role`, `permissions` (list of permission names).
-4. Vendor login: when `LoginRequest.role == VENDOR`, `AuthService` loads `tblVendorLogins` via `VendorRepository`.
+1. JWT Authentication — `Bearer` token required for protected routes.
+2. RBAC — Role and Permission checks (WIP).
+3. JWT claims: `userId`, `email`, `role`, `permissions`.
 
 ## Adding a feature (checklist)
 
-1. Confirm `usp_*` exists in **WarrantyBee.Database** (or add it there first).
-2. Add/update `SecurityPermission` + seed `tblPermissions` / `tblRolePermissions` if needed.
-3. Repository: register IN/OUT params, execute, parse result sets.
-4. Service: validation via `Validator`, throw domain exceptions.
-5. Controller: route + `@RequireSecurity`; use `@RequestBody` for JSON bodies.
-6. Add `Error` codes + exception classes for new failure modes.
-7. Whitelist public endpoints in env config docs (not committed secrets).
+1. Confirm `usp_*` exists in **WarrantyBee.Database**.
+2. Add/update `SecurityPermission` if needed.
+3. Repository: Use `IDbConnectionFactory`, execute `CALL`, parse results.
+4. Service: Validation via `Validator`, throw `ApiException`.
+5. Controller: Route + `[Authorize]`.
+6. Add `Errors` enum codes for new failure modes.
 
 ## Code style
 
-- Private fields: `_camelCase` (existing convention).
-- Interfaces: `I` prefix (`IUserService`, `IUserRepository`).
-- Lombok on DTOs where already used.
-- Javadoc on public controller/service methods.
-- No Hibernate `@Entity` for domain tables — stored procedures only.
-
-## Do not
-
-- Put business logic in controllers or filters.
-- Bypass stored procedures with raw SQL in the API.
-- Commit secrets or real `application.properties` values.
-- Add JPA entities for `tbl*` tables without team approval.
-- Break the `APIResponse` / `APIError` envelope shape.
+- Use **Classes** for DTOs/Contracts (avoiding records per user preference).
+- Private fields: `_camelCase`.
+- Interfaces: `I` prefix (`IUserService`).
+- Javadoc/XML comments on public methods.
+- No Entity Framework — Dapper + Stored Procedures only.
 
 ## Local run
 
-Configure env vars matching `application.properties` keys (`app.data-source-configuration.*`, JWT, SMTP, etc.). Default port **8080**. Health: `POST /api/alive` (authenticated), `GET /api/status`.
+Configure `appsettings.json` or Environment Variables for ConnectionStrings, JWT, etc.
+Default port: **5000/5001** (or as configured in `launchSettings.json`).
 
 ## Related repos
 
 - Schema: `../WarrantyBee.Database`
 - Client: `../WarrantyBee.Web`
 - Docs: `../WarrantyBee.Database.wiki`
-
-## Skills (invoke when relevant)
-
-- `.cursor/skills/warrantybee-api-feature/` — end-to-end API feature workflow
-- `.cursor/skills/warrantybee-api-review/` — PR and security review

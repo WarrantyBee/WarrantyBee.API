@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarrantyBee.Domain", "src\WarrantyBee.Domain\WarrantyBee.Domain.csproj", "{44017BEF-EE25-4648-8332-A2ACB4119972}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarrantyBee.Application", "src\WarrantyBee.Application\WarrantyBee.Application.csproj", "{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarrantyBee.Infrastructure", "src\WarrantyBee.Infrastructure\WarrantyBee.Infrastructure.csproj", "{74101A8A-25EA-4413-9F94-25EA8F902941}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarrantyBee.Api", "src\WarrantyBee.Api\WarrantyBee.Api.csproj", "{AC4A5395-DE33-4868-A13E-302ACED3B14E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarrantyBee.Tests", "src\WarrantyBee.Tests\WarrantyBee.Tests.csproj", "{45D49843-52C0-4531-B070-694A1824E507}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44017BEF-EE25-4648-8332-A2ACB4119972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44017BEF-EE25-4648-8332-A2ACB4119972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44017BEF-EE25-4648-8332-A2ACB4119972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44017BEF-EE25-4648-8332-A2ACB4119972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74101A8A-25EA-4413-9F94-25EA8F902941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74101A8A-25EA-4413-9F94-25EA8F902941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74101A8A-25EA-4413-9F94-25EA8F902941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74101A8A-25EA-4413-9F94-25EA8F902941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC4A5395-DE33-4868-A13E-302ACED3B14E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC4A5395-DE33-4868-A13E-302ACED3B14E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC4A5395-DE33-4868-A13E-302ACED3B14E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC4A5395-DE33-4868-A13E-302ACED3B14E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45D49843-52C0-4531-B070-694A1824E507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45D49843-52C0-4531-B070-694A1824E507}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45D49843-52C0-4531-B070-694A1824E507}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45D49843-52C0-4531-B070-694A1824E507}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{44017BEF-EE25-4648-8332-A2ACB4119972} = {E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}
+		{B21BC959-C25B-4BD9-BFE2-2CC42EBB3B0F} = {E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}
+		{74101A8A-25EA-4413-9F94-25EA8F902941} = {E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}
+		{AC4A5395-DE33-4868-A13E-302ACED3B14E} = {E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}
+		{45D49843-52C0-4531-B070-694A1824E507} = {E11B6922-FEFD-4199-A561-6CA9FB6D4A2C}
+	EndGlobalSection
+EndGlobal
