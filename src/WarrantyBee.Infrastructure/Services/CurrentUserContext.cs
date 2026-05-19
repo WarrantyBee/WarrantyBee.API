@@ -5,15 +5,25 @@ using WarrantyBee.Domain.Enums;
 
 namespace WarrantyBee.Infrastructure.Services;
 
+/// <summary>
+/// Provides access to the current authenticated user's context, including identity and permissions.
+/// </summary>
 public class CurrentUserContext : ICurrentUserContext
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CurrentUserContext"/> class.
+    /// </summary>
+    /// <param name="httpContextAccessor">The HTTP context accessor to retrieve the current user's identity.</param>
     public CurrentUserContext(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>
+    /// Gets the unique identifier of the current user, if authenticated.
+    /// </summary>
     public long? UserId
     {
         get
@@ -23,9 +33,15 @@ public class CurrentUserContext : ICurrentUserContext
         }
     }
 
+    /// <summary>
+    /// Gets the email address of the current user, if authenticated.
+    /// </summary>
     public string? Email => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) 
                            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("email");
 
+    /// <summary>
+    /// Gets the security role assigned to the current user.
+    /// </summary>
     public SecurityRole Role
     {
         get
@@ -36,6 +52,9 @@ public class CurrentUserContext : ICurrentUserContext
         }
     }
 
+    /// <summary>
+    /// Gets the collection of security permissions assigned to the current user.
+    /// </summary>
     public IEnumerable<SecurityPermission> Permissions
     {
         get

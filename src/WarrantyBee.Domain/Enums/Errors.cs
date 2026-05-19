@@ -2,13 +2,37 @@ using System.Net;
 
 namespace WarrantyBee.Domain.Enums;
 
+/// <summary>
+/// Represents an error in the application.
+/// </summary>
 public class AppError
 {
+    /// <summary>
+    /// Gets or sets the error code.
+    /// </summary>
     public int Code { get; set; }
+
+    /// <summary>
+    /// Gets or sets the error message.
+    /// </summary>
     public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the HTTP status code associated with the error.
+    /// </summary>
     public HttpStatusCode Status { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppError"/> class.
+    /// </summary>
     public AppError() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppError"/> class with specified code, message and status.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="message">The error message.</param>
+    /// <param name="status">The HTTP status code.</param>
     public AppError(int code, string message, HttpStatusCode status)
     {
         Code = code;
@@ -17,8 +41,14 @@ public class AppError
     }
 }
 
+/// <summary>
+/// Provides a collection of predefined application errors.
+/// </summary>
 public static class Errors
 {
+    /// <summary>
+    /// Error for invalid input.
+    /// </summary>
     public static readonly AppError InvalidInput = new(1001, "Invalid input provided.", HttpStatusCode.BadRequest);
     public static readonly AppError InvalidLoginCredentials = new(1002, "Invalid email or password.", HttpStatusCode.BadRequest);
     public static readonly AppError Unauthenticated = new(1003, "Missing or invalid authentication token.", HttpStatusCode.Unauthorized);

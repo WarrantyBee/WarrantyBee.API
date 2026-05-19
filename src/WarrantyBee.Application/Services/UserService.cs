@@ -7,6 +7,9 @@ using WarrantyBee.Domain.Exceptions;
 
 namespace WarrantyBee.Application.Services;
 
+/// <summary>
+/// Service for managing user-related operations such as profile retrieval and updates.
+/// </summary>
 public class UserService : IUserService
 {
     private readonly ICurrentUserContext _userContext;
@@ -14,6 +17,13 @@ public class UserService : IUserService
     private readonly ICaptchaService _captchaService;
     private readonly IUserRepository _userRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserService"/> class.
+    /// </summary>
+    /// <param name="userContext">The context for the currently authenticated user.</param>
+    /// <param name="storageService">Service for file storage operations.</param>
+    /// <param name="captchaService">Service for captcha validation.</param>
+    /// <param name="userRepository">Repository for user data.</param>
     public UserService(
         ICurrentUserContext userContext,
         IStorageService storageService,
@@ -26,6 +36,11 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
+    /// <summary>
+    /// Retrieves the profile of the current user.
+    /// </summary>
+    /// <returns>The <see cref="UserResponse"/> containing user profile information, or null if not found.</returns>
+    /// <exception cref="ApiException">Thrown if the user is unauthenticated or not found.</exception>
     public async Task<UserResponse?> GetAsync()
     {
         var userId = _userContext.UserId;
@@ -37,6 +52,15 @@ public class UserService : IUserService
         return user;
     }
 
+    /// <summary>
+    /// Changes the user's avatar image.
+    /// </summary>
+    /// <param name="userId">The ID of the user. If 0, uses the current user's ID.</param>
+    /// <param name="avatarStream">The stream containing the avatar image data.</param>
+    /// <param name="fileName">The name of the file.</param>
+    /// <param name="contentType">The content type of the file.</param>
+    /// <returns>An <see cref="AvatarResponse"/> containing the new avatar URL.</returns>
+    /// <exception cref="ApiException">Thrown if the file is invalid, user is not found, or update fails.</exception>
     public async Task<AvatarResponse> ChangeAvatarAsync(long userId, Stream avatarStream, string fileName, string contentType)
     {
         // Validation logic ported from Java
@@ -77,6 +101,12 @@ public class UserService : IUserService
         return new AvatarResponse(newUrl);
     }
 
+    /// <summary>
+    /// Updates the current user's profile information.
+    /// </summary>
+    /// <param name="request">The profile update request containing the new information.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <exception cref="ApiException">Thrown if the user is unauthenticated or validation fails.</exception>
     public async Task UpdateProfileAsync(ProfileUpdateRequest request)
     {
         var currentUserId = _userContext.UserId;

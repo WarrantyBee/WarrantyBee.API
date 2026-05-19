@@ -3,15 +3,27 @@ using WarrantyBee.Application.Abstractions.Persistence;
 
 namespace WarrantyBee.Infrastructure.Persistence;
 
+/// <summary>
+/// Repository for managing OTP (One-Time Password) data in the database.
+/// </summary>
 public class OtpRepository : IOtpRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OtpRepository"/> class.
+    /// </summary>
+    /// <param name="connectionFactory">The factory used to create database connections.</param>
     public OtpRepository(IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
 
+    /// <summary>
+    /// Stores a new OTP in the database.
+    /// </summary>
+    /// <param name="request">The OTP storage request details.</param>
+    /// <returns>The ID of the stored OTP record.</returns>
     public async Task<long> StoreAsync(OtpStorageRequest request)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -25,6 +37,11 @@ public class OtpRepository : IOtpRepository
         return result != null ? (long)result.id : 0;
     }
 
+    /// <summary>
+    /// Retrieves an OTP from the database based on the provided filter.
+    /// </summary>
+    /// <param name="filter">The filter criteria for searching the OTP.</param>
+    /// <returns>The OTP value if found; otherwise, null.</returns>
     public async Task<string?> GetAsync(OtpSearchFilter filter)
     {
         using var connection = _connectionFactory.CreateConnection();

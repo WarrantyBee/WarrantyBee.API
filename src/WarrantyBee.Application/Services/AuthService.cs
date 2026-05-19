@@ -10,6 +10,9 @@ using WarrantyBee.Domain.Exceptions;
 
 namespace WarrantyBee.Application.Services;
 
+/// <summary>
+/// Service responsible for handling authentication and authorization operations.
+/// </summary>
 public class AuthService : IAuthService
 {
     private readonly AppConfiguration _config;
@@ -22,6 +25,18 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IOtpRepository _otpRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthService"/> class.
+    /// </summary>
+    /// <param name="config">Application configuration options.</param>
+    /// <param name="tokenService">Service for generating and validating tokens.</param>
+    /// <param name="cacheService">Service for caching data.</param>
+    /// <param name="captchaService">Service for validating captchas.</param>
+    /// <param name="otpService">Service for generating OTPs.</param>
+    /// <param name="emailService">Service for sending emails.</param>
+    /// <param name="telemetryService">Service for logging and telemetry.</param>
+    /// <param name="userRepository">Repository for user data.</param>
+    /// <param name="otpRepository">Repository for OTP data.</param>
     public AuthService(
         IOptions<AppConfiguration> config,
         ITokenService tokenService,
@@ -44,6 +59,12 @@ public class AuthService : IAuthService
         _otpRepository = otpRepository;
     }
 
+    /// <summary>
+    /// Performs user login, supporting both simple and multi-factor authentication.
+    /// </summary>
+    /// <param name="request">The login request details.</param>
+    /// <returns>A response indicating the result of the login attempt.</returns>
+    /// <exception cref="ApiException">Thrown if captcha is invalid or request body is malformed.</exception>
     public async Task<ILoginResponse> LoginAsync(LoginRequest request)
     {
         bool hasValidCaptcha = await _captchaService.ValidateAsync(request.CaptchaResponse!);
@@ -61,6 +82,12 @@ public class AuthService : IAuthService
         throw new ApiException(Errors.InvalidRequestBody);
     }
 
+    /// <summary>
+    /// Registers a new user.
+    /// </summary>
+    /// <param name="request">The sign-up request details.</param>
+    /// <returns>A response containing the ID of the newly created user.</returns>
+    /// <exception cref="ApiException">Thrown if validation fails or registration cannot be completed.</exception>
     public async Task<SignUpResponse> SignUpAsync(SignUpRequest request)
     {
         ValidateSignUpRequest(request);
@@ -105,6 +132,12 @@ public class AuthService : IAuthService
         return new SignUpResponse(userId);
     }
 
+    /// <summary>
+    /// Initiates the forgot password process by sending an OTP to the user's email.
+    /// </summary>
+    /// <param name="request">The forgot password request containing the user's email.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="ApiException">Thrown if email is invalid or password was recently updated.</exception>
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         if (Validator.IsBlank(request.Email)) throw new ApiException(Errors.EmailRequired);
@@ -135,6 +168,12 @@ public class AuthService : IAuthService
         await SendOtpAsync(user.Id, user.Email, OtpRequestReason.ForgotPassword);
     }
 
+    /// <summary>
+    /// Resets the user's password using a valid OTP.
+    /// </summary>
+    /// <param name="request">The reset password request details.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="ApiException">Thrown if OTP is invalid, password does not meet requirements, or update fails.</exception>
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
     {
         if (Validator.IsBlank(request.Otp)) throw new ApiException(Errors.OtpRequired);

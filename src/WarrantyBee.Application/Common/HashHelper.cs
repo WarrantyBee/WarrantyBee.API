@@ -4,12 +4,21 @@ using Konscious.Security.Cryptography;
 
 namespace WarrantyBee.Application.Common;
 
+/// <summary>
+/// Provides utility methods for hashing and verifying passwords and tokens.
+/// </summary>
 public static class HashHelper
 {
     private const int Iterations = 3;
     private const int Memory = 65536;
     private const int Parallelism = 1;
 
+    /// <summary>
+    /// Generates a secure Argon2id hash for the specified text.
+    /// </summary>
+    /// <param name="text">The text to hash.</param>
+    /// <returns>A Base64 encoded string containing the hash and its parameters.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when text is null.</exception>
     public static string GetHash(string text)
     {
         if (text == null) throw new ArgumentNullException(nameof(text));
@@ -39,6 +48,12 @@ public static class HashHelper
         ));
     }
 
+    /// <summary>
+    /// Verifies a text against a stored Argon2id hash.
+    /// </summary>
+    /// <param name="text">The text to verify.</param>
+    /// <param name="storedHash">The stored hash string.</param>
+    /// <returns>True if the text matches the hash; otherwise, false.</returns>
     public static bool Verify(string text, string storedHash)
     {
         if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(storedHash)) return false;
@@ -67,6 +82,10 @@ public static class HashHelper
         }
     }
 
+    /// <summary>
+    /// Generates a secure random token.
+    /// </summary>
+    /// <returns>A hexadecimal string representation of the generated token.</returns>
     public static string GenerateToken()
     {
         var randomBytes = new byte[32];

@@ -8,15 +8,27 @@ using WarrantyBee.Domain.Enums;
 
 namespace WarrantyBee.Infrastructure.Persistence;
 
+/// <summary>
+/// Repository for managing user data in the database, including authentication tokens and profile updates.
+/// </summary>
 public class UserRepository : IUserRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserRepository"/> class.
+    /// </summary>
+    /// <param name="connectionFactory">The factory used to create database connections.</param>
     public UserRepository(IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
 
+    /// <summary>
+    /// Registers a new user in the database.
+    /// </summary>
+    /// <param name="request">The sign-up request details.</param>
+    /// <returns>The ID of the newly created user.</returns>
     public async Task<long> CreateAsync(SignUpRequest request)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -46,6 +58,11 @@ public class UserRepository : IUserRepository
         return result.FirstOrDefault() ?? 0;
     }
 
+    /// <summary>
+    /// Retrieves a user from the database based on the provided filter.
+    /// </summary>
+    /// <param name="filter">The filter criteria for searching the user.</param>
+    /// <returns>A <see cref="UserResponse"/> containing user details if found; otherwise, null.</returns>
     public async Task<UserResponse?> GetAsync(UserSearchFilter filter)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -118,6 +135,11 @@ public class UserRepository : IUserRepository
         return user;
     }
 
+    /// <summary>
+    /// Stores a login token for a user.
+    /// </summary>
+    /// <param name="details">The details of the token and the user.</param>
+    /// <returns>True if the token was successfully stored; otherwise, false.</returns>
     public async Task<bool> StoreTokenAsync(LoginTokenDetails details)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -129,12 +151,22 @@ public class UserRepository : IUserRepository
         return result != null && result.status == 0;
     }
 
+    /// <summary>
+    /// Validates a login token for a user.
+    /// </summary>
+    /// <param name="details">The details of the token and the user to validate.</param>
+    /// <returns>True if the token is valid; otherwise, false.</returns>
     public async Task<bool> ValidateTokenAsync(LoginTokenDetails details)
     {
         using var connection = _connectionFactory.CreateConnection();
         return await connection.ExecuteScalarAsync<bool>("SELECT ufn_ValidateLoginToken(@UserId, @Token)", new { details.UserId, details.Token });
     }
 
+    /// <summary>
+    /// Resets a user's password.
+    /// </summary>
+    /// <param name="request">The password reset request details.</param>
+    /// <returns>True if the password was successfully reset; otherwise, false.</returns>
     public async Task<bool> ResetPasswordAsync(PasswordResetRequest request)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -142,12 +174,22 @@ public class UserRepository : IUserRepository
         return result != null && result.status == 0;
     }
 
+    /// <summary>
+    /// Retrieves the historical passwords for a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <returns>A collection of historical password hashes.</returns>
     public async Task<IEnumerable<string>> GetPasswordsAsync(long userId)
     {
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QueryAsync<string>("CALL usp_GetUserPasswords(@in_user_id)", new { in_user_id = userId });
     }
 
+    /// <summary>
+    /// Updates a user's profile information.
+    /// </summary>
+    /// <param name="request">The profile update request details.</param>
+    /// <returns>True if the profile was successfully updated; otherwise, false.</returns>
     public async Task<bool> UpdateProfileAsync(ProfileUpdateRequest request)
     {
         using var connection = _connectionFactory.CreateConnection();

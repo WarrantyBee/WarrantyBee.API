@@ -2,6 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace WarrantyBee.Application.Common;
 
+/// <summary>
+/// Provides utility methods for validating various types of data.
+/// </summary>
 public static class Validator
 {
     private const string EmailRegex = @"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$";
@@ -40,23 +43,63 @@ public static class Validator
         "+379", "+58", "+84", "+967", "+260", "+263"
     };
 
+    /// <summary>
+    /// Checks if a string is null, empty, or consists only of white-space characters.
+    /// </summary>
+    /// <param name="value">The string to check.</param>
+    /// <returns>True if the string is blank; otherwise, false.</returns>
     public static bool IsBlank(string? value) => string.IsNullOrWhiteSpace(value);
 
+    /// <summary>
+    /// Validates if a string is a valid email address.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a valid email; otherwise, false.</returns>
     public static bool IsEmail(string? value) => !IsBlank(value) && EmailPattern.IsMatch(value!);
 
+    /// <summary>
+    /// Validates if a string meets the criteria for a strong password.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a strong password; otherwise, false.</returns>
     public static bool IsStrongPassword(string? value) => !IsBlank(value) && StrongPasswordPattern.IsMatch(value!);
 
+    /// <summary>
+    /// Checks if a person with the specified birth date has reached the legal age (18).
+    /// </summary>
+    /// <param name="value">The birth date to check.</param>
+    /// <returns>True if the person is at least 18 years old; otherwise, false.</returns>
     public static bool HasLegalAge(DateTime? value)
     {
         if (value == null) return false;
         return value.Value.Date <= DateTime.Today.AddYears(-18);
     }
 
+    /// <summary>
+    /// Validates if a string is a valid international phone dialing code.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a valid phone code; otherwise, false.</returns>
     public static bool IsPhoneCode(string? value) => !IsBlank(value) && ValidPhoneCodes.Contains(value!.Trim());
 
+    /// <summary>
+    /// Validates if a string is a valid URL.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a valid URL; otherwise, false.</returns>
     public static bool IsUrl(string? value) => !IsBlank(value) && UrlPattern.IsMatch(value!.Trim());
 
+    /// <summary>
+    /// Validates if a string is a valid 10-digit phone number.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a valid phone number; otherwise, false.</returns>
     public static bool IsPhoneNumber(string? value) => !IsBlank(value) && PhoneNumberPattern.IsMatch(value!.Trim());
 
+    /// <summary>
+    /// Validates if a string is a valid 6-digit postal code.
+    /// </summary>
+    /// <param name="value">The string to validate.</param>
+    /// <returns>True if the string is a valid postal code; otherwise, false.</returns>
     public static bool IsPostalCode(string? value) => !IsBlank(value) && PostalCodePattern.IsMatch(value!.Trim());
 }

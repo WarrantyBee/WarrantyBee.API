@@ -5,15 +5,26 @@ using WarrantyBee.Application.Contracts.Geographic;
 
 namespace WarrantyBee.Infrastructure.Persistence;
 
+/// <summary>
+/// Repository for accessing country data from the database.
+/// </summary>
 public class CountryRepository : ICountryRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CountryRepository"/> class.
+    /// </summary>
+    /// <param name="connectionFactory">The factory used to create database connections.</param>
     public CountryRepository(IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
 
+    /// <summary>
+    /// Retrieves all countries from the database, including related regions, cultures, and timezones.
+    /// </summary>
+    /// <returns>A collection of <see cref="CountryDetailResponse"/> objects.</returns>
     public async Task<IEnumerable<CountryDetailResponse>> GetAsync()
     {
         using var connection = _connectionFactory.CreateConnection();

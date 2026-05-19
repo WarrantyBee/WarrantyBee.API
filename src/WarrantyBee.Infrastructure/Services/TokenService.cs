@@ -8,15 +8,28 @@ using WarrantyBee.Application.Configuration;
 
 namespace WarrantyBee.Infrastructure.Services;
 
+/// <summary>
+/// Provides services for generating and validating JSON Web Tokens (JWT).
+/// </summary>
 public class TokenService : ITokenService
 {
     private readonly JwtTokenConfiguration _config;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TokenService"/> class.
+    /// </summary>
+    /// <param name="config">The application configuration containing JWT settings.</param>
+    /// <exception cref="ArgumentNullException">Thrown when configuration or JWT settings are missing.</exception>
     public TokenService(IOptions<AppConfiguration> config)
     {
         _config = config.Value.Jwt ?? throw new ArgumentNullException(nameof(config));
     }
 
+    /// <summary>
+    /// Generates a JWT based on the provided claims.
+    /// </summary>
+    /// <param name="claims">A dictionary of claims to include in the token.</param>
+    /// <returns>A signed JWT string.</returns>
     public string Generate(IDictionary<string, object> claims)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Secret));
@@ -40,6 +53,12 @@ public class TokenService : ITokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <summary>
+    /// Validates a JWT and returns its claims.
+    /// </summary>
+    /// <param name="token">The JWT string to validate.</param>
+    /// <returns>A dictionary of claims extracted from the token.</returns>
+    /// <exception cref="Exception">Thrown when the token is invalid or expired.</exception>
     public IDictionary<string, object> Validate(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();

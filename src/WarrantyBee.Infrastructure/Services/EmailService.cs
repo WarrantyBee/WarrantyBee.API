@@ -7,6 +7,9 @@ using WarrantyBee.Domain.Enums;
 
 namespace WarrantyBee.Infrastructure.Services;
 
+/// <summary>
+/// Provides email sending services using SMTP.
+/// </summary>
 public class EmailService : IEmailService
 {
     private readonly IEmailTemplateService _templateService;
@@ -14,6 +17,12 @@ public class EmailService : IEmailService
     private readonly OtpConfiguration _otpConfig;
     private readonly AppConfiguration _appConfig;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailService"/> class.
+    /// </summary>
+    /// <param name="config">The application configuration containing SMTP and OTP settings.</param>
+    /// <param name="templateService">The service used to process email templates.</param>
+    /// <exception cref="ArgumentNullException">Thrown when configuration or essential settings are missing.</exception>
     public EmailService(
         IOptions<AppConfiguration> config,
         IEmailTemplateService templateService)
@@ -24,6 +33,11 @@ public class EmailService : IEmailService
         _templateService = templateService;
     }
 
+    /// <summary>
+    /// Sends an email notification asynchronously based on the provided payload.
+    /// </summary>
+    /// <param name="notification">The notification payload containing recipient, type, and dynamic macros.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task SendAsync(NotificationPayload notification)
     {
         var macros = GetMacros(notification.DynamicMacros);
@@ -46,6 +60,11 @@ public class EmailService : IEmailService
         await client.DisconnectAsync(true);
     }
 
+    /// <summary>
+    /// Merges dynamic macros with default system macros.
+    /// </summary>
+    /// <param name="dynamicMacros">The dynamic macros provided in the notification.</param>
+    /// <returns>A dictionary containing all combined macros.</returns>
     private Dictionary<string, string> GetMacros(IDictionary<string, string> dynamicMacros)
     {
         var macros = new Dictionary<string, string>(dynamicMacros);
@@ -58,6 +77,12 @@ public class EmailService : IEmailService
         return macros;
     }
 
+    /// <summary>
+    /// Retrieves the email subject and template path for a given notification type.
+    /// </summary>
+    /// <param name="type">The type of notification.</param>
+    /// <returns>A tuple containing the subject and the relative path to the template file.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the notification type is not supported.</exception>
     private (string Subject, string TemplatePath) GetTemplateInfo(NotificationType type)
     {
         return type switch
