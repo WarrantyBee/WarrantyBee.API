@@ -78,12 +78,20 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Simple_MfaEnabled_ReturnsMfaResponse()
     {
-        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = "Password123!" };
-        var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        var password = "Password123!";
+        var passwordHash = HashHelper.GetHash(password);
+        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = password, AuthProvider = (byte)AuthProvider.Internal };
+        var user = new UserResponse 
+        { 
+            Id = 1, Email = "mfa@example.com", Password = passwordHash, AuthProvider = (byte)AuthProvider.Internal,
+            Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } 
+        };
+        
         _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
         _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
         _userRepositoryMock.Setup(r => r.StoreTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(true);
         _otpServiceMock.Setup(s => s.Generate()).Returns("123456");
+
         var result = await _service.LoginAsync(request);
         result.Should().BeOfType<MFALoginResponse>();
     }
@@ -91,11 +99,19 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Simple_TokenSaveFailure_ThrowsApiException()
     {
-        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = "Password123!" };
-        var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        var password = "Password123!";
+        var passwordHash = HashHelper.GetHash(password);
+        var request = new SimpleLoginRequest { Email = "mfa@example.com", CaptchaResponse = "ok", Password = password, AuthProvider = (byte)AuthProvider.Internal };
+        var user = new UserResponse 
+        { 
+            Id = 1, Email = "mfa@example.com", Password = passwordHash, AuthProvider = (byte)AuthProvider.Internal,
+            Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } 
+        };
+        
         _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
         _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
         _userRepositoryMock.Setup(r => r.StoreTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(false);
+
         var act = () => _service.LoginAsync(request);
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.LoginTokenCouldNotBeSaved);
     }
@@ -107,12 +123,14 @@ public class AuthServiceTests
         var otpHash = HashHelper.GetHash(otp);
         var request = new MFALoginRequest { Email = "mfa@example.com", Token = "token", Otp = otp, CaptchaResponse = "ok" };
         var user = new UserResponse { Id = 1, Email = "mfa@example.com", Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = true } } };
+        
         _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
         _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
         _userRepositoryMock.Setup(r => r.ValidateTokenAsync(It.IsAny<LoginTokenDetails>())).ReturnsAsync(true);
         _otpRepositoryMock.Setup(r => r.GetAsync(It.IsAny<OtpSearchFilter>())).ReturnsAsync(otpHash);
         _cacheServiceMock.Setup(s => s.GetAsync(It.IsAny<string>())).ReturnsAsync("cached_token");
         _tokenServiceMock.Setup(s => s.Validate("cached_token")).Returns(new Dictionary<string, object> { ["iat"] = 0, ["exp"] = 0 });
+        
         var result = await _service.LoginAsync(request);
         result.Should().BeOfType<LoginResponse>();
     }
@@ -120,10 +138,12 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_Mfa_NotEnabled_ThrowsApiException()
     {
-        var request = new MFALoginRequest { Email = "test@example.com", CaptchaResponse = "ok" };
+        var request = new MFALoginRequest { Email = "test@example.com", CaptchaResponse = "ok", Token = "token", Otp = "123456" };
         var user = new UserResponse { Id = 1, Profile = new UserProfileResponse { Settings = new UserSettingsResponse { Is2FAEnabled = false } } };
+        
         _captchaServiceMock.Setup(s => s.ValidateAsync("ok")).ReturnsAsync(true);
         _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync(user);
+
         var act = () => _service.LoginAsync(request);
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.MfaNotEnabled);
     }
@@ -142,6 +162,7 @@ public class AuthServiceTests
             AuthProvider = (byte)AuthProvider.Internal, CaptchaResponse = "valid"
         };
         _captchaServiceMock.Setup(s => s.ValidateAsync("valid")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync((UserResponse?)null);
         _userRepositoryMock.Setup(r => r.CreateAsync(request)).ReturnsAsync(0L);
         var act = () => _service.SignUpAsync(request);
         await act.Should().ThrowAsync<ApiException>().Where(e => e.Error == Errors.UserRegistrationFailed);
@@ -157,6 +178,7 @@ public class AuthServiceTests
             AuthProvider = (byte)AuthProvider.Internal, CaptchaResponse = "valid"
         };
         _captchaServiceMock.Setup(s => s.ValidateAsync("valid")).ReturnsAsync(true);
+        _userRepositoryMock.Setup(r => r.GetAsync(It.IsAny<UserSearchFilter>())).ReturnsAsync((UserResponse?)null);
         _userRepositoryMock.Setup(r => r.CreateAsync(request)).ReturnsAsync(1L);
         var result = await _service.SignUpAsync(request);
         result.Id.Should().Be(1L);

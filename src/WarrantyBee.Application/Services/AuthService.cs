@@ -76,6 +76,7 @@ public class AuthService : IAuthService
         }
         if (request is MFALoginRequest mfaRequest)
         {
+            ValidateMfaLogin(mfaRequest);
             return await ProcessMfaLoginAsync(mfaRequest);
         }
 
@@ -215,23 +216,20 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetAsync(new UserSearchFilter(null, request.Email));
         if (user == null) throw new ApiException(Errors.UserNotRegistered);
 
-        // Ideally we'd have the hashed password in UserResponse but Java had it @JsonIgnore.
-        // We need to ensure our Repository implementation for GetAsync returns the password for internal use.
-        // In the ported UserResponse, I didn't include it. I should probably use an internal User entity.
-        
-        // Wait, I'll need the password to verify.
-        // I'll assume for now the repository provides it via a different method or I'll update the filter.
-        
-        // For now, let's assume validation happens in the repository or we get the hash.
-        // Since I'm porting, I'll add Password to UserResponse or create a separate InternalUser.
-        
-        // I'll check how Java did it. Java's UserResponse HAD the password field but it was @JsonIgnore.
-        // So GetAsync returned it.
-        
-        // I'll update my UserResponse or handle it.
-        
-        // Let's assume the credentials are validated here.
-        // I'll skip the exact implementation of _validateCredentials to keep it brief but I'll implement the flow.
+        if (request.AuthProvider == (byte)AuthProvider.Internal)
+        {
+            if (string.IsNullOrWhiteSpace(user.Password) || !HashHelper.Verify(request.Password!, user.Password))
+            {
+                throw new ApiException(Errors.InvalidLoginCredentials);
+            }
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(user.AuthProviderUserId) || !HashHelper.Verify(request.AuthProviderUserId!, user.AuthProviderUserId))
+            {
+                throw new ApiException(Errors.InvalidLoginCredentials);
+            }
+        }
         
         if (user.Profile?.Settings?.Is2FAEnabled == true)
         {
@@ -321,5 +319,12 @@ public class AuthService : IAuthService
         if (!Validator.IsEmail(request.Email)) throw new ApiException(Errors.InvalidEmail);
         if (request.AuthProvider == (byte)AuthProvider.Internal && Validator.IsBlank(request.Password))
             throw new ApiException(Errors.PasswordRequired);
+    }
+
+    private void ValidateMfaLogin(MFALoginRequest request)
+    {
+        if (!Validator.IsEmail(request.Email)) throw new ApiException(Errors.InvalidEmail);
+        if (Validator.IsBlank(request.Token)) throw new ApiException(Errors.TokenRequired);
+        if (Validator.IsBlank(request.Otp)) throw new ApiException(Errors.OtpRequired);
     }
 }

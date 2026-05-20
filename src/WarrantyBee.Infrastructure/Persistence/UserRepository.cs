@@ -106,9 +106,9 @@ public class UserRepository : IUserRepository
                     City = userRow.city,
                     PostalCode = userRow.postal_code,
                     Country = new CountryResponse(
-                        (long)userRow.country_id, userRow.country_name, null!, userRow.country_iso3, null!, null!, null!, null!),
+                        (long)userRow.country_id, userRow.country_name, string.Empty, userRow.country_iso3, string.Empty, string.Empty, string.Empty, string.Empty),
                     Region = new RegionResponse(
-                        (long)userRow.region_id, userRow.region_name, userRow.region_iso, null!, (long)userRow.timezone_id)
+                        (long)userRow.region_id, userRow.region_name, userRow.region_iso, string.Empty, (long)userRow.timezone_id)
                 },
                 Timezone = new TimeZoneResponse(
                     (long)userRow.timezone_id, userRow.timezone_name, userRow.timezone_abbreviation, 
