@@ -9,7 +9,13 @@ using WarrantyBee.Application.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration
+// Configuration - Support WB__DB_CONN_STR environment variable override
+var envConnString = Environment.GetEnvironmentVariable("WB__DB_CONN_STR");
+if (!string.IsNullOrWhiteSpace(envConnString))
+{
+    builder.Configuration["App:DataSource:ConnectionString"] = envConnString;
+}
+
 var appConfig = builder.Configuration.GetSection("App").Get<AppConfiguration>() ?? new AppConfiguration();
 builder.Services.Configure<AppConfiguration>(builder.Configuration.GetSection("App"));
 
