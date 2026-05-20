@@ -1,5 +1,5 @@
 using System.Data;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using WarrantyBee.Application.Configuration;
 
@@ -18,7 +18,7 @@ public interface IDbConnectionFactory
 }
 
 /// <summary>
-/// Implementation of <see cref="IDbConnectionFactory"/> that creates MySQL connections.
+/// Implementation of <see cref="IDbConnectionFactory"/> that creates SQL Server connections.
 /// </summary>
 public class DbConnectionFactory : IDbConnectionFactory
 {
@@ -34,11 +34,11 @@ public class DbConnectionFactory : IDbConnectionFactory
     }
 
     /// <summary>
-    /// Creates a new <see cref="MySqlConnection"/> based on the configured connection string.
+    /// Creates a new <see cref="SqlConnection"/> based on the configured connection string.
     /// </summary>
     /// <returns>A new <see cref="IDbConnection"/> instance.</returns>
     public IDbConnection CreateConnection()
     {
-        return new MySqlConnection(_config.DataSource?.ConnectionString);
+        return new SqlConnection(_config.DataSource?.ConnectionString);
     }
 }

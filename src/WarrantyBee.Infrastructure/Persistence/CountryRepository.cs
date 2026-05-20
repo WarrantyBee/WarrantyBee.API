@@ -28,7 +28,7 @@ public class CountryRepository : ICountryRepository
     public async Task<IEnumerable<CountryDetailResponse>> GetAsync()
     {
         using var connection = _connectionFactory.CreateConnection();
-        var results = await connection.QueryAsync<dynamic>("CALL usp_GetCountries()");
+        var results = await connection.QueryAsync<dynamic>("EXEC dbo.usp_GetCountries");
 
         var countries = new List<CountryDetailResponse>();
 

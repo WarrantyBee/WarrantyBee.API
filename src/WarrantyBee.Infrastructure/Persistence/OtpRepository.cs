@@ -33,7 +33,7 @@ public class OtpRepository : IOtpRepository
         parameters.Add("in_recipient_id", request.RecipientId);
         parameters.Add("in_type", request.Reason);
 
-        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("CALL usp_StoreOtp(@in_value, @in_recipient, @in_recipient_id, @in_type)", parameters);
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("EXEC dbo.usp_StoreOtp @in_value, @in_recipient, @in_recipient_id, @in_type", parameters);
         return result != null ? (long)result.id : 0;
     }
 
@@ -52,7 +52,7 @@ public class OtpRepository : IOtpRepository
 
         // Java code expects multiple result sets. 
         // Result 0: Status, Result 1: Data
-        using var multi = await connection.QueryMultipleAsync("CALL usp_GetOtp(@in_recipient, @in_recipient_id, @in_type)", parameters);
+        using var multi = await connection.QueryMultipleAsync("EXEC dbo.usp_GetOtp @in_recipient, @in_recipient_id, @in_type", parameters);
         _ = await multi.ReadFirstOrDefaultAsync<dynamic>(); // Result 0: Status
         var dataRow = await multi.ReadFirstOrDefaultAsync<dynamic>(); // Result 1: Data
         

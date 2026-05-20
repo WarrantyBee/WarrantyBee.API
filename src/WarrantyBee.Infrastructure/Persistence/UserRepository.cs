@@ -54,7 +54,7 @@ public class UserRepository : IUserRepository
         parameters.Add("in_auth_provider", request.AuthProvider);
         parameters.Add("in_auth_provider_user_id", request.AuthProviderUserId);
 
-        var result = await connection.QueryAsync<long?>("CALL usp_RegisterUser(@in_firstname, @in_lastname, @in_email, @in_password, @in_accepted_tnc, @in_accepted_pp, @in_phone_code, @in_phone_number, @in_gender, @in_date_of_birth, @in_address_line1, @in_address_line2, @in_country_id, @in_region_id, @in_city, @in_postal_code, @in_avatar_url, @in_culture_id, @in_auth_provider, @in_auth_provider_user_id)", parameters);
+        var result = await connection.QueryAsync<long?>("EXEC dbo.usp_RegisterUser @in_firstname, @in_lastname, @in_email, @in_password, @in_accepted_tnc, @in_accepted_pp, @in_phone_code, @in_phone_number, @in_gender, @in_date_of_birth, @in_address_line1, @in_address_line2, @in_country_id, @in_region_id, @in_city, @in_postal_code, @in_avatar_url, @in_culture_id, @in_auth_provider, @in_auth_provider_user_id", parameters);
         return result.FirstOrDefault() ?? 0;
     }
 
@@ -71,7 +71,7 @@ public class UserRepository : IUserRepository
         parameters.Add("in_email", filter.Email);
 
         // Based on Java implementation, it returns a status first, then the data.
-        using var multi = await connection.QueryMultipleAsync("CALL usp_GetUser(@in_id, @in_email)", parameters);
+        using var multi = await connection.QueryMultipleAsync("EXEC dbo.usp_GetUser @in_id, @in_email", parameters);
         var statusRow = await multi.ReadFirstOrDefaultAsync<dynamic>();
         
         if (statusRow == null || statusRow.status != 0) return null;
@@ -147,7 +147,7 @@ public class UserRepository : IUserRepository
         parameters.Add("in_user_id", details.UserId);
         parameters.Add("in_token", details.Token);
 
-        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("CALL usp_StoreLoginToken(@in_user_id, @in_token)", parameters);
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("EXEC dbo.usp_StoreLoginToken @in_user_id, @in_token", parameters);
         return result != null && result.status == 0;
     }
 
@@ -159,7 +159,7 @@ public class UserRepository : IUserRepository
     public async Task<bool> ValidateTokenAsync(LoginTokenDetails details)
     {
         using var connection = _connectionFactory.CreateConnection();
-        return await connection.ExecuteScalarAsync<bool>("SELECT ufn_ValidateLoginToken(@UserId, @Token)", new { details.UserId, details.Token });
+        return await connection.ExecuteScalarAsync<bool>("SELECT dbo.ufn_ValidateLoginToken(@UserId, @Token)", new { details.UserId, details.Token });
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class UserRepository : IUserRepository
     public async Task<bool> ResetPasswordAsync(PasswordResetRequest request)
     {
         using var connection = _connectionFactory.CreateConnection();
-        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("CALL usp_ResetPassword(@in_user_id, @in_new_password)", new { in_user_id = request.UserId, in_new_password = request.NewPassword });
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("EXEC dbo.usp_ResetPassword @in_user_id, @in_new_password", new { in_user_id = request.UserId, in_new_password = request.NewPassword });
         return result != null && result.status == 0;
     }
 
@@ -182,7 +182,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<string>> GetPasswordsAsync(long userId)
     {
         using var connection = _connectionFactory.CreateConnection();
-        return await connection.QueryAsync<string>("CALL usp_GetUserPasswords(@in_user_id)", new { in_user_id = userId });
+        return await connection.QueryAsync<string>("EXEC dbo.usp_GetUserPasswords @in_user_id", new { in_user_id = userId });
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class UserRepository : IUserRepository
         parameters.Add("in_postal_code", request.PostalCode);
         parameters.Add("in_avatar_url", request.AvatarUrl);
 
-        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("CALL usp_UpdateUserProfile(@in_user_id, @in_address_line1, @in_address_line2, @in_phone_code, @in_phone_number, @in_country_id, @in_region_id, @in_culture_id, @in_city, @in_postal_code, @in_avatar_url)", parameters);
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>("EXEC dbo.usp_UpdateUserProfile @in_user_id, @in_address_line1, @in_address_line2, @in_phone_code, @in_phone_number, @in_country_id, @in_region_id, @in_culture_id, @in_city, @in_postal_code, @in_avatar_url", parameters);
         return result != null && result.status == 1;
     }
 
