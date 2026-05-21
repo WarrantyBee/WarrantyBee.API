@@ -31,7 +31,8 @@ var envOverrides = new Dictionary<string, string>
     ["WB__SMTP_PORT"] = "App:Smtp:Port",
     ["WB__SMTP_USER"] = "App:Smtp:Username",
     ["WB__SMTP_PASS"] = "App:Smtp:Password",
-    ["WB__RECAPTCHA_SECRET"] = "App:ReCaptcha:Secret"
+    ["WB__RECAPTCHA_SECRET"] = "App:ReCaptcha:Secret",
+    ["WB__IS_RECAPTCHA_ENABLED"] = "App:IsCaptchaEnabled"
 };
 
 foreach (var env in envOverrides)

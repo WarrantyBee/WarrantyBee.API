@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WarrantyBee.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4320a366b0c226e44d0f97441b3986026c687de9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3749664f1ae2e1ece8bf10b477a37df68a0e91b8")]
 [assembly: System.Reflection.AssemblyProductAttribute("WarrantyBee.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WarrantyBee.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
