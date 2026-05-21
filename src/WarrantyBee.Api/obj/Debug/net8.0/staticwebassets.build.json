@@ -1,12 +1,125 @@
 {
   "Version": 1,
-  "Hash": "//5xEg+zc6JJcfrNsm2LDlNv7rai5wnJhcnF/KUis7Y=",
+  "Hash": "mwFeOHGWyS9yl8TDO936y6owr+IKGfRp6FYw71/R9IE=",
   "Source": "WarrantyBee.Api",
   "BasePath": "_content/WarrantyBee.Api",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "WarrantyBee.Api\\wwwroot",
+      "Source": "WarrantyBee.Api",
+      "ContentRoot": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\",
+      "BasePath": "_content/WarrantyBee.Api",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
+      "SourceId": "WarrantyBee.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\",
+      "BasePath": "_content/WarrantyBee.Api",
+      "RelativePath": "index#[.{fingerprint}]?.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "rna64bkrcv",
+      "Integrity": "ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\index.html"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "index.html",
+      "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5754"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+        }
+      ]
+    },
+    {
+      "Route": "index.rna64bkrcv.html",
+      "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5754"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rna64bkrcv"
+        },
+        {
+          "Name": "label",
+          "Value": "index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+        }
+      ]
+    }
+  ]
 }

@@ -83,6 +83,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<GlobalExceptionHandler>();
 app.UseHttpsRedirection();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
