@@ -132,6 +132,14 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<GlobalExceptionHandler>();
 app.UseHttpsRedirection();
 
+// Localization
+var supportedCultures = new[] { "en-US", "en-GB", "en-AU", "en-CA", "en-IN", "en-NZ", "en-SA", "en-SG", "es-ES", "es-MX", "fr-FR", "de-DE", "pt-PT", "ar-SA", "zh-CN", "ja-JP", "ko-KR", "hi-IN" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en-US")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+app.UseRequestLocalization(localizationOptions);
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

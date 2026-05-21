@@ -9,11 +9,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddLocalization();
+
         // Internal implementations
         services.AddScoped<AuthService>();
         services.AddScoped<UserService>();
         services.AddScoped<CountryService>();
         services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<ILocalizationService, LocalizationService>();
 
         // Public interfaces decorated with Telemetry
         services.AddScoped<IAuthService>(sp => 

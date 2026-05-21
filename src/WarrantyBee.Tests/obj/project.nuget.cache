@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "zxPcSvjlOeo=",
+  "dgSpecHash": "TuxPtLvznRQ=",
   "success": true,
   "projectFilePath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Tests\\WarrantyBee.Tests.csproj",
   "expectedPackageFiles": [
@@ -49,7 +49,9 @@
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\8.0.1\\microsoft.extensions.diagnostics.abstractions.8.0.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\8.0.0\\microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\8.0.1\\microsoft.extensions.hosting.abstractions.8.0.1.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.localization\\10.0.8\\microsoft.extensions.localization.10.0.8.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.localization.abstractions\\10.0.8\\microsoft.extensions.localization.abstractions.10.0.8.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.8\\microsoft.extensions.logging.abstractions.10.0.8.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.objectpool\\8.0.11\\microsoft.extensions.objectpool.8.0.11.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.options\\10.0.8\\microsoft.extensions.options.10.0.8.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.8\\microsoft.extensions.primitives.10.0.8.nupkg.sha512",
@@ -98,7 +100,7 @@
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.collections.concurrent\\4.3.0\\system.collections.concurrent.4.3.0.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.configuration.configurationmanager\\8.0.1\\system.configuration.configurationmanager.8.0.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.diagnostics.debug\\4.3.0\\system.diagnostics.debug.4.3.0.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.1\\system.diagnostics.diagnosticsource.8.0.1.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\system.diagnostics.diagnosticsource\\10.0.8\\system.diagnostics.diagnosticsource.10.0.8.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.diagnostics.eventlog\\8.0.1\\system.diagnostics.eventlog.8.0.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.diagnostics.tracing\\4.3.0\\system.diagnostics.tracing.4.3.0.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.dynamic.runtime\\4.0.11\\system.dynamic.runtime.4.0.11.nupkg.sha512",

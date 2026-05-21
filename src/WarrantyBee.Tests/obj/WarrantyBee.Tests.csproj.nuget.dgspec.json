@@ -153,6 +153,14 @@
               "target": "Package",
               "version": "[1.3.1, )"
             },
+            "Microsoft.Extensions.Localization": {
+              "target": "Package",
+              "version": "[10.0.8, )"
+            },
+            "Microsoft.Extensions.Localization.Abstractions": {
+              "target": "Package",
+              "version": "[10.0.8, )"
+            },
             "Microsoft.Extensions.Options": {
               "target": "Package",
               "version": "[10.0.8, )"
