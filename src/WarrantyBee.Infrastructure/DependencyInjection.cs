@@ -23,7 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IStorageService, CloudinaryStorageService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ITelemetryService, TelemetryService>();
-        services.AddScoped<ICaptchaService, MockCaptchaService>();
+        services.AddScoped<ICaptchaService, ReCaptchaService>();
         
         services.AddScoped<IEmailTemplateService>(sp => 
         {
