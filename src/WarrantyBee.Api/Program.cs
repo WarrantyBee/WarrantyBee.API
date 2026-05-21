@@ -10,23 +10,37 @@ using WarrantyBee.Application.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration - Support environment variable overrides
-var dbConnString = Environment.GetEnvironmentVariable("WB__DB_CONN_STR");
-if (!string.IsNullOrWhiteSpace(dbConnString))
-{
-    builder.Configuration["App:DataSource:ConnectionString"] = dbConnString;
-}
+// Configuration - Standardize on WB__ prefix for all environment variables
+builder.Configuration.AddEnvironmentVariables(prefix: "WB__");
 
-var bsHost = Environment.GetEnvironmentVariable("WB__BETTERSTACK_HOST");
-if (!string.IsNullOrWhiteSpace(bsHost))
+// Explicit mapping for nested sections to ensure consistency
+var envOverrides = new Dictionary<string, string>
 {
-    builder.Configuration["App:BetterStack:Host"] = bsHost;
-}
+    ["WB__DB_CONN_STR"] = "App:DataSource:ConnectionString",
+    ["WB__BETTERSTACK_HOST"] = "App:BetterStack:Host",
+    ["WB__BETTERSTACK_TOKEN"] = "App:BetterStack:AccessToken",
+    ["WB__JWT_SECRET"] = "App:Jwt:Secret",
+    ["WB__JWT_ISSUER"] = "App:Jwt:Issuer",
+    ["WB__JWT_AUDIENCE"] = "App:Jwt:Audience",
+    ["WB__UPSTASH_HOST"] = "App:Upstash:Host",
+    ["WB__UPSTASH_TOKEN"] = "App:Upstash:AccessToken",
+    ["WB__CLOUDINARY_CLOUD"] = "App:Cloudinary:Cloud",
+    ["WB__CLOUDINARY_API_KEY"] = "App:Cloudinary:ApiKey",
+    ["WB__CLOUDINARY_API_SECRET"] = "App:Cloudinary:ApiSecret",
+    ["WB__SMTP_HOST"] = "App:Smtp:Host",
+    ["WB__SMTP_PORT"] = "App:Smtp:Port",
+    ["WB__SMTP_USER"] = "App:Smtp:Username",
+    ["WB__SMTP_PASS"] = "App:Smtp:Password",
+    ["WB__RECAPTCHA_SECRET"] = "App:ReCaptcha:Secret"
+};
 
-var bsToken = Environment.GetEnvironmentVariable("WB__BETTERSTACK_TOKEN");
-if (!string.IsNullOrWhiteSpace(bsToken))
+foreach (var env in envOverrides)
 {
-    builder.Configuration["App:BetterStack:AccessToken"] = bsToken;
+    var val = Environment.GetEnvironmentVariable(env.Key);
+    if (!string.IsNullOrWhiteSpace(val))
+    {
+        builder.Configuration[env.Value] = val;
+    }
 }
 
 var appConfig = builder.Configuration.GetSection("App").Get<AppConfiguration>() ?? new AppConfiguration();
