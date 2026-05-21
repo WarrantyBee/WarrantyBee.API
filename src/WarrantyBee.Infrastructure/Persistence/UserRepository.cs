@@ -112,13 +112,13 @@ public class UserRepository : IUserRepository
                 },
                 Timezone = new TimeZoneResponse(
                     (long)userRow.timezone_id, userRow.timezone_name, userRow.timezone_abbreviation, 
-                    (short)userRow.offset_minutes, (bool)userRow.dst, (short)userRow.current_offset_minutes),
+                    (short)userRow.timezone_utc_offset_minutes, (bool)userRow.timezone_observes_dst, (short)userRow.timezone_current_offset_minutes),
                 Currency = new CurrencyResponse(
-                    (long)userRow.currency_id, userRow.currency_name, userRow.currency_iso, userRow.currency_code, 
-                    userRow.currency_symbol, (byte)userRow.minor_unit),
+                    (long)userRow.currency_id, userRow.currency_name, userRow.currency_iso_code, userRow.currency_code, 
+                    userRow.currency_symbol, (byte)userRow.currency_minor_unit),
                 Culture = new CultureResponse(
-                    (long)userRow.culture_id, userRow.culture_iso, (bool)userRow.rtl,
-                    new LanguageResponse((long)userRow.language_id, userRow.language_name, userRow.language_iso, userRow.native_name)),
+                    (long)userRow.culture_id, userRow.culture_iso_code, (bool)userRow.culture_rtl,
+                    new LanguageResponse((long)userRow.language_id, userRow.language_name, userRow.language_iso_code, userRow.language_native_name)),
                 Settings = new UserSettingsResponse
                 {
                     Is2FAEnabled = (bool)userRow.is_2fa_enabled,
@@ -127,7 +127,7 @@ public class UserRepository : IUserRepository
             },
             AuthorizationContext = new UserAuthorization
             {
-                Role = Enum.TryParse<SecurityRole>((string)userRow.role_name, true, out var role) ? role : SecurityRole.None,
+                Role = Enum.TryParse<SecurityRole>((string)userRow.role, true, out var role) ? role : SecurityRole.None,
                 Permissions = ParsePermissions((string)userRow.permissions)
             }
         };

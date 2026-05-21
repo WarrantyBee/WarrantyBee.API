@@ -102,15 +102,12 @@ public class AuthService : IAuthService
         if (request.AuthProvider == (byte)AuthProvider.Internal)
         {
             request.Password = HashHelper.GetHash(request.Password);
-            request.AuthProviderUserId = null;
+            request.AuthProviderUserId = string.Empty;
         }
         else
         {
-            request.Password = null;
-            if (request.AuthProviderUserId != null)
-            {
-                request.AuthProviderUserId = HashHelper.GetHash(request.AuthProviderUserId);
-            }
+            request.Password = string.Empty;
+            // No hashing for external provider user IDs
         }
 
         var userId = await _userRepository.CreateAsync(request);
@@ -166,7 +163,7 @@ public class AuthService : IAuthService
 
         if (!canReset) throw new ApiException(Errors.PasswordRecentlyUpdated);
 
-        await SendOtpAsync(user.Id, user.Email, OtpRequestReason.ForgotPassword);
+        await SendOtpAsync(user.Id, user.Email ?? string.Empty, OtpRequestReason.ForgotPassword);
     }
 
     /// <summary>
@@ -188,7 +185,7 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetAsync(new UserSearchFilter(null, request.Email));
         if (user == null) throw new ApiException(Errors.UserNotRegistered);
 
-        var storedOtpHash = await _otpRepository.GetAsync(new OtpSearchFilter(user.Email!, user.Id, (byte)OtpRequestReason.ForgotPassword));
+        var storedOtpHash = await _otpRepository.GetAsync(new OtpSearchFilter(user.Email ?? string.Empty, user.Id, (byte)OtpRequestReason.ForgotPassword));
         if (!HashHelper.Verify(request.Otp, storedOtpHash!)) throw new ApiException(Errors.InvalidOtp);
 
         var previousPasswords = await _userRepository.GetPasswordsAsync(user.Id);
@@ -225,7 +222,7 @@ public class AuthService : IAuthService
         }
         else
         {
-            if (string.IsNullOrWhiteSpace(user.AuthProviderUserId) || !HashHelper.Verify(request.AuthProviderUserId!, user.AuthProviderUserId))
+            if (string.IsNullOrWhiteSpace(user.AuthProviderUserId) || request.AuthProviderUserId != user.AuthProviderUserId)
             {
                 throw new ApiException(Errors.InvalidLoginCredentials);
             }
@@ -237,7 +234,7 @@ public class AuthService : IAuthService
             var success = await _userRepository.StoreTokenAsync(new LoginTokenDetails(user.Id, token));
             if (!success) throw new ApiException(Errors.LoginTokenCouldNotBeSaved);
 
-            await SendOtpAsync(user.Id, user.Email!, OtpRequestReason.Login);
+            await SendOtpAsync(user.Id, user.Email ?? string.Empty, OtpRequestReason.Login);
             return new MFALoginResponse(token);
         }
 
@@ -263,7 +260,16 @@ public class AuthService : IAuthService
     private async Task<LoginResponse> GetLoginResponseAsync(UserResponse user)
     {
         var cacheKey = $"token:{user.Email}";
-        var accessToken = await _cacheService.GetAsync(cacheKey);
+        string? accessToken = null;
+
+        try
+        {
+            accessToken = await _cacheService.GetAsync(cacheKey);
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.Log(LogLevel.Warn, ex, new Dictionary<string, object> { ["Message"] = "Cache retrieval failed during login" });
+        }
 
         if (accessToken == null)
         {
@@ -271,18 +277,27 @@ public class AuthService : IAuthService
             {
                 ["userId"] = user.Id.ToString(),
                 ["email"] = user.Email!,
-                // role and permissions would come from user.AuthorizationContext which I haven't ported yet.
+                ["role"] = user.AuthorizationContext?.Role.ToString() ?? "CUSTOMER"
             };
             accessToken = _tokenService.Generate(claims);
-            await _cacheService.SetAsync(cacheKey, accessToken, 3600);
+            
+            try
+            {
+                await _cacheService.SetAsync(cacheKey, accessToken, 3600);
+            }
+            catch (Exception ex)
+            {
+                _telemetryService.Log(LogLevel.Warn, ex, new Dictionary<string, object> { ["Message"] = "Cache storage failed during login" });
+            }
         }
 
         var validatedClaims = _tokenService.Validate(accessToken);
-        return new LoginResponse(
-            accessToken,
-            validatedClaims["iat"].ToString()!,
-            validatedClaims["exp"].ToString()!,
-            user);
+        
+        // Ensure iat and exp are present
+        var iat = validatedClaims.ContainsKey("iat") ? validatedClaims["iat"].ToString()! : DateTime.UtcNow.ToString("O");
+        var exp = validatedClaims.ContainsKey("exp") ? validatedClaims["exp"].ToString()! : DateTime.UtcNow.AddHours(1).ToString("O");
+
+        return new LoginResponse(accessToken, iat, exp, user);
     }
 
     private async Task SendOtpAsync(long userId, string email, OtpRequestReason reason)

@@ -9,11 +9,23 @@ using WarrantyBee.Application.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration - Support WB__DB_CONN_STR environment variable override
-var envConnString = Environment.GetEnvironmentVariable("WB__DB_CONN_STR");
-if (!string.IsNullOrWhiteSpace(envConnString))
+// Configuration - Support environment variable overrides
+var dbConnString = Environment.GetEnvironmentVariable("WB__DB_CONN_STR");
+if (!string.IsNullOrWhiteSpace(dbConnString))
 {
-    builder.Configuration["App:DataSource:ConnectionString"] = envConnString;
+    builder.Configuration["App:DataSource:ConnectionString"] = dbConnString;
+}
+
+var bsHost = Environment.GetEnvironmentVariable("WB__BETTERSTACK_HOST");
+if (!string.IsNullOrWhiteSpace(bsHost))
+{
+    builder.Configuration["App:BetterStack:Host"] = bsHost;
+}
+
+var bsToken = Environment.GetEnvironmentVariable("WB__BETTERSTACK_TOKEN");
+if (!string.IsNullOrWhiteSpace(bsToken))
+{
+    builder.Configuration["App:BetterStack:AccessToken"] = bsToken;
 }
 
 var appConfig = builder.Configuration.GetSection("App").Get<AppConfiguration>() ?? new AppConfiguration();
@@ -28,10 +40,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true) // Allow any origin for now to resolve the check
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://warrantybee.com", "https://warrantybee.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10)); // Cache preflight for performance
     });
 });
 
