@@ -97,3 +97,4 @@ D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\runtimes\win
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\WarrantyBee.Api.staticwebassets.runtime.json
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\web.config

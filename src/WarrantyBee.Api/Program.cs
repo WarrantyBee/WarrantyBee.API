@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using WarrantyBee.Application;
 using WarrantyBee.Infrastructure;
 using WarrantyBee.Api.Middleware;
+using WarrantyBee.Api.Filters;
 using WarrantyBee.Application.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,7 +70,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Global telemetry and metric collection for all endpoints
+    options.Filters.Add<TelemetryActionFilter>();
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger with Security
