@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://warrantybee.com", "https://warrantybee.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
