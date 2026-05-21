@@ -23,6 +23,18 @@ builder.Services.Configure<AppConfiguration>(builder.Configuration.GetSection("A
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -82,6 +94,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<GlobalExceptionHandler>();
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

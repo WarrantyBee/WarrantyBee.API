@@ -1,5 +1,88 @@
 {
   "Version": 1,
   "ManifestType": "Build",
-  "Endpoints": []
+  "Endpoints": [
+    {
+      "Route": "index.html",
+      "AssetFile": "index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5754"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+        }
+      ]
+    },
+    {
+      "Route": "index.rna64bkrcv.html",
+      "AssetFile": "index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5754"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rna64bkrcv"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+        },
+        {
+          "Name": "label",
+          "Value": "index.html"
+        }
+      ]
+    }
+  ]
 }
