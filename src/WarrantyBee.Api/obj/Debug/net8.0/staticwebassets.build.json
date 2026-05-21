@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "mwFeOHGWyS9yl8TDO936y6owr+IKGfRp6FYw71/R9IE=",
+  "Hash": "hI+ZP98ipQkQxHXoIIvT1YAPsOogpdoskAMi163jOx0=",
   "Source": "WarrantyBee.Api",
   "BasePath": "_content/WarrantyBee.Api",
   "Mode": "Default",
@@ -62,7 +62,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+          "Value": "Thu, 21 May 2026 15:16:54 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -99,7 +99,7 @@
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 21 May 2026 14:40:38 GMT"
+          "Value": "Thu, 21 May 2026 15:16:54 GMT"
         },
         {
           "Name": "Cache-Control",

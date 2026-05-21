@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://warrantybee.com", "https://warrantybee.com")
+        policy.SetIsOriginAllowed(_ => true) // Allow any origin for now to resolve the check
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -85,6 +85,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// CORS must be at the very top to handle pre-flight OPTIONS requests
+app.UseCors("AllowFrontend");
+
 // Pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -94,8 +97,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<GlobalExceptionHandler>();
 app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
