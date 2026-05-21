@@ -39,30 +39,20 @@ public static class HashHelper
     }
 
     /// <summary>
-    /// Verifies a text against a stored Argon2id hash. Supports standard Argon2 strings and legacy wrapped formats.
+    /// Verifies a text against a stored Argon2id hash.
     /// </summary>
     /// <param name="text">The text to verify.</param>
-    /// <param name="storedHash">The stored hash string.</param>
+    /// <param name="storedHash">The stored hash string in standard Argon2 format.</param>
     /// <returns>True if the text matches the hash; otherwise, false.</returns>
     public static bool Verify(string text, string storedHash)
     {
         if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(storedHash)) return false;
 
+        if (!storedHash.StartsWith("$argon2id$")) return false;
+
         try
         {
-            string rawHash = storedHash;
-
-            // Handle legacy double-Base64 wrapping if detected
-            if (!storedHash.StartsWith("$") && IsBase64String(storedHash))
-            {
-                try
-                {
-                    rawHash = Encoding.UTF8.GetString(Convert.FromBase64String(storedHash));
-                }
-                catch { /* Ignore and try processing as-is */ }
-            }
-
-            var parts = rawHash.Split('$');
+            var parts = storedHash.Split('$');
             if (parts.Length < 6) return false;
 
             // Extract parameters: m=65536,t=3,p=1
@@ -112,20 +102,5 @@ public static class HashHelper
         using var sha256 = SHA256.Create();
         var hashedBytes = sha256.ComputeHash(randomBytes);
         return Convert.ToHexString(hashedBytes).ToLower();
-    }
-
-    private static bool IsBase64String(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return false;
-        if (s.Length % 4 != 0) return false;
-        try
-        {
-            Convert.FromBase64String(s);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
     }
 }
