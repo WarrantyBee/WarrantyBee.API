@@ -110,3 +110,5 @@ D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\ja\WarrantyB
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\ko\WarrantyBee.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\pt\WarrantyBee.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\zh\WarrantyBee.Application.resources.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\Polly.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\Polly.Core.dll
