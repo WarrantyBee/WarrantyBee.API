@@ -11,25 +11,23 @@ namespace WarrantyBee.Api.Middleware;
 public class GlobalExceptionHandler
 {
     private readonly RequestDelegate _next;
-    private readonly ILocalizationService _localizationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GlobalExceptionHandler"/> class.
     /// </summary>
     /// <param name="next">The next delegate in the request pipeline.</param>
-    /// <param name="localizationService">The service used to retrieve localized strings.</param>
-    public GlobalExceptionHandler(RequestDelegate next, ILocalizationService localizationService)
+    public GlobalExceptionHandler(RequestDelegate next)
     {
         _next = next;
-        _localizationService = localizationService;
     }
 
     /// <summary>
     /// Invokes the middleware asynchronously.
     /// </summary>
     /// <param name="context">The <see cref="HttpContext"/> for the current request.</param>
+    /// <param name="localizationService">The service used to retrieve localized strings (resolved per-request scope).</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, ILocalizationService localizationService)
     {
         try
         {
@@ -37,21 +35,21 @@ public class GlobalExceptionHandler
         }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex, localizationService);
         }
     }
 
-    private Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private Task HandleExceptionAsync(HttpContext context, Exception exception, ILocalizationService localizationService)
     {
         var statusCode = HttpStatusCode.InternalServerError;
         var errorCode = 1009; // Default unexpected error code
-        var message = _localizationService.GetString("UnexpectedError");
+        var message = localizationService.GetString("UnexpectedError");
 
         if (exception is ApiException apiException)
         {
             statusCode = apiException.Error.Status;
             errorCode = apiException.Error.Code;
-            message = _localizationService.GetString(apiException.Error.Code.ToString());
+            message = localizationService.GetString(apiException.Error.Code.ToString());
             
             // Fallback to internal message if translation not found for specific code
             if (message == apiException.Error.Code.ToString())
