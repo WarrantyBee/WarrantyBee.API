@@ -14,6 +14,7 @@ public class EventPublisher : IEventPublisher
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<EventPublisher> _logger;
     private readonly string _eventManagerUrl;
+    private readonly string? _apiKey;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPublisher"/> class.
@@ -30,8 +31,8 @@ public class EventPublisher : IEventPublisher
         _taskQueue = taskQueue;
         _logger = logger;
         
-        // This would typically come from configuration/environment variables
         _eventManagerUrl = Environment.GetEnvironmentVariable("WB__EVENT_MANAGER_URL") ?? "http://localhost:5000/api/events";
+        _apiKey = Environment.GetEnvironmentVariable("WB__EVENT_MANAGER_API_KEY");
     }
 
     /// <summary>
@@ -55,6 +56,13 @@ public class EventPublisher : IEventPublisher
             try
             {
                 var client = _httpClientFactory.CreateClient();
+                
+                // Add the Encrypted API Key for authentication
+                if (!string.IsNullOrEmpty(_apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
+                }
+
                 var json = JsonSerializer.Serialize(payload);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -62,7 +70,8 @@ public class EventPublisher : IEventPublisher
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to publish event {EventType} to EventManager. Status: {StatusCode}", eventType, response.StatusCode);
+                    var error = await response.Content.ReadAsStringAsync(token);
+                    _logger.LogWarning("Failed to publish event {EventType} to EventManager. Status: {StatusCode}, Error: {Error}", eventType, response.StatusCode, error);
                 }
             }
             catch (Exception ex)

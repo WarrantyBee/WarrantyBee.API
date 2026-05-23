@@ -15,6 +15,7 @@ public class JobSchedulerClient : IJobSchedulerClient
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<JobSchedulerClient> _logger;
     private readonly string _jobSchedulerUrl;
+    private readonly string? _apiKey;
 
     public JobSchedulerClient(
         IHttpClientFactory httpClientFactory,
@@ -25,6 +26,7 @@ public class JobSchedulerClient : IJobSchedulerClient
         _taskQueue = taskQueue;
         _logger = logger;
         _jobSchedulerUrl = Environment.GetEnvironmentVariable("WB__JOB_SCHEDULER_URL") ?? "http://localhost:5001/api/jobs";
+        _apiKey = Environment.GetEnvironmentVariable("WB__JOB_SCHEDULER_API_KEY");
     }
 
     public async Task<string?> EnqueueNotificationAsync(long userId, NotificationType type, IDictionary<string, string>? metadata = null)
@@ -42,6 +44,13 @@ public class JobSchedulerClient : IJobSchedulerClient
             try
             {
                 var client = _httpClientFactory.CreateClient();
+                
+                // Add the Encrypted API Key for authentication
+                if (!string.IsNullOrEmpty(_apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
+                }
+
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
