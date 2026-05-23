@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<ITelemetryService, TelemetryService>();
         services.AddScoped<ICaptchaService, ReCaptchaService>();
         services.AddScoped<IEventPublisher, EventPublisher>();
+        services.AddScoped<IJobSchedulerClient, JobSchedulerClient>();
 
         // High-scale Background processing
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();

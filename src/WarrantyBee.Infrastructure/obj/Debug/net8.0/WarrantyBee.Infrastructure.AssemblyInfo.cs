@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WarrantyBee.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f9e3995d53c8aa7c726cf354b7b2b6a19d0a000c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ecffdfc763db49b2606a438b55e95dc2a27bcbb9")]
 [assembly: System.Reflection.AssemblyProductAttribute("WarrantyBee.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WarrantyBee.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

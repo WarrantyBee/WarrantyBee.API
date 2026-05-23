@@ -20,10 +20,10 @@ public class AuthService : IAuthService
     private readonly ICacheService _cacheService;
     private readonly ICaptchaService _captchaService;
     private readonly IOtpService _otpService;
-    private readonly IEmailService _emailService;
     private readonly ITelemetryService _telemetryService;
     private readonly IUserRepository _userRepository;
     private readonly IOtpRepository _otpRepository;
+    private readonly IJobSchedulerClient _jobScheduler;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthService"/> class.
@@ -33,30 +33,30 @@ public class AuthService : IAuthService
     /// <param name="cacheService">Service for caching data.</param>
     /// <param name="captchaService">Service for validating captchas.</param>
     /// <param name="otpService">Service for generating OTPs.</param>
-    /// <param name="emailService">Service for sending emails.</param>
     /// <param name="telemetryService">Service for logging and telemetry.</param>
     /// <param name="userRepository">Repository for user data.</param>
     /// <param name="otpRepository">Repository for OTP data.</param>
+    /// <param name="jobScheduler">Client for scheduling background jobs.</param>
     public AuthService(
         IOptions<AppConfiguration> config,
         ITokenService tokenService,
         ICacheService cacheService,
         ICaptchaService captchaService,
         IOtpService otpService,
-        IEmailService emailService,
         ITelemetryService telemetryService,
         IUserRepository userRepository,
-        IOtpRepository otpRepository)
+        IOtpRepository otpRepository,
+        IJobSchedulerClient jobScheduler)
     {
         _config = config.Value;
         _tokenService = tokenService;
         _cacheService = cacheService;
         _captchaService = captchaService;
         _otpService = otpService;
-        _emailService = emailService;
         _telemetryService = telemetryService;
         _userRepository = userRepository;
         _otpRepository = otpRepository;
+        _jobScheduler = jobScheduler;
     }
 
     /// <summary>
@@ -107,25 +107,18 @@ public class AuthService : IAuthService
         else
         {
             request.Password = string.Empty;
-            // No hashing for external provider user IDs
         }
 
         var userId = await _userRepository.CreateAsync(request);
         if (userId <= 0) throw new ApiException(Errors.UserRegistrationFailed);
 
-        try
+        // Schedule Welcome Email Job immediately
+        var macros = new Dictionary<string, string>
         {
-            var macros = new Dictionary<string, string>
-            {
-                ["USER_FIRST_NAME"] = request.Firstname,
-                ["USER_LAST_NAME"] = request.Lastname
-            };
-            await _emailService.SendAsync(new NotificationPayload(request.Email, macros, NotificationType.Welcome));
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.Log(LogLevel.Error, ex, new Dictionary<string, object> { ["Message"] = "Failure sending welcome email" });
-        }
+            ["USER_FIRST_NAME"] = request.Firstname,
+            ["USER_LAST_NAME"] = request.Lastname
+        };
+        await _jobScheduler.EnqueueNotificationAsync(request.Email, "WelcomeEmail", macros);
 
         return new SignUpResponse(userId);
     }
@@ -148,9 +141,6 @@ public class AuthService : IAuthService
         if (user == null) throw new ApiException(Errors.UserNotRegistered);
 
         bool canReset = true;
-        // In .NET we'd check UserSettings directly if possible.
-        // The Java code checks user.getProfile().getSettings().getPasswordUpdatedAt().
-        // We'll assume the DTO is populated.
         var lastUpdated = user.Profile?.Settings?.PasswordUpdatedAt;
         if (lastUpdated.HasValue)
         {
@@ -203,7 +193,7 @@ public class AuthService : IAuthService
             ["USER_FIRST_NAME"] = user.Firstname!,
             ["USER_LAST_NAME"] = user.Lastname!
         };
-        await _emailService.SendAsync(new NotificationPayload(user.Email!, macros, NotificationType.PasswordChanged));
+        await _jobScheduler.EnqueueNotificationAsync(user.Email!, "PasswordChanged", macros);
     }
 
     private async Task<ILoginResponse> ProcessSimpleLoginAsync(SimpleLoginRequest request)
@@ -293,7 +283,6 @@ public class AuthService : IAuthService
 
         var validatedClaims = _tokenService.Validate(accessToken);
         
-        // Ensure iat and exp are present
         var iat = validatedClaims.ContainsKey("iat") ? validatedClaims["iat"].ToString()! : DateTime.UtcNow.ToString("O");
         var exp = validatedClaims.ContainsKey("exp") ? validatedClaims["exp"].ToString()! : DateTime.UtcNow.AddHours(1).ToString("O");
 
@@ -306,9 +295,14 @@ public class AuthService : IAuthService
         var otpHash = HashHelper.GetHash(otp);
         await _otpRepository.StoreAsync(new OtpStorageRequest(otpHash, email, userId, (byte)reason));
 
-        var macros = new Dictionary<string, string> { ["OTP"] = otp };
-        var type = reason == OtpRequestReason.Login ? NotificationType.MfaLogin : NotificationType.ForgotPassword;
-        await _emailService.SendAsync(new NotificationPayload(email, macros, type));
+        var macros = new Dictionary<string, string> 
+        { 
+            ["OTP"] = otp,
+            ["EXPIRY_TIME"] = _config.Otp?.Expiration.ToString() ?? "5"
+        };
+        var templateName = reason == OtpRequestReason.Login ? "LoginOtp" : "ForgotPasswordOtp";
+        
+        await _jobScheduler.EnqueueNotificationAsync(email, templateName, macros);
     }
 
     private void ValidateSignUpRequest(SignUpRequest request)
