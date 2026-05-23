@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Domain.Enums;
 
 namespace WarrantyBee.Infrastructure.Services;
 
@@ -26,16 +27,16 @@ public class JobSchedulerClient : IJobSchedulerClient
         _jobSchedulerUrl = Environment.GetEnvironmentVariable("WB__JOB_SCHEDULER_URL") ?? "http://localhost:5001/api/jobs";
     }
 
-    public async Task<string?> EnqueueNotificationAsync(string recipient, string templateName, IDictionary<string, string> macros)
+    public async Task<string?> EnqueueNotificationAsync(long userId, NotificationType type, IDictionary<string, string>? metadata = null)
     {
         var request = new
         {
-            Recipient = recipient,
-            TemplateName = templateName,
-            Macros = macros
+            UserId = userId,
+            Type = (int)type,
+            Metadata = metadata
         };
 
-        // Fire and forget via internal task queue
+        // Fire and forget via internal task queue to ensure no latency for the caller
         await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
         {
             try
@@ -48,12 +49,13 @@ public class JobSchedulerClient : IJobSchedulerClient
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to enqueue job in JobScheduler. Status: {StatusCode}", response.StatusCode);
+                    var error = await response.Content.ReadAsStringAsync(token);
+                    _logger.LogWarning("Failed to enqueue job in JobScheduler. Status: {StatusCode}, Error: {Error}", response.StatusCode, error);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while calling JobScheduler.");
+                _logger.LogError(ex, "Error occurred while calling JobScheduler for User {UserId}.", userId);
             }
         });
 

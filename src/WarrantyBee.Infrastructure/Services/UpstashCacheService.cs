@@ -4,17 +4,20 @@ using Microsoft.Extensions.Options;
 using RestSharp;
 using WarrantyBee.Application.Abstractions.Services;
 using WarrantyBee.Application.Configuration;
+using WarrantyBee.Infrastructure.Resilience;
+using Polly.Retry;
 
 namespace WarrantyBee.Infrastructure.Services;
 
 /// <summary>
-/// Provides caching services using Upstash (Redis over HTTP) as the backend.
+/// Provides caching services using Upstash (Redis over HTTP) as the backend, with Polly resilience.
 /// </summary>
 public class UpstashCacheService : ICacheService
 {
     private readonly string _baseUrl;
     private readonly string _token;
     private readonly RestClient _client;
+    private readonly AsyncRetryPolicy _retryPolicy;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpstashCacheService"/> class.
@@ -27,6 +30,9 @@ public class UpstashCacheService : ICacheService
         _baseUrl = cfg.Host;
         _token = cfg.AccessToken;
         _client = new RestClient(_baseUrl);
+        
+        // High-Scale: Initialize retry policy for transient network failures
+        _retryPolicy = ResiliencePolicies.CreateRetryPolicy();
     }
 
     /// <summary>
@@ -45,7 +51,7 @@ public class UpstashCacheService : ICacheService
             command.Add(expirySeconds.Value);
         }
 
-        await SendAsync(command);
+        await _retryPolicy.ExecuteAsync(() => SendAsync(command));
     }
 
     /// <summary>
@@ -56,21 +62,24 @@ public class UpstashCacheService : ICacheService
     /// <exception cref="Exception">Thrown when Upstash returns an error.</exception>
     public async Task<string?> GetAsync(string key)
     {
-        var command = new List<object> { "GET", key };
-        var response = await SendAsync(command);
-        
-        using var doc = JsonDocument.Parse(response);
-        if (doc.RootElement.TryGetProperty("error", out var error))
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
-            throw new Exception($"Upstash error: {error.GetString()}");
-        }
+            var command = new List<object> { "GET", key };
+            var response = await SendAsync(command);
+            
+            using var doc = JsonDocument.Parse(response);
+            if (doc.RootElement.TryGetProperty("error", out var error))
+            {
+                throw new Exception($"Upstash error: {error.GetString()}");
+            }
 
-        if (doc.RootElement.TryGetProperty("result", out var result) && result.ValueKind != JsonValueKind.Null)
-        {
-            return result.GetString();
-        }
+            if (doc.RootElement.TryGetProperty("result", out var result) && result.ValueKind != JsonValueKind.Null)
+            {
+                return result.GetString();
+            }
 
-        return null;
+            return null;
+        });
     }
 
     /// <summary>
@@ -81,7 +90,7 @@ public class UpstashCacheService : ICacheService
     public async Task DeleteAsync(string key)
     {
         var command = new List<object> { "DEL", key };
-        await SendAsync(command);
+        await _retryPolicy.ExecuteAsync(() => SendAsync(command));
     }
 
     /// <summary>

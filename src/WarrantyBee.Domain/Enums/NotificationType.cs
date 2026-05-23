@@ -6,21 +6,20 @@ namespace WarrantyBee.Domain.Enums;
 public enum NotificationType
 {
     /// <summary>
-    /// No notification type specified.
-    /// </summary>
-    None = 0,
-    /// <summary>
     /// Multi-factor authentication login notification.
     /// </summary>
-    MfaLogin = 1,
+    LoginOtp = 1,
+
     /// <summary>
     /// Forgot password notification.
     /// </summary>
-    ForgotPassword = 2,
+    ForgotPasswordOtp = 2,
+
     /// <summary>
     /// Welcome notification for new users.
     /// </summary>
-    Welcome = 3,
+    WelcomeEmail = 3,
+
     /// <summary>
     /// Notification indicating a password change.
     /// </summary>

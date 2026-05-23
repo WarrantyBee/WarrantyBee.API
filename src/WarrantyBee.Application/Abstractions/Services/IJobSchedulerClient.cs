@@ -1,3 +1,5 @@
+using WarrantyBee.Domain.Enums;
+
 namespace WarrantyBee.Application.Abstractions.Services;
 
 /// <summary>
@@ -6,11 +8,11 @@ namespace WarrantyBee.Application.Abstractions.Services;
 public interface IJobSchedulerClient
 {
     /// <summary>
-    /// Enqueues an email notification job.
+    /// Enqueues a notification job using the user ID and notification type.
     /// </summary>
-    /// <param name="recipient">The recipient email address.</param>
-    /// <param name="templateName">The name of the template to use.</param>
-    /// <param name="macros">The dynamic macros to replace in the template.</param>
+    /// <param name="userId">The unique user ID.</param>
+    /// <param name="type">The type of notification.</param>
+    /// <param name="metadata">Optional dynamic metadata for the notification.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task<string?> EnqueueNotificationAsync(string recipient, string templateName, IDictionary<string, string> macros);
+    Task<string?> EnqueueNotificationAsync(long userId, NotificationType type, IDictionary<string, string>? metadata = null);
 }

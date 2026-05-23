@@ -187,7 +187,7 @@ public class AuthServiceTests
         result.Id.Should().Be(1L);
         
         _eventPublisherMock.Verify(s => s.PublishAsync("user.signup", It.IsAny<object>()), Times.Once);
-        _jobSchedulerMock.Verify(s => s.EnqueueNotificationAsync(request.Email, "WelcomeEmail", It.IsAny<IDictionary<string, string>>()), Times.Once);
+        _jobSchedulerMock.Verify(s => s.EnqueueNotificationAsync(1L, NotificationType.WelcomeEmail, null), Times.Once);
     }
 
     #endregion

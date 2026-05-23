@@ -2,17 +2,20 @@ using Microsoft.Extensions.Options;
 using RestSharp;
 using WarrantyBee.Application.Abstractions.Services;
 using WarrantyBee.Application.Configuration;
+using WarrantyBee.Infrastructure.Resilience;
+using Polly.CircuitBreaker;
 
 namespace WarrantyBee.Infrastructure.Services;
 
 /// <summary>
-/// Implementation of reCAPTCHA Enterprise/v3 verification service.
+/// Implementation of reCAPTCHA Enterprise/v3 verification service with Circuit Breaker resilience.
 /// </summary>
 public class ReCaptchaService : ICaptchaService
 {
     private readonly ReCaptchaConfiguration? _config;
     private readonly RestClient _client;
     private readonly bool _isEnabled;
+    private readonly AsyncCircuitBreakerPolicy _circuitBreaker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReCaptchaService"/> class.
@@ -23,6 +26,9 @@ public class ReCaptchaService : ICaptchaService
         _isEnabled = config.Value.IsCaptchaEnabled;
         _config = config.Value.ReCaptcha;
         _client = new RestClient("https://www.google.com/recaptcha/api/siteverify");
+        
+        // High-Scale: Initialize circuit breaker to handle external service downtime
+        _circuitBreaker = ResiliencePolicies.CreateCircuitBreakerPolicy();
     }
 
     /// <summary>
@@ -35,25 +41,28 @@ public class ReCaptchaService : ICaptchaService
         if (!_isEnabled) return true;
         if (_config == null || string.IsNullOrWhiteSpace(_config.Secret)) return false;
 
-        var request = new RestRequest("/", Method.Post);
-        request.AddParameter("secret", _config.Secret);
-        request.AddParameter("response", captchaResponse);
-
-        try
+        return await _circuitBreaker.ExecuteAsync(async () =>
         {
-            var response = await _client.ExecuteAsync<ReCaptchaResponse>(request);
-            if (response.IsSuccessful && response.Data != null)
+            var request = new RestRequest("/", Method.Post);
+            request.AddParameter("secret", _config.Secret);
+            request.AddParameter("response", captchaResponse);
+
+            try
             {
-                // For v3/Enterprise, we check the success flag and potentially the score
-                return response.Data.Success && response.Data.Score >= _config.MinimumScore;
+                var response = await _client.ExecuteAsync<ReCaptchaResponse>(request);
+                if (response.IsSuccessful && response.Data != null)
+                {
+                    return response.Data.Success && response.Data.Score >= _config.MinimumScore;
+                }
             }
-        }
-        catch
-        {
-            // Log error via telemetry if needed
-        }
+            catch
+            {
+                // Rethrow to allow circuit breaker to track the failure
+                throw;
+            }
 
-        return false;
+            return false;
+        });
     }
 
     private class ReCaptchaResponse

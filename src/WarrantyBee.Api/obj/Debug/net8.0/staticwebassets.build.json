@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "hI+ZP98ipQkQxHXoIIvT1YAPsOogpdoskAMi163jOx0=",
+  "Hash": "WDVc+43Ec6qmk5A/f7gIWWft9ZQqmWSQ67kE/zdWnHQ=",
   "Source": "WarrantyBee.Api",
   "BasePath": "_content/WarrantyBee.Api",
   "Mode": "Default",
@@ -17,6 +17,27 @@
   ],
   "Assets": [
     {
+      "Identity": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\favicon.ico",
+      "SourceId": "WarrantyBee.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\",
+      "BasePath": "_content/WarrantyBee.Api",
+      "RelativePath": "favicon#[.{fingerprint}]?.ico",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "kmcqvqbipl",
+      "Integrity": "lOaaqgUg2NG/J4DtEbUWo1y8Xo7Ao2ZPS0gFnLOOmKU=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
       "Identity": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
       "SourceId": "WarrantyBee.Api",
       "SourceType": "Discovered",
@@ -31,14 +52,96 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "rna64bkrcv",
-      "Integrity": "ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=",
+      "Fingerprint": "t80lyjvpbr",
+      "Integrity": "g00hEzu/ODb/NIXrnpZCsolzihijTwjuWGlmhGteNTs=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\index.html"
     }
   ],
   "Endpoints": [
+    {
+      "Route": "favicon.ico",
+      "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\favicon.ico",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "15406"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/x-icon"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lOaaqgUg2NG/J4DtEbUWo1y8Xo7Ao2ZPS0gFnLOOmKU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 20:34:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-lOaaqgUg2NG/J4DtEbUWo1y8Xo7Ao2ZPS0gFnLOOmKU="
+        }
+      ]
+    },
+    {
+      "Route": "favicon.kmcqvqbipl.ico",
+      "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\favicon.ico",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "15406"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/x-icon"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lOaaqgUg2NG/J4DtEbUWo1y8Xo7Ao2ZPS0gFnLOOmKU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 21 May 2026 20:34:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "kmcqvqbipl"
+        },
+        {
+          "Name": "label",
+          "Value": "favicon.ico"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-lOaaqgUg2NG/J4DtEbUWo1y8Xo7Ao2ZPS0gFnLOOmKU="
+        }
+      ]
+    },
     {
       "Route": "index.html",
       "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
@@ -50,7 +153,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "5754"
+          "Value": "5891"
         },
         {
           "Name": "Content-Type",
@@ -58,11 +161,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+          "Value": "\"g00hEzu/ODb/NIXrnpZCsolzihijTwjuWGlmhGteNTs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 21 May 2026 15:16:54 GMT"
+          "Value": "Sat, 23 May 2026 08:54:46 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -72,12 +175,12 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+          "Value": "sha256-g00hEzu/ODb/NIXrnpZCsolzihijTwjuWGlmhGteNTs="
         }
       ]
     },
     {
-      "Route": "index.rna64bkrcv.html",
+      "Route": "index.t80lyjvpbr.html",
       "AssetFile": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\wwwroot\\index.html",
       "Selectors": [],
       "ResponseHeaders": [
@@ -87,7 +190,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "5754"
+          "Value": "5891"
         },
         {
           "Name": "Content-Type",
@@ -95,11 +198,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE=\""
+          "Value": "\"g00hEzu/ODb/NIXrnpZCsolzihijTwjuWGlmhGteNTs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Thu, 21 May 2026 15:16:54 GMT"
+          "Value": "Sat, 23 May 2026 08:54:46 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -109,7 +212,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "rna64bkrcv"
+          "Value": "t80lyjvpbr"
         },
         {
           "Name": "label",
@@ -117,7 +220,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-ifTptmaWZY6WsaGOoBIh7Che0fRlKtx6CXsnCU9iISE="
+          "Value": "sha256-g00hEzu/ODb/NIXrnpZCsolzihijTwjuWGlmhGteNTs="
         }
       ]
     }

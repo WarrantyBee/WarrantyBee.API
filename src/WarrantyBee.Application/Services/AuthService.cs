@@ -63,12 +63,6 @@ public class AuthService : IAuthService
         _eventPublisher = eventPublisher;
     }
 
-    /// <summary>
-    /// Performs user login, supporting both simple and multi-factor authentication.
-    /// </summary>
-    /// <param name="request">The login request details.</param>
-    /// <returns>A response indicating the result of the login attempt.</returns>
-    /// <exception cref="ApiException">Thrown if captcha is invalid or request body is malformed.</exception>
     public async Task<ILoginResponse> LoginAsync(LoginRequest request)
     {
         bool hasValidCaptcha = await _captchaService.ValidateAsync(request.CaptchaResponse!);
@@ -87,12 +81,6 @@ public class AuthService : IAuthService
         throw new ApiException(Errors.InvalidRequestBody);
     }
 
-    /// <summary>
-    /// Registers a new user.
-    /// </summary>
-    /// <param name="request">The sign-up request details.</param>
-    /// <returns>A response containing the ID of the newly created user.</returns>
-    /// <exception cref="ApiException">Thrown if validation fails or registration cannot be completed.</exception>
     public async Task<SignUpResponse> SignUpAsync(SignUpRequest request)
     {
         ValidateSignUpRequest(request);
@@ -119,23 +107,12 @@ public class AuthService : IAuthService
         // 1. Trigger Event (EventManager) for audit and webhooks
         await _eventPublisher.PublishAsync("user.signup", new { UserId = userId, Email = request.Email });
 
-        // 2. Schedule Notification (JobScheduler) for immediate welcome mail
-        var macros = new Dictionary<string, string>
-        {
-            ["USER_FIRST_NAME"] = request.Firstname,
-            ["USER_LAST_NAME"] = request.Lastname
-        };
-        await _jobScheduler.EnqueueNotificationAsync(request.Email, "WelcomeEmail", macros);
+        // 2. Schedule Notification (JobScheduler) using Smart ID pattern
+        await _jobScheduler.EnqueueNotificationAsync(userId, NotificationType.WelcomeEmail);
 
         return new SignUpResponse(userId);
     }
 
-    /// <summary>
-    /// Initiates the forgot password process by sending an OTP to the user's email.
-    /// </summary>
-    /// <param name="request">The forgot password request containing the user's email.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="ApiException">Thrown if email is invalid or password was recently updated.</exception>
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         if (Validator.IsBlank(request.Email)) throw new ApiException(Errors.EmailRequired);
@@ -163,12 +140,6 @@ public class AuthService : IAuthService
         await SendOtpAsync(user.Id, user.Email ?? string.Empty, OtpRequestReason.ForgotPassword);
     }
 
-    /// <summary>
-    /// Resets the user's password using a valid OTP.
-    /// </summary>
-    /// <param name="request">The reset password request details.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="ApiException">Thrown if OTP is invalid, password does not meet requirements, or update fails.</exception>
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
     {
         if (Validator.IsBlank(request.Otp)) throw new ApiException(Errors.OtpRequired);
@@ -199,12 +170,7 @@ public class AuthService : IAuthService
         await _eventPublisher.PublishAsync("user.password_reset", new { UserId = user.Id, Email = user.Email });
 
         // 2. Schedule Notification (JobScheduler)
-        var macros = new Dictionary<string, string>
-        {
-            ["USER_FIRST_NAME"] = user.Firstname!,
-            ["USER_LAST_NAME"] = user.Lastname!
-        };
-        await _jobScheduler.EnqueueNotificationAsync(user.Email!, "PasswordChanged", macros);
+        await _jobScheduler.EnqueueNotificationAsync(user.Id, NotificationType.PasswordChanged);
     }
 
     private async Task<ILoginResponse> ProcessSimpleLoginAsync(SimpleLoginRequest request)
@@ -313,14 +279,14 @@ public class AuthService : IAuthService
         await _eventPublisher.PublishAsync(eventType, new { UserId = userId, Email = email });
 
         // 2. Schedule Notification (JobScheduler)
-        var macros = new Dictionary<string, string> 
+        var metadata = new Dictionary<string, string> 
         { 
             ["OTP"] = otp,
             ["EXPIRY_TIME"] = _config.Otp?.Expiration.ToString() ?? "5"
         };
-        var templateName = reason == OtpRequestReason.Login ? "LoginOtp" : "ForgotPasswordOtp";
+        var type = reason == OtpRequestReason.Login ? NotificationType.LoginOtp : NotificationType.ForgotPasswordOtp;
         
-        await _jobScheduler.EnqueueNotificationAsync(email, templateName, macros);
+        await _jobScheduler.EnqueueNotificationAsync(userId, type, metadata);
     }
 
     private void ValidateSignUpRequest(SignUpRequest request)
