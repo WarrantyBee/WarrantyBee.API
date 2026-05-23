@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 
-namespace WarrantyBee.Infrastructure.Background;
+namespace WarrantyBee.API.Infrastructure.Background;
 
 /// <summary>
 /// A background hosted service that processes work items from the <see cref="IBackgroundTaskQueue"/>.
@@ -39,3 +39,4 @@ public class QueuedHostedService : BackgroundService
         _logger.LogInformation("Queued Hosted Service is stopping.");
     }
 }
+

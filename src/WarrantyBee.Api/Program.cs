@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WarrantyBee.Application;
-using WarrantyBee.Infrastructure;
-using WarrantyBee.Api.Middleware;
-using WarrantyBee.Api.Filters;
-using WarrantyBee.Application.Configuration;
+using WarrantyBee.API.Infrastructure;
+using WarrantyBee.Shared.Infrastructure.Middleware;
+using WarrantyBee.Shared.Infrastructure.Filters;
+using WarrantyBee.Shared.Core.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -149,3 +149,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

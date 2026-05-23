@@ -169,10 +169,11 @@ public class UserAuthorization
     /// <summary>
     /// Gets or sets the security role of the user.
     /// </summary>
-    public Domain.Enums.SecurityRole Role { get; set; }
+    public WarrantyBee.Shared.Core.Enums.SecurityRole Role { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of security permissions assigned to the user.
     /// </summary>
-    public IEnumerable<Domain.Enums.SecurityPermission> Permissions { get; set; } = [];
+    public IEnumerable<WarrantyBee.Shared.Core.Enums.SecurityPermission> Permissions { get; set; } = [];
 }
+

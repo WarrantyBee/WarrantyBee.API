@@ -1,11 +1,12 @@
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Configuration;
+using WarrantyBee.Shared.Core.Enums;
 using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Configuration;
-using WarrantyBee.Domain.Enums;
 
-namespace WarrantyBee.Infrastructure.Services;
+namespace WarrantyBee.API.Infrastructure.Services;
 
 /// <summary>
 /// Provides email sending services using SMTP with background queuing for high scalability.

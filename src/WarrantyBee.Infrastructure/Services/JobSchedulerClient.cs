@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Domain.Enums;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Enums;
 
-namespace WarrantyBee.Infrastructure.Services;
+namespace WarrantyBee.API.Infrastructure.Services;
 
 /// <summary>
 /// Implementation of <see cref="IJobSchedulerClient"/> that communicates with the Job Scheduler microservice.
@@ -76,3 +76,4 @@ public class JobSchedulerClient : IJobSchedulerClient
         return "queued-locally";
     }
 }
+

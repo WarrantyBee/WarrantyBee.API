@@ -6,14 +6,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="WarrantyBee.Shared.Infrastructure" Version="1.0.3" />
     <PackageReference Include="CloudinaryDotNet" Version="1.29.1" />
     <PackageReference Include="Dapper" Version="2.1.79" />
     <PackageReference Include="MailKit" Version="4.16.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.18.0" />
-    <PackageReference Include="Polly" Version="8.6.6" />
-    <PackageReference Include="RestSharp" Version="112.1.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.13.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
   </ItemGroup>
@@ -26,6 +24,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>WarrantyBee.API.Infrastructure</AssemblyName>
   </PropertyGroup>
 
 </Project>

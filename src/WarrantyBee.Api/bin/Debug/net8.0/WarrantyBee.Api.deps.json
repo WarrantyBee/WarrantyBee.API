@@ -11,8 +11,11 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.0",
           "Microsoft.AspNetCore.OpenApi": "8.0.0",
           "Swashbuckle.AspNetCore": "6.5.0",
-          "WarrantyBee.Application": "1.0.0",
-          "WarrantyBee.Infrastructure": "1.0.0"
+          "WarrantyBee.API.Application": "1.0.0",
+          "WarrantyBee.API.Infrastructure": "1.0.0",
+          "WarrantyBee.API.Application.Reference": "1.0.0.0",
+          "WarrantyBee.API.Domain.Reference": "1.0.0.0",
+          "WarrantyBee.API.Infrastructure.Reference": "1.0.0.0"
         },
         "runtime": {
           "WarrantyBee.Api.dll": {}
@@ -979,60 +982,92 @@
           "System.Runtime": "4.3.1"
         }
       },
-      "WarrantyBee.Application/1.0.0": {
+      "WarrantyBee.Shared.Core/1.0.1": {
+        "dependencies": {
+          "Konscious.Security.Cryptography.Argon2": "1.3.1"
+        },
+        "runtime": {
+          "lib/net8.0/WarrantyBee.Core.dll": {
+            "assemblyVersion": "1.0.1.0",
+            "fileVersion": "1.0.1.0"
+          }
+        }
+      },
+      "WarrantyBee.Shared.Infrastructure/1.0.3": {
+        "dependencies": {
+          "Microsoft.Data.SqlClient": "7.0.1",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
+          "Microsoft.Extensions.Options": "10.0.8",
+          "Polly": "8.6.6",
+          "RestSharp": "112.1.0",
+          "StackExchange.Redis": "2.13.1",
+          "WarrantyBee.Shared.Core": "1.0.1"
+        },
+        "runtime": {
+          "lib/net8.0/WarrantyBee.Infrastructure.dll": {
+            "assemblyVersion": "1.0.3.0",
+            "fileVersion": "1.0.3.0"
+          }
+        }
+      },
+      "WarrantyBee.API.Application/1.0.0": {
         "dependencies": {
           "FluentValidation": "12.1.1",
-          "Konscious.Security.Cryptography.Argon2": "1.3.1",
           "Microsoft.Extensions.Localization": "10.0.8",
           "Microsoft.Extensions.Localization.Abstractions": "10.0.8",
           "Microsoft.Extensions.Options": "10.0.8",
-          "WarrantyBee.Domain": "1.0.0"
+          "WarrantyBee.API.Domain": "1.0.0",
+          "WarrantyBee.Shared.Core": "1.0.1",
+          "WarrantyBee.Shared.Infrastructure": "1.0.3"
         },
         "runtime": {
-          "WarrantyBee.Application.dll": {
+          "WarrantyBee.API.Application.dll": {
             "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
+            "fileVersion": ""
           }
         },
         "resources": {
-          "ar/WarrantyBee.Application.resources.dll": {
+          "ar/WarrantyBee.API.Application.resources.dll": {
             "locale": "ar"
           },
-          "de/WarrantyBee.Application.resources.dll": {
+          "de/WarrantyBee.API.Application.resources.dll": {
             "locale": "de"
           },
-          "es/WarrantyBee.Application.resources.dll": {
+          "es/WarrantyBee.API.Application.resources.dll": {
             "locale": "es"
           },
-          "fr/WarrantyBee.Application.resources.dll": {
+          "fr/WarrantyBee.API.Application.resources.dll": {
             "locale": "fr"
           },
-          "hi/WarrantyBee.Application.resources.dll": {
+          "hi/WarrantyBee.API.Application.resources.dll": {
             "locale": "hi"
           },
-          "ja/WarrantyBee.Application.resources.dll": {
+          "ja/WarrantyBee.API.Application.resources.dll": {
             "locale": "ja"
           },
-          "ko/WarrantyBee.Application.resources.dll": {
+          "ko/WarrantyBee.API.Application.resources.dll": {
             "locale": "ko"
           },
-          "pt/WarrantyBee.Application.resources.dll": {
+          "pt/WarrantyBee.API.Application.resources.dll": {
             "locale": "pt"
           },
-          "zh/WarrantyBee.Application.resources.dll": {
+          "zh/WarrantyBee.API.Application.resources.dll": {
             "locale": "zh"
           }
         }
       },
-      "WarrantyBee.Domain/1.0.0": {
+      "WarrantyBee.API.Domain/1.0.0": {
+        "dependencies": {
+          "WarrantyBee.Shared.Core": "1.0.1"
+        },
         "runtime": {
-          "WarrantyBee.Domain.dll": {
+          "WarrantyBee.API.Domain.dll": {
             "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
+            "fileVersion": ""
           }
         }
       },
-      "WarrantyBee.Infrastructure/1.0.0": {
+      "WarrantyBee.API.Infrastructure/1.0.0": {
         "dependencies": {
           "CloudinaryDotNet": "1.29.1",
           "Dapper": "2.1.79",
@@ -1040,16 +1075,67 @@
           "Microsoft.Data.SqlClient": "7.0.1",
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
           "Microsoft.IdentityModel.Tokens": "8.18.0",
-          "Polly": "8.6.6",
-          "RestSharp": "112.1.0",
-          "StackExchange.Redis": "2.13.1",
           "System.IdentityModel.Tokens.Jwt": "8.18.0",
-          "WarrantyBee.Application": "1.0.0",
-          "WarrantyBee.Domain": "1.0.0"
+          "WarrantyBee.API.Application": "1.0.0",
+          "WarrantyBee.API.Domain": "1.0.0",
+          "WarrantyBee.Shared.Infrastructure": "1.0.3"
         },
         "runtime": {
-          "WarrantyBee.Infrastructure.dll": {
+          "WarrantyBee.API.Infrastructure.dll": {
             "assemblyVersion": "1.0.0",
+            "fileVersion": ""
+          }
+        }
+      },
+      "WarrantyBee.API.Application.Reference/1.0.0.0": {
+        "runtime": {
+          "WarrantyBee.API.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "resources": {
+          "ar/WarrantyBee.API.Application.resources.dll": {
+            "locale": "ar"
+          },
+          "de/WarrantyBee.API.Application.resources.dll": {
+            "locale": "de"
+          },
+          "es/WarrantyBee.API.Application.resources.dll": {
+            "locale": "es"
+          },
+          "fr/WarrantyBee.API.Application.resources.dll": {
+            "locale": "fr"
+          },
+          "hi/WarrantyBee.API.Application.resources.dll": {
+            "locale": "hi"
+          },
+          "ja/WarrantyBee.API.Application.resources.dll": {
+            "locale": "ja"
+          },
+          "ko/WarrantyBee.API.Application.resources.dll": {
+            "locale": "ko"
+          },
+          "pt/WarrantyBee.API.Application.resources.dll": {
+            "locale": "pt"
+          },
+          "zh/WarrantyBee.API.Application.resources.dll": {
+            "locale": "zh"
+          }
+        }
+      },
+      "WarrantyBee.API.Domain.Reference/1.0.0.0": {
+        "runtime": {
+          "WarrantyBee.API.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "WarrantyBee.API.Infrastructure.Reference/1.0.0.0": {
+        "runtime": {
+          "WarrantyBee.API.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1776,18 +1862,47 @@
       "path": "system.threading.tasks/4.3.0",
       "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
     },
-    "WarrantyBee.Application/1.0.0": {
+    "WarrantyBee.Shared.Core/1.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Qs0F0apTcbfc0+MUj5vCvQ8VuT573mXS5bz8HtffDgdlnGujmR25mP4o0WDfLrW3FN+stHxwioJDQBfjJsvEBw==",
+      "path": "warrantybee.shared.core/1.0.1",
+      "hashPath": "warrantybee.shared.core.1.0.1.nupkg.sha512"
+    },
+    "WarrantyBee.Shared.Infrastructure/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-o6V6IKnp2JB2FHVyj9RUvsTAvgCM2cc2lDh/Y0/BOmP0gAqJaylIvY6+wfPEyn2oybYnOb4KFDhRlebHo59/nA==",
+      "path": "warrantybee.shared.infrastructure/1.0.3",
+      "hashPath": "warrantybee.shared.infrastructure.1.0.3.nupkg.sha512"
+    },
+    "WarrantyBee.API.Application/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "WarrantyBee.Domain/1.0.0": {
+    "WarrantyBee.API.Domain/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "WarrantyBee.Infrastructure/1.0.0": {
+    "WarrantyBee.API.Infrastructure/1.0.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WarrantyBee.API.Application.Reference/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WarrantyBee.API.Domain.Reference/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WarrantyBee.API.Infrastructure.Reference/1.0.0.0": {
+      "type": "reference",
       "serviceable": false,
       "sha512": ""
     }

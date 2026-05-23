@@ -1,7 +1,8 @@
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using Dapper;
 using WarrantyBee.Application.Abstractions.Persistence;
 
-namespace WarrantyBee.Infrastructure.Persistence;
+namespace WarrantyBee.API.Infrastructure.Persistence;
 
 /// <summary>
 /// Repository for managing OTP (One-Time Password) data in the database.
@@ -59,3 +60,4 @@ public class OtpRepository : IOtpRepository
         return dataRow != null ? (string)dataRow.value : null;
     }
 }
+

@@ -1,11 +1,12 @@
 using Microsoft.Extensions.Options;
 using RestSharp;
-using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Configuration;
-using WarrantyBee.Infrastructure.Resilience;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Configuration;
+using WarrantyBee.Shared.Infrastructure.Resilience;
 using Polly.CircuitBreaker;
+using WarrantyBee.Application.Abstractions.Services;
 
-namespace WarrantyBee.Infrastructure.Services;
+namespace WarrantyBee.API.Infrastructure.Services;
 
 /// <summary>
 /// Implementation of reCAPTCHA Enterprise/v3 verification service with Circuit Breaker resilience.

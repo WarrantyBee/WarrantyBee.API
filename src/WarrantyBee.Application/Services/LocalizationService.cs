@@ -1,6 +1,8 @@
 using System.Globalization;
 using Microsoft.Extensions.Localization;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Core.Contracts;
 
 namespace WarrantyBee.Application.Services;
 

@@ -1,4 +1,4 @@
-using WarrantyBee.Application.Contracts.Common;
+using WarrantyBee.Shared.Core.Contracts;
 
 namespace WarrantyBee.Application.Contracts.Identity;
 
@@ -107,3 +107,4 @@ public class SignUpRequest : BaseRequest
     /// </summary>
     public string? AuthProviderUserId { get; set; }
 }
+

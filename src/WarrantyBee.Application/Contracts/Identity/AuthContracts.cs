@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using WarrantyBee.Application.Contracts.Common;
+using WarrantyBee.Shared.Core.Contracts;
 using WarrantyBee.Application.Contracts.Users;
 
 namespace WarrantyBee.Application.Contracts.Identity;
@@ -142,3 +142,4 @@ public class ResetPasswordRequest
     /// </summary>
     public string? CaptchaResponse { get; set; }
 }
+

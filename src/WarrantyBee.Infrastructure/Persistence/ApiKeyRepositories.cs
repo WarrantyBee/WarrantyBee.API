@@ -1,9 +1,10 @@
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using System.Data;
 using Dapper;
 using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Domain.Entities;
 
-namespace WarrantyBee.Infrastructure.Persistence;
+namespace WarrantyBee.API.Infrastructure.Persistence;
 
 public class ApiClientRepository : IApiClientRepository
 {
@@ -86,3 +87,4 @@ public class ApiKeyRepository : IApiKeyRepository
         await connection.ExecuteAsync("UPDATE tblApiKeys SET void = 1 WHERE expires_at < GETUTCDATE() AND void = 0");
     }
 }
+

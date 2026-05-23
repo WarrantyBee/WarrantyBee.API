@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using WarrantyBee.Application.Abstractions.Persistence;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Domain.Entities;
 
 namespace WarrantyBee.Application.Services;
@@ -91,3 +91,4 @@ public class ApiKeyManagementService : IApiKeyManagementService
         return Convert.ToHexString(bytes).ToLower();
     }
 }
+

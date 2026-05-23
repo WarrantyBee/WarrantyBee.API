@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using WarrantyBee.Api.Controllers;
 using WarrantyBee.Application.Abstractions.Persistence;
-using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Contracts.Common;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Contracts;
 using WarrantyBee.Application.Contracts.Users;
 using Xunit;
+using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Tests.Controllers;
 

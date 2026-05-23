@@ -1,12 +1,13 @@
 using FluentAssertions;
 using Moq;
 using WarrantyBee.Application.Abstractions.Persistence;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Contracts.Users;
 using WarrantyBee.Application.Services;
-using WarrantyBee.Domain.Enums;
-using WarrantyBee.Domain.Exceptions;
+using WarrantyBee.Shared.Core.Enums;
+using WarrantyBee.Shared.Core.Exceptions;
 using Xunit;
+using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Tests.Services;
 

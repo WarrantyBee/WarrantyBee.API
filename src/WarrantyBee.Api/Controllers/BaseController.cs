@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using WarrantyBee.Application.Contracts.Common;
+using WarrantyBee.Shared.Core.Contracts;
 
 namespace WarrantyBee.Api.Controllers;
 
@@ -20,3 +20,4 @@ public abstract class BaseController : ControllerBase
         return Ok(APIResponse<T>.Success(data));
     }
 }
+

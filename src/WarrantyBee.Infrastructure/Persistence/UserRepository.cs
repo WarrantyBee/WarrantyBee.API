@@ -1,12 +1,13 @@
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using System.Data;
 using Dapper;
 using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Application.Contracts.Identity;
 using WarrantyBee.Application.Contracts.Users;
 using WarrantyBee.Application.Contracts.Geographic;
-using WarrantyBee.Domain.Enums;
+using WarrantyBee.Shared.Core.Enums;
 
-namespace WarrantyBee.Infrastructure.Persistence;
+namespace WarrantyBee.API.Infrastructure.Persistence;
 
 /// <summary>
 /// Repository for managing user data in the database, including authentication tokens and profile updates.
@@ -218,3 +219,4 @@ public class UserRepository : IUserRepository
             .Where(p => p != SecurityPermission.None);
     }
 }
+

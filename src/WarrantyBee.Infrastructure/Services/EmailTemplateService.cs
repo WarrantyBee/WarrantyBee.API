@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Abstractions.Services;
 
-namespace WarrantyBee.Infrastructure.Services;
+namespace WarrantyBee.API.Infrastructure.Services;
 
 /// <summary>
 /// Provides services for processing email templates by replacing macros with actual values.

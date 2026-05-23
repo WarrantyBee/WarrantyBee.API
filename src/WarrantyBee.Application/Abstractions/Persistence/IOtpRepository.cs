@@ -104,3 +104,4 @@ public interface IOtpRepository
     /// <returns>The OTP value if found; otherwise, null.</returns>
     Task<string?> GetAsync(OtpSearchFilter filter);
 }
+

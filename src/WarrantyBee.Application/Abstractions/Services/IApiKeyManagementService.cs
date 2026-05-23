@@ -1,6 +1,6 @@
 using WarrantyBee.Domain.Entities;
 
-namespace WarrantyBee.Application.Abstractions.Services;
+namespace WarrantyBee.Shared.Infrastructure.Abstractions;
 
 public interface IApiKeyManagementService
 {
@@ -16,3 +16,4 @@ public class ApiKeyResponse
     public string AppSecret { get; set; } = string.Empty; // Plain text, returned only once
     public DateTime ExpiresAt { get; set; }
 }
+

@@ -1,9 +1,10 @@
 using WarrantyBee.Application.Abstractions.Persistence;
-using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Common;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Utilities;
 using WarrantyBee.Application.Contracts.Users;
-using WarrantyBee.Domain.Enums;
-using WarrantyBee.Domain.Exceptions;
+using WarrantyBee.Shared.Core.Enums;
+using WarrantyBee.Shared.Core.Exceptions;
+using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Application.Services;
 

@@ -1,10 +1,11 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Configuration;
 using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Configuration;
 
-namespace WarrantyBee.Infrastructure.Services;
+namespace WarrantyBee.API.Infrastructure.Services;
 
 /// <summary>
 /// Provides storage services using Cloudinary as the backend.

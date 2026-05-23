@@ -1,9 +1,10 @@
 using System.Diagnostics;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Contracts.Geographic;
-using WarrantyBee.Domain.Enums;
+using WarrantyBee.Shared.Core.Enums;
 
 using WarrantyBee.Application.Abstractions.Persistence;
+using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Application.Decorators;
 

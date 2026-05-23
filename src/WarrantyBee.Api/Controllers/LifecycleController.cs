@@ -20,3 +20,4 @@ public class LifecycleController : BaseController
         return OkResponse<object?>(null);
     }
 }
+

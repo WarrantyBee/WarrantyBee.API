@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Contracts.Identity;
+using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Api.Controllers;
 

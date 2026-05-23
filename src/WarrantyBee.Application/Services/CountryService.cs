@@ -1,4 +1,5 @@
 using WarrantyBee.Application.Abstractions.Persistence;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Application.Services;

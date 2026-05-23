@@ -1,13 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using WarrantyBee.Application.Abstractions.Persistence;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.API.Infrastructure.Persistence;
+using WarrantyBee.API.Infrastructure.Background;
+using WarrantyBee.API.Infrastructure.Services;
+using WarrantyBee.Shared.Infrastructure;
+using WarrantyBee.Shared.Infrastructure.Services;
 using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Infrastructure.Persistence;
-using WarrantyBee.Infrastructure.Services;
-using WarrantyBee.Infrastructure.Background;
 
-namespace WarrantyBee.Infrastructure;
+namespace WarrantyBee.API.Infrastructure;
 
 public static class DependencyInjection
 {
@@ -16,29 +18,26 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddHttpClient();
 
-        services.AddScoped<ICurrentUserContext, CurrentUserContext>();
-        services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+        // Register Shared Infrastructure (Telemetry, Cache, Background Queue, Filters, EventPublisher, DbConnectionFactory, CurrentUserContext)
+        services.AddWarrantyBeeInfrastructure();
+
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<IOtpRepository, OtpRepository>();
-        
+
         // API Key Management Repositories
         services.AddScoped<IApiClientRepository, ApiClientRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
-        
+
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<ICacheService, UpstashCacheService>();
         services.AddScoped<IStorageService, CloudinaryStorageService>();
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<ITelemetryService, TelemetryService>();
         services.AddScoped<ICaptchaService, ReCaptchaService>();
-        services.AddScoped<IEventPublisher, EventPublisher>();
         services.AddScoped<IJobSchedulerClient, JobSchedulerClient>();
 
         // High-scale Background processing
-        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         services.AddHostedService<QueuedHostedService>();
-        
+
         services.AddScoped<IEmailTemplateService>(sp => 
         {
             var templateRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates");

@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WarrantyBee.Application.Abstractions.Persistence;
-using WarrantyBee.Application.Abstractions.Services;
-using WarrantyBee.Application.Configuration;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
+using WarrantyBee.Shared.Core.Configuration;
 using WarrantyBee.Application.Services;
 using WarrantyBee.Application.Decorators;
+using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Core.Contracts;
 
 namespace WarrantyBee.Application;
 

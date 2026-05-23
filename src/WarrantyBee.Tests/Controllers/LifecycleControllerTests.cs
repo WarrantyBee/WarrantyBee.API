@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using WarrantyBee.Api.Controllers;
-using WarrantyBee.Application.Contracts.Common;
+using WarrantyBee.Shared.Core.Contracts;
 using Xunit;
 
 namespace WarrantyBee.Tests.Controllers;
@@ -30,3 +30,4 @@ public class LifecycleControllerTests
         response.Error.Should().BeNull();
     }
 }
+

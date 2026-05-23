@@ -60,3 +60,4 @@ public interface ICountryRepository
     /// <returns>A collection of <see cref="CountryDetailResponse"/>.</returns>
     Task<IEnumerable<CountryDetailResponse>> GetAsync();
 }
+

@@ -17,3 +17,4 @@ public interface IApiKeyRepository
     Task RevokeAsync(long id);
     Task DeleteExpiredAsync();
 }
+

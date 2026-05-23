@@ -17,6 +17,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+          "D:\\WarrantyBee\\NuGet.Config",
           "C:\\Users\\ARIJIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -27,6 +28,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
+          "D:\\WarrantyBee\\NuGetPackages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -98,7 +100,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Application\\WarrantyBee.Application.csproj",
-        "projectName": "WarrantyBee.Application",
+        "projectName": "WarrantyBee.API.Application",
         "projectPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Application\\WarrantyBee.Application.csproj",
         "packagesPath": "C:\\Users\\ARIJIT\\.nuget\\packages\\",
         "outputPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Application\\obj\\",
@@ -107,6 +109,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+          "D:\\WarrantyBee\\NuGet.Config",
           "C:\\Users\\ARIJIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -117,6 +120,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
+          "D:\\WarrantyBee\\NuGetPackages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -149,10 +153,6 @@
               "target": "Package",
               "version": "[12.1.1, )"
             },
-            "Konscious.Security.Cryptography.Argon2": {
-              "target": "Package",
-              "version": "[1.3.1, )"
-            },
             "Microsoft.Extensions.Localization": {
               "target": "Package",
               "version": "[10.0.8, )"
@@ -164,6 +164,14 @@
             "Microsoft.Extensions.Options": {
               "target": "Package",
               "version": "[10.0.8, )"
+            },
+            "WarrantyBee.Shared.Core": {
+              "target": "Package",
+              "version": "[1.0.1, )"
+            },
+            "WarrantyBee.Shared.Infrastructure": {
+              "target": "Package",
+              "version": "[1.0.3, )"
             }
           },
           "imports": [
@@ -190,7 +198,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Domain\\WarrantyBee.Domain.csproj",
-        "projectName": "WarrantyBee.Domain",
+        "projectName": "WarrantyBee.API.Domain",
         "projectPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Domain\\WarrantyBee.Domain.csproj",
         "packagesPath": "C:\\Users\\ARIJIT\\.nuget\\packages\\",
         "outputPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Domain\\obj\\",
@@ -199,6 +207,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+          "D:\\WarrantyBee\\NuGet.Config",
           "C:\\Users\\ARIJIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -209,6 +218,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
+          "D:\\WarrantyBee\\NuGetPackages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -232,6 +242,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "WarrantyBee.Shared.Core": {
+              "target": "Package",
+              "version": "[1.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -256,7 +272,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Infrastructure\\WarrantyBee.Infrastructure.csproj",
-        "projectName": "WarrantyBee.Infrastructure",
+        "projectName": "WarrantyBee.API.Infrastructure",
         "projectPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Infrastructure\\WarrantyBee.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\ARIJIT\\.nuget\\packages\\",
         "outputPath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Infrastructure\\obj\\",
@@ -265,6 +281,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+          "D:\\WarrantyBee\\NuGet.Config",
           "C:\\Users\\ARIJIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -275,6 +292,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
+          "D:\\WarrantyBee\\NuGetPackages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -330,21 +348,13 @@
               "target": "Package",
               "version": "[8.18.0, )"
             },
-            "Polly": {
-              "target": "Package",
-              "version": "[8.6.6, )"
-            },
-            "RestSharp": {
-              "target": "Package",
-              "version": "[112.1.0, )"
-            },
-            "StackExchange.Redis": {
-              "target": "Package",
-              "version": "[2.13.1, )"
-            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[8.18.0, )"
+            },
+            "WarrantyBee.Shared.Infrastructure": {
+              "target": "Package",
+              "version": "[1.0.3, )"
             }
           },
           "imports": [
@@ -383,6 +393,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
+          "D:\\WarrantyBee\\NuGet.Config",
           "C:\\Users\\ARIJIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -393,6 +404,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
+          "D:\\WarrantyBee\\NuGetPackages": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

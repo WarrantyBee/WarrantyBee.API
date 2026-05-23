@@ -103,7 +103,7 @@ public class PasswordResetRequest
 /// <summary>
 /// Represents a request to update a user's profile information.
 /// </summary>
-public class ProfileUpdateRequest : Contracts.Common.BaseRequest
+public class ProfileUpdateRequest : WarrantyBee.Shared.Core.Contracts.BaseRequest
 {
     /// <summary>
     /// Gets or sets the user's unique identifier.
@@ -215,3 +215,4 @@ public interface IUserRepository
     /// <returns>True if the profile was updated successfully; otherwise, false.</returns>
     Task<bool> UpdateProfileAsync(ProfileUpdateRequest request);
 }
+

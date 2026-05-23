@@ -1,6 +1,6 @@
-using WarrantyBee.Domain.Enums;
+using WarrantyBee.Shared.Core.Enums;
 
-namespace WarrantyBee.Application.Abstractions.Services;
+namespace WarrantyBee.Shared.Infrastructure.Abstractions;
 
 /// <summary>
 /// Defines a service for scheduling background jobs in the Job Scheduler microservice.
@@ -16,3 +16,4 @@ public interface IJobSchedulerClient
     /// <returns>A task representing the asynchronous operation.</returns>
     Task<string?> EnqueueNotificationAsync(long userId, NotificationType type, IDictionary<string, string>? metadata = null);
 }
+

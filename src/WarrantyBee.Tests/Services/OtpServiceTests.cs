@@ -29,3 +29,4 @@ public class OtpServiceTests
         otp1.Should().NotBe(otp2);
     }
 }
+

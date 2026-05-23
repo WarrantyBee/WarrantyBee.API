@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 
 namespace WarrantyBee.Api.Controllers.Admin;
 
@@ -72,3 +72,4 @@ public class GenerateKeyRequest
     public long ClientId { get; set; }
     public int ExpiryMonths { get; set; } = 1;
 }
+

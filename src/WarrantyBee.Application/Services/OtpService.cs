@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Application.Abstractions.Services;
 
 namespace WarrantyBee.Application.Services;

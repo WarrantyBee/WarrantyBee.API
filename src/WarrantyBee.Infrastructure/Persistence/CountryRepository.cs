@@ -1,9 +1,10 @@
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using System.Text.Json;
 using Dapper;
 using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Application.Contracts.Geographic;
 
-namespace WarrantyBee.Infrastructure.Persistence;
+namespace WarrantyBee.API.Infrastructure.Persistence;
 
 /// <summary>
 /// Repository for accessing country data from the database.
@@ -60,3 +61,4 @@ public class CountryRepository : ICountryRepository
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 }
+

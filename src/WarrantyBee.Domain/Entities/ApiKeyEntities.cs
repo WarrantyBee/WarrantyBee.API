@@ -32,3 +32,4 @@ public class ApiKey
     // Navigation property
     public ApiClient? Client { get; set; }
 }
+
