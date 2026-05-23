@@ -24,6 +24,7 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IOtpRepository _otpRepository;
     private readonly IJobSchedulerClient _jobScheduler;
+    private readonly IEventPublisher _eventPublisher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthService"/> class.
@@ -37,6 +38,7 @@ public class AuthService : IAuthService
     /// <param name="userRepository">Repository for user data.</param>
     /// <param name="otpRepository">Repository for OTP data.</param>
     /// <param name="jobScheduler">Client for scheduling background jobs.</param>
+    /// <param name="eventPublisher">Service for publishing events to the Event Manager.</param>
     public AuthService(
         IOptions<AppConfiguration> config,
         ITokenService tokenService,
@@ -46,7 +48,8 @@ public class AuthService : IAuthService
         ITelemetryService telemetryService,
         IUserRepository userRepository,
         IOtpRepository otpRepository,
-        IJobSchedulerClient jobScheduler)
+        IJobSchedulerClient jobScheduler,
+        IEventPublisher eventPublisher)
     {
         _config = config.Value;
         _tokenService = tokenService;
@@ -57,6 +60,7 @@ public class AuthService : IAuthService
         _userRepository = userRepository;
         _otpRepository = otpRepository;
         _jobScheduler = jobScheduler;
+        _eventPublisher = eventPublisher;
     }
 
     /// <summary>
@@ -112,7 +116,10 @@ public class AuthService : IAuthService
         var userId = await _userRepository.CreateAsync(request);
         if (userId <= 0) throw new ApiException(Errors.UserRegistrationFailed);
 
-        // Schedule Welcome Email Job immediately
+        // 1. Trigger Event (EventManager) for audit and webhooks
+        await _eventPublisher.PublishAsync("user.signup", new { UserId = userId, Email = request.Email });
+
+        // 2. Schedule Notification (JobScheduler) for immediate welcome mail
         var macros = new Dictionary<string, string>
         {
             ["USER_FIRST_NAME"] = request.Firstname,
@@ -188,6 +195,10 @@ public class AuthService : IAuthService
         var success = await _userRepository.ResetPasswordAsync(new PasswordResetRequest(user.Id, newHash));
         if (!success) throw new ApiException(Errors.PasswordResetFailed);
 
+        // 1. Trigger Event (EventManager)
+        await _eventPublisher.PublishAsync("user.password_reset", new { UserId = user.Id, Email = user.Email });
+
+        // 2. Schedule Notification (JobScheduler)
         var macros = new Dictionary<string, string>
         {
             ["USER_FIRST_NAME"] = user.Firstname!,
@@ -228,6 +239,7 @@ public class AuthService : IAuthService
             return new MFALoginResponse(token);
         }
 
+        await _eventPublisher.PublishAsync("user.login.success", new { UserId = user.Id, Email = user.Email });
         return await GetLoginResponseAsync(user);
     }
 
@@ -244,6 +256,7 @@ public class AuthService : IAuthService
         var otpHash = await _otpRepository.GetAsync(new OtpSearchFilter(user.Email!, user.Id, (byte)OtpRequestReason.Login));
         if (!HashHelper.Verify(request.Otp!, otpHash!)) throw new ApiException(Errors.InvalidOtp);
 
+        await _eventPublisher.PublishAsync("user.login.mfa.success", new { UserId = user.Id, Email = user.Email });
         return await GetLoginResponseAsync(user);
     }
 
@@ -295,6 +308,11 @@ public class AuthService : IAuthService
         var otpHash = HashHelper.GetHash(otp);
         await _otpRepository.StoreAsync(new OtpStorageRequest(otpHash, email, userId, (byte)reason));
 
+        // 1. Trigger Event (EventManager)
+        var eventType = reason == OtpRequestReason.Login ? "user.login.otp_sent" : "user.forgot_password.otp_sent";
+        await _eventPublisher.PublishAsync(eventType, new { UserId = userId, Email = email });
+
+        // 2. Schedule Notification (JobScheduler)
         var macros = new Dictionary<string, string> 
         { 
             ["OTP"] = otp,

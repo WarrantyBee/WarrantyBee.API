@@ -1,5 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Application.Configuration;
 using WarrantyBee.Application.Services;
 using WarrantyBee.Application.Decorators;
 
@@ -20,7 +23,19 @@ public static class DependencyInjection
 
         // Public interfaces decorated with Telemetry
         services.AddScoped<IAuthService>(sp => 
-            new AuthServiceTelemetryDecorator(sp.GetRequiredService<AuthService>(), sp.GetRequiredService<ITelemetryService>()));
+            new AuthServiceTelemetryDecorator(
+                new AuthService(
+                    sp.GetRequiredService<IOptions<AppConfiguration>>(),
+                    sp.GetRequiredService<ITokenService>(),
+                    sp.GetRequiredService<ICacheService>(),
+                    sp.GetRequiredService<ICaptchaService>(),
+                    sp.GetRequiredService<IOtpService>(),
+                    sp.GetRequiredService<ITelemetryService>(),
+                    sp.GetRequiredService<IUserRepository>(),
+                    sp.GetRequiredService<IOtpRepository>(),
+                    sp.GetRequiredService<IJobSchedulerClient>(),
+                    sp.GetRequiredService<IEventPublisher>()), 
+                sp.GetRequiredService<ITelemetryService>()));
         
         services.AddScoped<IUserService>(sp => 
             new UserServiceTelemetryDecorator(sp.GetRequiredService<UserService>(), sp.GetRequiredService<ITelemetryService>()));

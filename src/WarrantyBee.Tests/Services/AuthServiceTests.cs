@@ -24,6 +24,7 @@ public class AuthServiceTests
     private readonly Mock<ITelemetryService> _telemetryServiceMock;
     private readonly Mock<ICacheService> _cacheServiceMock;
     private readonly Mock<IJobSchedulerClient> _jobSchedulerMock;
+    private readonly Mock<IEventPublisher> _eventPublisherMock;
     private readonly Mock<IOptions<AppConfiguration>> _configMock;
     private readonly AuthService _service;
 
@@ -37,6 +38,7 @@ public class AuthServiceTests
         _telemetryServiceMock = new Mock<ITelemetryService>();
         _cacheServiceMock = new Mock<ICacheService>();
         _jobSchedulerMock = new Mock<IJobSchedulerClient>();
+        _eventPublisherMock = new Mock<IEventPublisher>();
         _configMock = new Mock<IOptions<AppConfiguration>>();
         
         var config = new AppConfiguration { Profile = new ProfileConfiguration { PasswordResetWindow = 60 } };
@@ -51,7 +53,8 @@ public class AuthServiceTests
             _telemetryServiceMock.Object,
             _userRepositoryMock.Object,
             _otpRepositoryMock.Object,
-            _jobSchedulerMock.Object);
+            _jobSchedulerMock.Object,
+            _eventPublisherMock.Object);
     }
 
     #region Login Tests
@@ -182,6 +185,8 @@ public class AuthServiceTests
         _userRepositoryMock.Setup(r => r.CreateAsync(request)).ReturnsAsync(1L);
         var result = await _service.SignUpAsync(request);
         result.Id.Should().Be(1L);
+        
+        _eventPublisherMock.Verify(s => s.PublishAsync("user.signup", It.IsAny<object>()), Times.Once);
         _jobSchedulerMock.Verify(s => s.EnqueueNotificationAsync(request.Email, "WelcomeEmail", It.IsAny<IDictionary<string, string>>()), Times.Once);
     }
 
