@@ -22,6 +22,10 @@ public static class DependencyInjection
         services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<IOtpRepository, OtpRepository>();
         
+        // API Key Management Repositories
+        services.AddScoped<IApiClientRepository, ApiClientRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+        
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICacheService, UpstashCacheService>();
         services.AddScoped<IStorageService, CloudinaryStorageService>();

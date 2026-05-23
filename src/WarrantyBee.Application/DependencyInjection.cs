@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<CountryService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<ILocalizationService, LocalizationService>();
+        services.AddScoped<IApiKeyManagementService, ApiKeyManagementService>();
 
         // Public interfaces decorated with Telemetry
         services.AddScoped<IAuthService>(sp => 

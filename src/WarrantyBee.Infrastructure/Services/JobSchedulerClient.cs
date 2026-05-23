@@ -15,7 +15,8 @@ public class JobSchedulerClient : IJobSchedulerClient
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<JobSchedulerClient> _logger;
     private readonly string _jobSchedulerUrl;
-    private readonly string? _apiKey;
+    private readonly string? _appId;
+    private readonly string? _appSecret;
 
     public JobSchedulerClient(
         IHttpClientFactory httpClientFactory,
@@ -26,7 +27,10 @@ public class JobSchedulerClient : IJobSchedulerClient
         _taskQueue = taskQueue;
         _logger = logger;
         _jobSchedulerUrl = Environment.GetEnvironmentVariable("WB__JOB_SCHEDULER_URL") ?? "http://localhost:5001/api/jobs";
-        _apiKey = Environment.GetEnvironmentVariable("WB__JOB_SCHEDULER_API_KEY");
+        
+        // Load unified API credentials
+        _appId = Environment.GetEnvironmentVariable("WB__APP_ID");
+        _appSecret = Environment.GetEnvironmentVariable("WB__APP_SECRET");
     }
 
     public async Task<string?> EnqueueNotificationAsync(long userId, NotificationType type, IDictionary<string, string>? metadata = null)
@@ -45,10 +49,11 @@ public class JobSchedulerClient : IJobSchedulerClient
             {
                 var client = _httpClientFactory.CreateClient();
                 
-                // Add the Encrypted API Key for authentication
-                if (!string.IsNullOrEmpty(_apiKey))
+                // Add the Unified API Credentials
+                if (!string.IsNullOrEmpty(_appId) && !string.IsNullOrEmpty(_appSecret))
                 {
-                    client.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
+                    client.DefaultRequestHeaders.Add("X-APP-ID", _appId);
+                    client.DefaultRequestHeaders.Add("X-APP-SECRET", _appSecret);
                 }
 
                 var json = JsonSerializer.Serialize(request);

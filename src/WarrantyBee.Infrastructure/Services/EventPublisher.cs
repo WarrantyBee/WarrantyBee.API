@@ -14,14 +14,12 @@ public class EventPublisher : IEventPublisher
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<EventPublisher> _logger;
     private readonly string _eventManagerUrl;
-    private readonly string? _apiKey;
+    private readonly string? _appId;
+    private readonly string? _appSecret;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPublisher"/> class.
     /// </summary>
-    /// <param name="httpClientFactory">The HTTP client factory.</param>
-    /// <param name="taskQueue">The background task queue for fire-and-forget processing.</param>
-    /// <param name="logger">The logger.</param>
     public EventPublisher(
         IHttpClientFactory httpClientFactory, 
         IBackgroundTaskQueue taskQueue,
@@ -32,15 +30,16 @@ public class EventPublisher : IEventPublisher
         _logger = logger;
         
         _eventManagerUrl = Environment.GetEnvironmentVariable("WB__EVENT_MANAGER_URL") ?? "http://localhost:5000/api/events";
-        _apiKey = Environment.GetEnvironmentVariable("WB__EVENT_MANAGER_API_KEY");
+        
+        // Load unified API credentials
+        _appId = Environment.GetEnvironmentVariable("WB__APP_ID");
+        _appSecret = Environment.GetEnvironmentVariable("WB__APP_SECRET");
     }
 
     /// <summary>
     /// Publishes an event to the Event Manager. 
     /// This implementation enqueues the HTTP call to a background queue to ensure it is truly non-blocking (Fire-and-Forget).
     /// </summary>
-    /// <param name="eventType">The type of the event.</param>
-    /// <param name="data">The event payload.</param>
     public async Task PublishAsync(string eventType, object data)
     {
         var payload = new
@@ -57,10 +56,11 @@ public class EventPublisher : IEventPublisher
             {
                 var client = _httpClientFactory.CreateClient();
                 
-                // Add the Encrypted API Key for authentication
-                if (!string.IsNullOrEmpty(_apiKey))
+                // Add the Unified API Credentials
+                if (!string.IsNullOrEmpty(_appId) && !string.IsNullOrEmpty(_appSecret))
                 {
-                    client.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
+                    client.DefaultRequestHeaders.Add("X-APP-ID", _appId);
+                    client.DefaultRequestHeaders.Add("X-APP-SECRET", _appSecret);
                 }
 
                 var json = JsonSerializer.Serialize(payload);
