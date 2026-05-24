@@ -21,6 +21,17 @@ public static class DependencyInjection
         services.AddScoped<UserService>();
         services.AddScoped<CountryService>();
         services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IVaultService, VaultService>();
+        services.AddScoped<IClaimService>(sp => 
+            new ClaimService(
+                sp.GetRequiredService<IClaimRepository>(),
+                sp.GetRequiredService<IVaultRepository>(),
+                sp.GetRequiredService<IProductRepository>(),
+                sp.GetRequiredService<IBusinessRepository>(),
+                sp.GetRequiredService<ICurrentUserContext>(),
+                sp.GetRequiredService<IEventPublisher>()));
+        services.AddScoped<IProductCatalogService, ProductCatalogService>();
         services.AddScoped<ILocalizationService, LocalizationService>();
         services.AddScoped<IApiKeyManagementService, ApiKeyManagementService>();
 
@@ -36,6 +47,7 @@ public static class DependencyInjection
                     sp.GetRequiredService<ITelemetryService>(),
                     sp.GetRequiredService<IUserRepository>(),
                     sp.GetRequiredService<IOtpRepository>(),
+                    sp.GetRequiredService<IRefreshTokenRepository>(),
                     sp.GetRequiredService<IJobSchedulerClient>(),
                     sp.GetRequiredService<IEventPublisher>()), 
                 sp.GetRequiredService<ITelemetryService>()));

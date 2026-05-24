@@ -33,6 +33,18 @@ public class AuthController : BaseController
         var result = await _authService.LoginAsync(request);
         return OkResponse(result);
     }
+
+    /// <summary>
+    /// Refreshes an access token using a valid refresh token.
+    /// </summary>
+    /// <param name="request">The refresh token request.</param>
+    /// <returns>A response containing a new access token and a new rotated refresh token.</returns>
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        var result = await _authService.RefreshTokenAsync(request);
+        return OkResponse(result);
+    }
     
     /// <summary>
     /// Authenticates a user using a multi-factor authentication (MFA) token.

@@ -23,6 +23,13 @@ public interface IAuthService
     Task<ILoginResponse> LoginAsync(LoginRequest request);
 
     /// <summary>
+    /// Refreshes an access token using a refresh token.
+    /// </summary>
+    /// <param name="request">The refresh token request.</param>
+    /// <returns>A login response containing new tokens.</returns>
+    Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request);
+
+    /// <summary>
     /// Registers a new user based on the sign-up request.
     /// </summary>
     /// <param name="request">The sign-up request.</param>

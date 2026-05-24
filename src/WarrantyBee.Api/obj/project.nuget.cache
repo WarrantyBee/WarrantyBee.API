@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "0w5DJ0LPiBM=",
+  "dgSpecHash": "p4fgolpB/rI=",
   "success": true,
   "projectFilePath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Api\\WarrantyBee.Api.csproj",
   "expectedPackageFiles": [
@@ -106,9 +106,9 @@
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.text.regularexpressions\\4.3.1\\system.text.regularexpressions.4.3.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.4\\warrantybee.shared.core.1.0.4.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.infrastructure\\1.0.5\\warrantybee.shared.infrastructure.1.0.5.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.security\\1.0.3\\warrantybee.shared.security.1.0.3.nupkg.sha512"
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.6\\warrantybee.shared.core.1.0.6.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.infrastructure\\1.0.6\\warrantybee.shared.infrastructure.1.0.6.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.security\\1.0.5\\warrantybee.shared.security.1.0.5.nupkg.sha512"
   ],
   "logs": []
 }

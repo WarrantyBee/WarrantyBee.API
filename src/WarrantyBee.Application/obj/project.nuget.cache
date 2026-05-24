@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "CHse3/9YJkw=",
+  "dgSpecHash": "BdTgoYgay28=",
   "success": true,
   "projectFilePath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Application\\WarrantyBee.Application.csproj",
   "expectedPackageFiles": [
@@ -41,8 +41,8 @@
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.security.cryptography.pkcs\\8.0.1\\system.security.cryptography.pkcs.8.0.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.4\\warrantybee.shared.core.1.0.4.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.infrastructure\\1.0.5\\warrantybee.shared.infrastructure.1.0.5.nupkg.sha512"
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.6\\warrantybee.shared.core.1.0.6.nupkg.sha512",
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.infrastructure\\1.0.6\\warrantybee.shared.infrastructure.1.0.6.nupkg.sha512"
   ],
   "logs": []
 }

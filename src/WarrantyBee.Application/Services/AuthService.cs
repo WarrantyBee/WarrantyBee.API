@@ -24,22 +24,13 @@ public class AuthService : IAuthService
     private readonly ITelemetryService _telemetryService;
     private readonly IUserRepository _userRepository;
     private readonly IOtpRepository _otpRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJobSchedulerClient _jobScheduler;
     private readonly IEventPublisher _eventPublisher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthService"/> class.
     /// </summary>
-    /// <param name="config">Application configuration options.</param>
-    /// <param name="tokenService">Service for generating and validating tokens.</param>
-    /// <param name="cacheService">Service for caching data.</param>
-    /// <param name="captchaService">Service for validating captchas.</param>
-    /// <param name="otpService">Service for generating OTPs.</param>
-    /// <param name="telemetryService">Service for logging and telemetry.</param>
-    /// <param name="userRepository">Repository for user data.</param>
-    /// <param name="otpRepository">Repository for OTP data.</param>
-    /// <param name="jobScheduler">Client for scheduling background jobs.</param>
-    /// <param name="eventPublisher">Service for publishing events to the Event Manager.</param>
     public AuthService(
         IOptions<AppConfiguration> config,
         ITokenService tokenService,
@@ -49,6 +40,7 @@ public class AuthService : IAuthService
         ITelemetryService telemetryService,
         IUserRepository userRepository,
         IOtpRepository otpRepository,
+        IRefreshTokenRepository refreshTokenRepository,
         IJobSchedulerClient jobScheduler,
         IEventPublisher eventPublisher)
     {
@@ -60,6 +52,7 @@ public class AuthService : IAuthService
         _telemetryService = telemetryService;
         _userRepository = userRepository;
         _otpRepository = otpRepository;
+        _refreshTokenRepository = refreshTokenRepository;
         _jobScheduler = jobScheduler;
         _eventPublisher = eventPublisher;
     }
@@ -80,6 +73,40 @@ public class AuthService : IAuthService
         }
 
         throw new ApiException(Errors.InvalidRequestBody);
+    }
+
+    public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken)) throw new ApiException(Errors.TokenRequired);
+
+        var tokenHash = HashHelper.ComputeHash(request.RefreshToken);
+        var record = await _refreshTokenRepository.GetByHashAsync(tokenHash);
+
+        if (record == null) throw new ApiException(Errors.InvalidToken);
+
+        // Security: Token Rotation and Replay Attack detection
+        if (record.IsRevoked)
+        {
+            // Someone is trying to reuse a revoked token - potentially a stolen one!
+            // Revoke all tokens for this user for safety.
+            await _refreshTokenRepository.RevokeDescendantsAsync(tokenHash);
+            throw new ApiException(Errors.SessionExpired);
+        }
+
+        if (record.ExpiresAt < DateTime.UtcNow) throw new ApiException(Errors.SessionExpired);
+
+        // Valid token found. Process refresh.
+        var user = await _userRepository.GetAsync(new UserSearchFilter(record.UserId, null));
+        if (user == null) throw new ApiException(Errors.UserNotFound);
+
+        // Create new tokens
+        var loginResponse = await GetLoginResponseAsync(user);
+
+        // Revoke the old one and link it to the new one
+        var newRefreshTokenHash = HashHelper.ComputeHash(loginResponse.RefreshToken);
+        await _refreshTokenRepository.RevokeAsync(record.Id, newRefreshTokenHash);
+
+        return loginResponse;
     }
 
     public async Task<SignUpResponse> SignUpAsync(SignUpRequest request)
@@ -229,44 +256,33 @@ public class AuthService : IAuthService
 
     private async Task<LoginResponse> GetLoginResponseAsync(UserResponse user)
     {
-        var cacheKey = $"token:{user.Email}";
-        string? accessToken = null;
+        var claims = new Dictionary<string, object>
+        {
+            ["userId"] = user.Id.ToString(),
+            ["email"] = user.Email!,
+            ["role"] = user.AuthorizationContext?.Role.ToString() ?? "CUSTOMER"
+        };
 
-        try
+        // Unified RBAC: Add granular permissions to the token
+        if (user.AuthorizationContext?.Permissions != null)
         {
-            accessToken = await _cacheService.GetAsync(cacheKey);
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.Log(LogLevel.Warn, ex, new Dictionary<string, object> { ["Message"] = "Cache retrieval failed during login" });
+            claims["permissions"] = string.Join(",", user.AuthorizationContext.Permissions.Select(p => p.ToString()));
         }
 
-        if (accessToken == null)
-        {
-            var claims = new Dictionary<string, object>
-            {
-                ["userId"] = user.Id.ToString(),
-                ["email"] = user.Email!,
-                ["role"] = user.AuthorizationContext?.Role.ToString() ?? "CUSTOMER"
-            };
-            accessToken = _tokenService.Generate(claims);
-            
-            try
-            {
-                await _cacheService.SetAsync(cacheKey, accessToken, 3600);
-            }
-            catch (Exception ex)
-            {
-                _telemetryService.Log(LogLevel.Warn, ex, new Dictionary<string, object> { ["Message"] = "Cache storage failed during login" });
-            }
-        }
+        var accessToken = _tokenService.Generate(claims);
+        var refreshToken = HashHelper.GenerateToken(); // Random 64-char hex string
+        
+        // Store refresh token
+        var refreshTokenHash = HashHelper.ComputeHash(refreshToken);
+        var expiryDays = _config.Jwt?.RefreshTokenExpirationDays > 0 ? _config.Jwt.RefreshTokenExpirationDays : 7;
+        await _refreshTokenRepository.AddAsync(user.Id, refreshTokenHash, DateTime.UtcNow.AddDays(expiryDays));
 
         var validatedClaims = _tokenService.Validate(accessToken);
         
         var iat = validatedClaims.ContainsKey("iat") ? validatedClaims["iat"].ToString()! : DateTime.UtcNow.ToString("O");
         var exp = validatedClaims.ContainsKey("exp") ? validatedClaims["exp"].ToString()! : DateTime.UtcNow.AddHours(1).ToString("O");
 
-        return new LoginResponse(accessToken, iat, exp, user);
+        return new LoginResponse(accessToken, refreshToken, iat, exp, user);
     }
 
     private async Task SendOtpAsync(long userId, string email, OtpRequestReason reason)

@@ -22,6 +22,12 @@ public static class DependencyInjection
         services.AddWarrantyBeeInfrastructure();
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IBusinessRepository, BusinessRepository>();
+        services.AddScoped<IOnboardingRepository, OnboardingRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IVaultRepository, VaultRepository>();
+        services.AddScoped<IClaimRepository, ClaimRepository>();
         services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<IOtpRepository, OtpRepository>();
 

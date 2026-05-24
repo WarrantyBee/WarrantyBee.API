@@ -1,7 +1,10 @@
 using WarrantyBee.Shared.Infrastructure.Abstractions;
 using System.Data;
 using Dapper;
+using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Domain.Entities;
+using WarrantyBee.Shared.Security.Abstractions;
+using WarrantyBee.Shared.Core.Enums;
 
 namespace WarrantyBee.API.Infrastructure.Persistence;
 
@@ -49,12 +52,14 @@ public class ApiKeyRepository : WarrantyBee.Shared.Security.Abstractions.IApiKey
     }
 
     // Shared Security Implementation
-    public async Task<bool> ValidateAsync(string appId, string secretHash, string requestedPath)
+    public async Task<ApiClientContext?> ResolveAsync(string appId, string secretHash, string requestedPath)
     {
         using var connection = _connectionFactory.CreateConnection();
-        var sql = @"SELECT COUNT(1) 
+        var sql = @"SELECT c.id AS ClientId, c.app_id AS AppId, c.name AS Name, r.name AS RoleName, 
+                    STUFF((SELECT ',' + p.name FROM tblRolePermissions rp JOIN tblPermissions p ON rp.permission_id = p.id WHERE rp.role_id = c.role_id FOR XML PATH('')), 1, 1, '') AS PermissionsCsv
                     FROM tblApiKeys k 
                     JOIN tblApiClients c ON k.client_id = c.id 
+                    JOIN tblRoles r ON c.role_id = r.id
                     LEFT JOIN tblApiKeyEndpoints e ON k.id = e.api_key_id
                     WHERE c.app_id = @appId 
                     AND k.secret_hash = @secretHash 
@@ -62,23 +67,32 @@ public class ApiKeyRepository : WarrantyBee.Shared.Security.Abstractions.IApiKey
                     AND k.expires_at > GETUTCDATE() 
                     AND k.void = 0
                     AND (e.endpoint_path IS NULL OR @requestedPath LIKE e.endpoint_path + '%')";
-        var count = await connection.ExecuteScalarAsync<int>(sql, new { appId, secretHash, requestedPath });
-        return count > 0;
+        
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { appId, secretHash, requestedPath });
+        if (result == null) return null;
+
+        return MapToContext(result);
     }
 
-    public async Task<bool> ValidateKeyAsync(string keyHash, string requestedPath)
+    public async Task<ApiClientContext?> ResolveKeyAsync(string keyHash, string requestedPath)
     {
         using var connection = _connectionFactory.CreateConnection();
-        var sql = @"SELECT COUNT(1) 
+        var sql = @"SELECT c.id AS ClientId, c.app_id AS AppId, c.name AS Name, r.name AS RoleName,
+                    STUFF((SELECT ',' + p.name FROM tblRolePermissions rp JOIN tblPermissions p ON rp.permission_id = p.id WHERE rp.role_id = c.role_id FOR XML PATH('')), 1, 1, '') AS PermissionsCsv
                     FROM tblApiKeys k 
+                    JOIN tblApiClients c ON k.client_id = c.id
+                    JOIN tblRoles r ON c.role_id = r.id
                     LEFT JOIN tblApiKeyEndpoints e ON k.id = e.api_key_id
                     WHERE k.secret_hash = @keyHash 
                     AND k.is_revoked = 0 
                     AND k.expires_at > GETUTCDATE() 
                     AND k.void = 0
                     AND (e.endpoint_path IS NULL OR @requestedPath LIKE e.endpoint_path + '%')";
-        var count = await connection.ExecuteScalarAsync<int>(sql, new { keyHash, requestedPath });
-        return count > 0;
+
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { keyHash, requestedPath });
+        if (result == null) return null;
+
+        return MapToContext(result);
     }
 
     // Existing Management Implementation
@@ -139,5 +153,22 @@ public class ApiKeyRepository : WarrantyBee.Shared.Security.Abstractions.IApiKey
             transaction.Rollback();
             throw;
         }
+    }
+
+    private ApiClientContext MapToContext(dynamic row)
+    {
+        var roleName = (string)row.RoleName;
+        var permissionsCsv = (string)row.PermissionsCsv ?? "";
+        
+        return new ApiClientContext
+        {
+            ClientId = (long)row.ClientId,
+            AppId = (string)row.AppId,
+            Name = (string)row.Name,
+            Role = Enum.TryParse<SecurityRole>(roleName, true, out var role) ? role : SecurityRole.None,
+            Permissions = permissionsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => Enum.TryParse<SecurityPermission>(p, true, out var perm) ? perm : SecurityPermission.None)
+                .Where(p => p != SecurityPermission.None)
+        };
     }
 }

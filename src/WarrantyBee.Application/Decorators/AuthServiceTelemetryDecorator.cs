@@ -26,6 +26,11 @@ public class AuthServiceTelemetryDecorator : IAuthService
             new Dictionary<string, object> { ["Email"] = request.Email });
     }
 
+    public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        return await ExecuteWithTelemetryAsync("Auth.RefreshToken", () => _inner.RefreshTokenAsync(request));
+    }
+
     public async Task<SignUpResponse> SignUpAsync(SignUpRequest request)
     {
         return await ExecuteWithTelemetryAsync("Auth.SignUp", () => _inner.SignUpAsync(request), 

@@ -44,6 +44,11 @@ public class LoginResponse : ILoginResponse
     public string AccessToken { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the rotated refresh token.
+    /// </summary>
+    public string RefreshToken { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the timestamp when the token was issued.
     /// </summary>
     public string IssuedAt { get; set; } = string.Empty;
@@ -67,12 +72,14 @@ public class LoginResponse : ILoginResponse
     /// Initializes a new instance of the <see cref="LoginResponse"/> class with detailed information.
     /// </summary>
     /// <param name="accessToken">The JWT access token.</param>
+    /// <param name="refreshToken">The refresh token.</param>
     /// <param name="issuedAt">The issuance timestamp.</param>
     /// <param name="expiresAt">The expiration timestamp.</param>
     /// <param name="user">The user details.</param>
-    public LoginResponse(string accessToken, string issuedAt, string expiresAt, UserResponse user)
+    public LoginResponse(string accessToken, string refreshToken, string issuedAt, string expiresAt, UserResponse user)
     {
         AccessToken = accessToken;
+        RefreshToken = refreshToken;
         IssuedAt = issuedAt;
         ExpiresAt = expiresAt;
         User = user;

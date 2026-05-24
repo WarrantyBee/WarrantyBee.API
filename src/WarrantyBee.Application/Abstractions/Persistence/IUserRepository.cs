@@ -1,8 +1,31 @@
 using WarrantyBee.Application.Contracts.Identity;
 using WarrantyBee.Application.Contracts.Users;
 using WarrantyBee.Application.Contracts.Geographic;
+using WarrantyBee.Shared.Core.Enums;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 
 namespace WarrantyBee.Application.Abstractions.Persistence;
+
+/// <summary>
+/// Defines the contract for refresh token persistence operations.
+/// </summary>
+public interface IRefreshTokenRepository
+{
+    Task AddAsync(long userId, string tokenHash, DateTime expiresAt);
+    Task<RefreshTokenRecord?> GetByHashAsync(string tokenHash);
+    Task RevokeAsync(long id, string? replacedByTokenHash = null);
+    Task RevokeDescendantsAsync(string tokenHash);
+}
+
+public class RefreshTokenRecord
+{
+    public long Id { get; set; }
+    public long UserId { get; set; }
+    public string TokenHash { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public bool IsRevoked { get; set; }
+    public string ReplacedByTokenHash { get; set; }
+}
 
 /// <summary>
 /// Represents a filter for searching for a user.
@@ -169,7 +192,7 @@ public interface IUserRepository
     /// <summary>
     /// Creates a new user based on the sign-up request.
     /// </summary>
-    /// <param name="request">The sign-up request.</param>
+    /// <param name="request">The sign-up request details.</param>
     /// <returns>The unique identifier of the newly created user.</returns>
     Task<long> CreateAsync(SignUpRequest request);
 
@@ -222,4 +245,3 @@ public interface IUserRepository
     /// <returns>True if the profile was updated successfully; otherwise, false.</returns>
     Task<bool> UpdateProfileAsync(ProfileUpdateRequest request);
 }
-
