@@ -167,7 +167,7 @@
             },
             "WarrantyBee.Shared.Core": {
               "target": "Package",
-              "version": "[1.0.3, )"
+              "version": "[1.0.4, )"
             },
             "WarrantyBee.Shared.Infrastructure": {
               "target": "Package",
@@ -245,7 +245,7 @@
           "dependencies": {
             "WarrantyBee.Shared.Core": {
               "target": "Package",
-              "version": "[1.0.3, )"
+              "version": "[1.0.4, )"
             }
           },
           "imports": [
