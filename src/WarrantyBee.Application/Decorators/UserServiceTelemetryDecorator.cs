@@ -39,6 +39,12 @@ public class UserServiceTelemetryDecorator : IUserService
             new Dictionary<string, object> { ["UserId"] = request.UserId });
     }
 
+    public async Task AdminCreateUserAsync(AdminCreateUserRequest request)
+    {
+        await ExecuteWithTelemetryAsync("User.AdminCreate", async () => { await _inner.AdminCreateUserAsync(request); return true; },
+            new Dictionary<string, object> { ["Email"] = request.Email, ["Role"] = request.RoleId });
+    }
+
     private async Task<T> ExecuteWithTelemetryAsync<T>(string operationName, Func<Task<T>> action, IDictionary<string, object>? context = null)
     {
         var sw = Stopwatch.StartNew();

@@ -60,6 +60,31 @@ public class UserRepository : IUserRepository
     }
 
     /// <summary>
+    /// Creates a new user with administrative privileges, allowing role specification.
+    /// </summary>
+    public async Task<long> AdminCreateUserAsync(AdminCreateUserRequest request)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var parameters = new DynamicParameters();
+        parameters.Add("in_firstname", request.Firstname);
+        parameters.Add("in_lastname", request.Lastname);
+        parameters.Add("in_email", request.Email);
+        parameters.Add("in_password", request.Password);
+        parameters.Add("in_role_id", request.RoleId);
+        parameters.Add("in_phone_code", request.PhoneCode);
+        parameters.Add("in_phone_number", request.PhoneNumber);
+        parameters.Add("in_gender", request.Gender);
+        parameters.Add("in_country_id", request.CountryId);
+        parameters.Add("in_region_id", request.RegionId);
+        parameters.Add("in_city", request.City);
+        parameters.Add("in_postal_code", request.PostalCode);
+        parameters.Add("in_culture_id", request.CultureId);
+
+        var result = await connection.QueryAsync<long?>("EXEC dbo.usp_AdminCreateUser @in_firstname, @in_lastname, @in_email, @in_password, @in_role_id, @in_phone_code, @in_phone_number, @in_gender, @in_country_id, @in_region_id, @in_city, @in_postal_code, @in_culture_id", parameters);
+        return result.FirstOrDefault() ?? 0;
+    }
+
+    /// <summary>
     /// Retrieves a user from the database based on the provided filter.
     /// </summary>
     /// <param name="filter">The filter criteria for searching the user.</param>

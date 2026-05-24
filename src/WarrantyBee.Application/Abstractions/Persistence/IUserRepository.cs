@@ -174,6 +174,13 @@ public interface IUserRepository
     Task<long> CreateAsync(SignUpRequest request);
 
     /// <summary>
+    /// Creates a new user with administrative privileges, allowing role specification.
+    /// </summary>
+    /// <param name="request">The administrative creation request.</param>
+    /// <returns>The unique identifier of the newly created user.</returns>
+    Task<long> AdminCreateUserAsync(AdminCreateUserRequest request);
+
+    /// <summary>
     /// Retrieves a user based on the specified search filter.
     /// </summary>
     /// <param name="filter">The search filter.</param>

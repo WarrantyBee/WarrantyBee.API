@@ -120,6 +120,24 @@ public class UserService : IUserService
         if (!success) throw new ApiException(Errors.ProfileCouldNotBeUpdated);
     }
 
+    /// <summary>
+    /// Creates a new user with administrative privileges.
+    /// </summary>
+    public async Task AdminCreateUserAsync(AdminCreateUserRequest request)
+    {
+        // Basic validation
+        if (Validator.IsBlank(request.Email)) throw new ApiException(Errors.EmailRequired);
+        if (!Validator.IsEmail(request.Email)) throw new ApiException(Errors.InvalidEmail);
+        if (Validator.IsBlank(request.Password)) throw new ApiException(Errors.PasswordRequired);
+        if (!Validator.IsStrongPassword(request.Password)) throw new ApiException(Errors.StrongPasswordRequired);
+
+        // Hash password
+        request.Password = HashHelper.GetHash(request.Password);
+
+        var id = await _userRepository.AdminCreateUserAsync(request);
+        if (id == 0) throw new ApiException(Errors.UserRegistrationFailed);
+    }
+
     private void ValidateProfileUpdate(ProfileUpdateRequest request)
     {
         if (request.AddressLine1 != null && Validator.IsBlank(request.AddressLine1)) throw new ApiException(Errors.AddressRequired);

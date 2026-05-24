@@ -71,6 +71,13 @@ public interface IUserService
     /// <param name="request">The profile update request.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task UpdateProfileAsync(Persistence.ProfileUpdateRequest request);
+
+    /// <summary>
+    /// Creates a new user with administrative privileges.
+    /// </summary>
+    /// <param name="request">The administrative user creation request.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task AdminCreateUserAsync(Contracts.Users.AdminCreateUserRequest request);
 }
 
 /// <summary>
