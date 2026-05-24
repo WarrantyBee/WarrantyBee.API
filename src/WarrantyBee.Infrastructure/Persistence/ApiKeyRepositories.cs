@@ -1,12 +1,11 @@
 using WarrantyBee.Shared.Infrastructure.Abstractions;
 using System.Data;
 using Dapper;
-using WarrantyBee.Application.Abstractions.Persistence;
 using WarrantyBee.Domain.Entities;
 
 namespace WarrantyBee.API.Infrastructure.Persistence;
 
-public class ApiClientRepository : IApiClientRepository
+public class ApiClientRepository : WarrantyBee.Application.Abstractions.Persistence.IApiClientRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
@@ -19,7 +18,7 @@ public class ApiClientRepository : IApiClientRepository
     {
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QueryFirstOrDefaultAsync<ApiClient>(
-            "SELECT id AS Id, app_id AS AppId, name AS Name, description AS Description FROM tblApiClients WHERE app_id = @appId AND void = 0", 
+            "SELECT id AS Id, app_id AS AppId, name AS Name, description AS Description, app_secret AS AppSecret, owner_user_id AS OwnerUserId, app_type AS AppType FROM tblApiClients WHERE app_id = @appId AND void = 0", 
             new { appId });
     }
 
@@ -27,20 +26,20 @@ public class ApiClientRepository : IApiClientRepository
     {
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QueryAsync<ApiClient>(
-            "SELECT id AS Id, app_id AS AppId, name AS Name, description AS Description FROM tblApiClients WHERE void = 0");
+            "SELECT id AS Id, app_id AS AppId, name AS Name, description AS Description, app_secret AS AppSecret, owner_user_id AS OwnerUserId, app_type AS AppType FROM tblApiClients WHERE void = 0");
     }
 
     public async Task<long> CreateAsync(ApiClient client)
     {
         using var connection = _connectionFactory.CreateConnection();
-        var sql = @"INSERT INTO tblApiClients (internal_id, app_id, name, description, created_at, void) 
-                    VALUES (NEWID(), @AppId, @Name, @Description, GETUTCDATE(), 0);
+        var sql = @"INSERT INTO tblApiClients (internal_id, app_id, name, description, app_secret, owner_user_id, app_type, created_at, void) 
+                    VALUES (NEWID(), @AppId, @Name, @Description, @AppSecret, @OwnerUserId, @AppType, GETUTCDATE(), 0);
                     SELECT CAST(SCOPE_IDENTITY() as BIGINT);";
         return await connection.ExecuteScalarAsync<long>(sql, client);
     }
 }
 
-public class ApiKeyRepository : IApiKeyRepository
+public class ApiKeyRepository : WarrantyBee.Shared.Security.Abstractions.IApiKeyRepository, WarrantyBee.Application.Abstractions.Persistence.IApiKeyRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
@@ -49,6 +48,40 @@ public class ApiKeyRepository : IApiKeyRepository
         _connectionFactory = connectionFactory;
     }
 
+    // Shared Security Implementation
+    public async Task<bool> ValidateAsync(string appId, string secretHash, string requestedPath)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var sql = @"SELECT COUNT(1) 
+                    FROM tblApiKeys k 
+                    JOIN tblApiClients c ON k.client_id = c.id 
+                    LEFT JOIN tblApiKeyEndpoints e ON k.id = e.api_key_id
+                    WHERE c.app_id = @appId 
+                    AND k.secret_hash = @secretHash 
+                    AND k.is_revoked = 0 
+                    AND k.expires_at > GETUTCDATE() 
+                    AND k.void = 0
+                    AND (e.endpoint_path IS NULL OR @requestedPath LIKE e.endpoint_path + '%')";
+        var count = await connection.ExecuteScalarAsync<int>(sql, new { appId, secretHash, requestedPath });
+        return count > 0;
+    }
+
+    public async Task<bool> ValidateKeyAsync(string keyHash, string requestedPath)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var sql = @"SELECT COUNT(1) 
+                    FROM tblApiKeys k 
+                    LEFT JOIN tblApiKeyEndpoints e ON k.id = e.api_key_id
+                    WHERE k.secret_hash = @keyHash 
+                    AND k.is_revoked = 0 
+                    AND k.expires_at > GETUTCDATE() 
+                    AND k.void = 0
+                    AND (e.endpoint_path IS NULL OR @requestedPath LIKE e.endpoint_path + '%')";
+        var count = await connection.ExecuteScalarAsync<int>(sql, new { keyHash, requestedPath });
+        return count > 0;
+    }
+
+    // Existing Management Implementation
     public async Task<ApiKey?> GetByHashAsync(string appId, string secretHash)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -86,5 +119,25 @@ public class ApiKeyRepository : IApiKeyRepository
         using var connection = _connectionFactory.CreateConnection();
         await connection.ExecuteAsync("UPDATE tblApiKeys SET void = 1 WHERE expires_at < GETUTCDATE() AND void = 0");
     }
-}
 
+    public async Task UpdateEndpointsAsync(long keyId, IEnumerable<string> endpoints)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            await connection.ExecuteAsync("DELETE FROM tblApiKeyEndpoints WHERE api_key_id = @keyId", new { keyId }, transaction);
+            foreach (var path in endpoints)
+            {
+                await connection.ExecuteAsync("INSERT INTO tblApiKeyEndpoints (api_key_id, endpoint_path, created_at) VALUES (@keyId, @path, GETUTCDATE())", new { keyId, path }, transaction);
+            }
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+}

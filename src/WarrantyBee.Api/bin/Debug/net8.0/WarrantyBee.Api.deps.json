@@ -982,18 +982,18 @@
           "System.Runtime": "4.3.1"
         }
       },
-      "WarrantyBee.Shared.Core/1.0.1": {
+      "WarrantyBee.Shared.Core/1.0.3": {
         "dependencies": {
           "Konscious.Security.Cryptography.Argon2": "1.3.1"
         },
         "runtime": {
           "lib/net8.0/WarrantyBee.Core.dll": {
-            "assemblyVersion": "1.0.1.0",
-            "fileVersion": "1.0.1.0"
+            "assemblyVersion": "1.0.3.0",
+            "fileVersion": "1.0.3.0"
           }
         }
       },
-      "WarrantyBee.Shared.Infrastructure/1.0.3": {
+      "WarrantyBee.Shared.Infrastructure/1.0.5": {
         "dependencies": {
           "Microsoft.Data.SqlClient": "7.0.1",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.8",
@@ -1001,10 +1001,22 @@
           "Polly": "8.6.6",
           "RestSharp": "112.1.0",
           "StackExchange.Redis": "2.13.1",
-          "WarrantyBee.Shared.Core": "1.0.1"
+          "WarrantyBee.Shared.Core": "1.0.3"
         },
         "runtime": {
           "lib/net8.0/WarrantyBee.Infrastructure.dll": {
+            "assemblyVersion": "1.0.5.0",
+            "fileVersion": "1.0.5.0"
+          }
+        }
+      },
+      "WarrantyBee.Shared.Security/1.0.3": {
+        "dependencies": {
+          "WarrantyBee.Shared.Core": "1.0.3",
+          "WarrantyBee.Shared.Infrastructure": "1.0.5"
+        },
+        "runtime": {
+          "lib/net8.0/WarrantyBee.Security.dll": {
             "assemblyVersion": "1.0.3.0",
             "fileVersion": "1.0.3.0"
           }
@@ -1017,8 +1029,8 @@
           "Microsoft.Extensions.Localization.Abstractions": "10.0.8",
           "Microsoft.Extensions.Options": "10.0.8",
           "WarrantyBee.API.Domain": "1.0.0",
-          "WarrantyBee.Shared.Core": "1.0.1",
-          "WarrantyBee.Shared.Infrastructure": "1.0.3"
+          "WarrantyBee.Shared.Core": "1.0.3",
+          "WarrantyBee.Shared.Infrastructure": "1.0.5"
         },
         "runtime": {
           "WarrantyBee.API.Application.dll": {
@@ -1058,7 +1070,7 @@
       },
       "WarrantyBee.API.Domain/1.0.0": {
         "dependencies": {
-          "WarrantyBee.Shared.Core": "1.0.1"
+          "WarrantyBee.Shared.Core": "1.0.3"
         },
         "runtime": {
           "WarrantyBee.API.Domain.dll": {
@@ -1078,7 +1090,8 @@
           "System.IdentityModel.Tokens.Jwt": "8.18.0",
           "WarrantyBee.API.Application": "1.0.0",
           "WarrantyBee.API.Domain": "1.0.0",
-          "WarrantyBee.Shared.Infrastructure": "1.0.3"
+          "WarrantyBee.Shared.Infrastructure": "1.0.5",
+          "WarrantyBee.Shared.Security": "1.0.3"
         },
         "runtime": {
           "WarrantyBee.API.Infrastructure.dll": {
@@ -1862,19 +1875,26 @@
       "path": "system.threading.tasks/4.3.0",
       "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
     },
-    "WarrantyBee.Shared.Core/1.0.1": {
+    "WarrantyBee.Shared.Core/1.0.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Qs0F0apTcbfc0+MUj5vCvQ8VuT573mXS5bz8HtffDgdlnGujmR25mP4o0WDfLrW3FN+stHxwioJDQBfjJsvEBw==",
-      "path": "warrantybee.shared.core/1.0.1",
-      "hashPath": "warrantybee.shared.core.1.0.1.nupkg.sha512"
+      "sha512": "sha512-5qen9aatgnM9zVN6Fs5jCtswlHYvn6kO9valK0BZNTY/Gvqn2NtXNApNGHy4ctpO2gDUzrEmnCTAVzFplxgZsQ==",
+      "path": "warrantybee.shared.core/1.0.3",
+      "hashPath": "warrantybee.shared.core.1.0.3.nupkg.sha512"
     },
-    "WarrantyBee.Shared.Infrastructure/1.0.3": {
+    "WarrantyBee.Shared.Infrastructure/1.0.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-o6V6IKnp2JB2FHVyj9RUvsTAvgCM2cc2lDh/Y0/BOmP0gAqJaylIvY6+wfPEyn2oybYnOb4KFDhRlebHo59/nA==",
-      "path": "warrantybee.shared.infrastructure/1.0.3",
-      "hashPath": "warrantybee.shared.infrastructure.1.0.3.nupkg.sha512"
+      "sha512": "sha512-8AUiIi3McEXJccEvwUTyV8ukFzdHzdV6zyvhXnxxQfJ+zPuGsh9lftRsg31DUbdB6MrYzt0LiItB+Bs9hN3yWA==",
+      "path": "warrantybee.shared.infrastructure/1.0.5",
+      "hashPath": "warrantybee.shared.infrastructure.1.0.5.nupkg.sha512"
+    },
+    "WarrantyBee.Shared.Security/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-T4wRK0zdZbV4BLruIn/TH/TaaRTBudN4RK/g+4Lw0lECdO99Sgd3E80slRynypIUEUQwCB3yG3tRkAWtFrQI7w==",
+      "path": "warrantybee.shared.security/1.0.3",
+      "hashPath": "warrantybee.shared.security.1.0.3.nupkg.sha512"
     },
     "WarrantyBee.API.Application/1.0.0": {
       "type": "project",

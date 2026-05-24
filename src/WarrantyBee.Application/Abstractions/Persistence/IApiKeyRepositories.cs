@@ -16,5 +16,5 @@ public interface IApiKeyRepository
     Task<long> CreateAsync(ApiKey apiKey);
     Task RevokeAsync(long id);
     Task DeleteExpiredAsync();
+    Task UpdateEndpointsAsync(long keyId, IEnumerable<string> endpoints);
 }
-

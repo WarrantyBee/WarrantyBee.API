@@ -10,6 +10,9 @@ public class ApiClient
     public string AppId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? AppSecret { get; set; }
+    public long? OwnerUserId { get; set; }
+    public byte AppType { get; set; } // 1: Microservice, 2: API, 3: External App
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -31,5 +34,7 @@ public class ApiKey
     
     // Navigation property
     public ApiClient? Client { get; set; }
+    
+    // Allowed endpoint paths for this key
+    public IEnumerable<string> AllowedEndpoints { get; set; } = [];
 }
-

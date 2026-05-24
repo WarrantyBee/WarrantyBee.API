@@ -114,3 +114,4 @@ D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\ja\WarrantyB
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\ko\WarrantyBee.API.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\pt\WarrantyBee.API.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\zh\WarrantyBee.API.Application.resources.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Api\bin\Debug\net8.0\WarrantyBee.Security.dll

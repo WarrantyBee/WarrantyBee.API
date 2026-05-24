@@ -167,11 +167,11 @@
             },
             "WarrantyBee.Shared.Core": {
               "target": "Package",
-              "version": "[1.0.1, )"
+              "version": "[1.0.3, )"
             },
             "WarrantyBee.Shared.Infrastructure": {
               "target": "Package",
-              "version": "[1.0.3, )"
+              "version": "[1.0.5, )"
             }
           },
           "imports": [
@@ -245,7 +245,7 @@
           "dependencies": {
             "WarrantyBee.Shared.Core": {
               "target": "Package",
-              "version": "[1.0.1, )"
+              "version": "[1.0.3, )"
             }
           },
           "imports": [
@@ -353,6 +353,10 @@
               "version": "[8.18.0, )"
             },
             "WarrantyBee.Shared.Infrastructure": {
+              "target": "Package",
+              "version": "[1.0.5, )"
+            },
+            "WarrantyBee.Shared.Security": {
               "target": "Package",
               "version": "[1.0.3, )"
             }

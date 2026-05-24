@@ -19,5 +19,12 @@ public abstract class BaseController : ControllerBase
     {
         return Ok(APIResponse<T>.Success(data));
     }
-}
 
+    /// <summary>
+    /// Returns a 403 Forbidden response with a standardized error structure.
+    /// </summary>
+    protected IActionResult ForbiddenResponse()
+    {
+        return StatusCode(403, APIResponse<object>.Failure(1071, "User does not have permission to access this resource."));
+    }
+}
