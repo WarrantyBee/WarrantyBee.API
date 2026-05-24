@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "2TtVKeq33cM=",
+  "dgSpecHash": "Xpm+zEHhSfU=",
   "success": true,
   "projectFilePath": "D:\\WarrantyBee\\WarrantyBee.API\\src\\WarrantyBee.Domain\\WarrantyBee.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ARIJIT\\.nuget\\packages\\konscious.security.cryptography.argon2\\1.3.1\\konscious.security.cryptography.argon2.1.3.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\konscious.security.cryptography.blake2\\1.1.1\\konscious.security.cryptography.blake2.1.1.1.nupkg.sha512",
     "C:\\Users\\ARIJIT\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
-    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.6\\warrantybee.shared.core.1.0.6.nupkg.sha512"
+    "C:\\Users\\ARIJIT\\.nuget\\packages\\warrantybee.shared.core\\1.0.7\\warrantybee.shared.core.1.0.7.nupkg.sha512"
   ],
   "logs": []
 }

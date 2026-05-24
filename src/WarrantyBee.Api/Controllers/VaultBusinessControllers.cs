@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WarrantyBee.Application.Abstractions.Services;
+using WarrantyBee.Shared.Infrastructure.Abstractions;
 using WarrantyBee.Shared.Core.Enums;
 
 namespace WarrantyBee.Api.Controllers;
@@ -11,10 +12,12 @@ namespace WarrantyBee.Api.Controllers;
 public class VaultController : BaseController
 {
     private readonly IVaultService _vaultService;
+    private readonly IOcrService _ocrService;
 
-    public VaultController(IVaultService vaultService)
+    public VaultController(IVaultService vaultService, IOcrService ocrService)
     {
         _vaultService = vaultService;
+        _ocrService = ocrService;
     }
 
     [HttpGet]
@@ -29,6 +32,20 @@ public class VaultController : BaseController
     {
         var appliance = await _vaultService.RegisterApplianceAsync(request);
         return OkResponse(appliance);
+    }
+
+    /// <summary>
+    /// AI-Powered: Parses a receipt image and returns extracted product data to pre-fill the registration form.
+    /// </summary>
+    [HttpPost("parse-receipt")]
+    public async Task<IActionResult> ParseReceipt(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
+
+        using var stream = file.OpenReadStream();
+        var result = await _ocrService.ParseReceiptAsync(stream);
+
+        return OkResponse(result);
     }
 }
 

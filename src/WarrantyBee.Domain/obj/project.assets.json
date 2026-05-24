@@ -41,7 +41,7 @@
           "lib/netcoreapp2.1/_._": {}
         }
       },
-      "WarrantyBee.Shared.Core/1.0.6": {
+      "WarrantyBee.Shared.Core/1.0.7": {
         "type": "package",
         "dependencies": {
           "Konscious.Security.Cryptography.Argon2": "1.3.1"
@@ -121,23 +121,23 @@
         "version.txt"
       ]
     },
-    "WarrantyBee.Shared.Core/1.0.6": {
-      "sha512": "i6nXDl2TADb/C3oatsRZHsBbzVCq35BRxRAdHouVevF8ONPrWXSCG61FukL8ycHNUZzZI4lDO9LDKV9WlqDu8Q==",
+    "WarrantyBee.Shared.Core/1.0.7": {
+      "sha512": "iQOuHUqbY6fkZgC+xlPHc9mTxVZXah/9/kvzUtLJkvmKHKVfFAbLiaeUTVsoWDbLocW6Avi6xplybWcmpnNjAw==",
       "type": "package",
-      "path": "warrantybee.shared.core/1.0.6",
+      "path": "warrantybee.shared.core/1.0.7",
       "files": [
         ".nupkg.metadata",
         "lib/net8.0/WarrantyBee.Core.dll",
         "lib/net8.0/WarrantyBee.Core.xml",
         "logo.png",
-        "warrantybee.shared.core.1.0.6.nupkg.sha512",
+        "warrantybee.shared.core.1.0.7.nupkg.sha512",
         "warrantybee.shared.core.nuspec"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "WarrantyBee.Shared.Core >= 1.0.6"
+      "WarrantyBee.Shared.Core >= 1.0.7"
     ]
   },
   "packageFolders": {
@@ -195,7 +195,7 @@
         "dependencies": {
           "WarrantyBee.Shared.Core": {
             "target": "Package",
-            "version": "[1.0.6, )"
+            "version": "[1.0.7, )"
           }
         },
         "imports": [
