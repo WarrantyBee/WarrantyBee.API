@@ -208,7 +208,10 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetAsync(new UserSearchFilter(null, request.Email));
         if (user == null) throw new ApiException(Errors.UserNotRegistered);
 
-        if (request.AuthProvider == (byte)AuthProvider.Internal)
+        // Default to Internal if not specified
+        var authProvider = request.AuthProvider ?? (byte)AuthProvider.Internal;
+
+        if (authProvider == (byte)AuthProvider.Internal)
         {
             if (string.IsNullOrWhiteSpace(user.Password) || !HashHelper.Verify(request.Password!, user.Password))
             {
@@ -327,7 +330,9 @@ public class AuthService : IAuthService
     private void ValidateSimpleLogin(SimpleLoginRequest request)
     {
         if (!Validator.IsEmail(request.Email)) throw new ApiException(Errors.InvalidEmail);
-        if (request.AuthProvider == (byte)AuthProvider.Internal && Validator.IsBlank(request.Password))
+        
+        var authProvider = request.AuthProvider ?? (byte)AuthProvider.Internal;
+        if (authProvider == (byte)AuthProvider.Internal && Validator.IsBlank(request.Password))
             throw new ApiException(Errors.PasswordRequired);
     }
 

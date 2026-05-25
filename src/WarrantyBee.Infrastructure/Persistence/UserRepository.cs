@@ -96,65 +96,60 @@ public class UserRepository : IUserRepository
         parameters.Add("in_id", filter.Id);
         parameters.Add("in_email", filter.Email);
 
-        // Based on Java implementation, it returns a status first, then the data.
         using var multi = await connection.QueryMultipleAsync("EXEC dbo.usp_GetUser @in_id, @in_email", parameters);
         var statusRow = await multi.ReadFirstOrDefaultAsync<dynamic>();
         
-        if (statusRow == null || statusRow.status != 0) return null;
+        if (statusRow == null || (int)statusRow.status != 0) return null;
         
         var userRow = await multi.ReadFirstOrDefaultAsync<dynamic>();
         if (userRow == null) return null;
 
-        // Manual mapping to match Java's complex row structure
-        // In Dapper we can use dynamic or a specialized object.
-        // I'll use dynamic and map properties.
-        
         var user = new UserResponse
         {
-            Id = (long)userRow.id,
-            Firstname = userRow.firstname,
-            Lastname = userRow.lastname,
-            Email = userRow.email,
-            Password = userRow.password,
-            AuthProvider = (byte?)userRow.auth_provider,
-            AuthProviderUserId = userRow.auth_provider_user_id,
+            Id = Convert.ToInt64(userRow.id),
+            Firstname = userRow.firstname?.ToString(),
+            Lastname = userRow.lastname?.ToString(),
+            Email = userRow.email?.ToString(),
+            Password = userRow.password?.ToString(),
+            AuthProvider = userRow.auth_provider != null ? Convert.ToByte(userRow.auth_provider) : (byte?)null,
+            AuthProviderUserId = userRow.auth_provider_user_id?.ToString(),
             Profile = new UserProfileResponse
             {
-                PhoneCode = userRow.phone_code,
-                PhoneNumber = userRow.phone_number,
-                Gender = (byte?)userRow.gender,
+                PhoneCode = userRow.phone_code?.ToString(),
+                PhoneNumber = userRow.phone_number?.ToString(),
+                Gender = userRow.gender != null ? Convert.ToByte(userRow.gender) : (byte?)null,
                 DateOfBirth = userRow.date_of_birth,
-                AvatarUrl = userRow.avatar_url,
+                AvatarUrl = userRow.avatar_url?.ToString(),
                 Address = new UserAddressResponse
                 {
-                    AddressLine1 = userRow.address_line1,
-                    AddressLine2 = userRow.address_line2,
-                    City = userRow.city,
-                    PostalCode = userRow.postal_code,
-                    Country = new CountryResponse(
-                        (long)userRow.country_id, userRow.country_name, string.Empty, userRow.country_iso3, string.Empty, string.Empty, string.Empty, string.Empty),
-                    Region = new RegionResponse(
-                        (long)userRow.region_id, userRow.region_name, userRow.region_iso, string.Empty, (long)userRow.timezone_id)
+                    AddressLine1 = userRow.address_line1?.ToString(),
+                    AddressLine2 = userRow.address_line2?.ToString(),
+                    City = userRow.city?.ToString(),
+                    PostalCode = userRow.postal_code?.ToString(),
+                    Country = userRow.country_id != null ? new CountryResponse(
+                        Convert.ToInt64(userRow.country_id), userRow.country_name?.ToString() ?? string.Empty, string.Empty, userRow.country_iso3?.ToString() ?? string.Empty, string.Empty, string.Empty, string.Empty, string.Empty) : null,
+                    Region = userRow.region_id != null ? new RegionResponse(
+                        Convert.ToInt64(userRow.region_id), userRow.region_name?.ToString() ?? string.Empty, userRow.region_iso?.ToString() ?? string.Empty, string.Empty, userRow.timezone_id != null ? Convert.ToInt64(userRow.timezone_id) : 0) : null
                 },
-                Timezone = new TimeZoneResponse(
-                    (long)userRow.timezone_id, userRow.timezone_name, userRow.timezone_abbreviation, 
-                    (short)userRow.timezone_utc_offset_minutes, (bool)userRow.timezone_observes_dst, (short)userRow.timezone_current_offset_minutes),
-                Currency = new CurrencyResponse(
-                    (long)userRow.currency_id, userRow.currency_name, userRow.currency_iso_code, userRow.currency_code, 
-                    userRow.currency_symbol, (byte)userRow.currency_minor_unit),
-                Culture = new CultureResponse(
-                    (long)userRow.culture_id, userRow.culture_iso_code, (bool)userRow.culture_rtl,
-                    new LanguageResponse((long)userRow.language_id, userRow.language_name, userRow.language_iso_code, userRow.language_native_name)),
+                Timezone = userRow.timezone_id != null ? new TimeZoneResponse(
+                    Convert.ToInt64(userRow.timezone_id), userRow.timezone_name?.ToString() ?? string.Empty, userRow.timezone_abbreviation?.ToString() ?? string.Empty, 
+                    Convert.ToInt16(userRow.timezone_utc_offset_minutes), Convert.ToBoolean(userRow.timezone_observes_dst), Convert.ToInt16(userRow.timezone_current_offset_minutes)) : null,
+                Currency = userRow.currency_id != null ? new CurrencyResponse(
+                    Convert.ToInt64(userRow.currency_id), userRow.currency_name?.ToString() ?? string.Empty, userRow.currency_iso_code?.ToString() ?? string.Empty, userRow.currency_code?.ToString() ?? string.Empty, 
+                    userRow.currency_symbol?.ToString() ?? string.Empty, Convert.ToByte(userRow.currency_minor_unit)) : null,
+                Culture = userRow.culture_id != null ? new CultureResponse(
+                    Convert.ToInt64(userRow.culture_id), userRow.culture_iso_code?.ToString() ?? string.Empty, Convert.ToBoolean(userRow.culture_rtl),
+                    new LanguageResponse(Convert.ToInt64(userRow.language_id), userRow.language_name?.ToString() ?? string.Empty, userRow.language_iso_code?.ToString() ?? string.Empty, userRow.language_native_name?.ToString() ?? string.Empty)) : null,
                 Settings = new UserSettingsResponse
                 {
-                    Is2FAEnabled = (bool)userRow.is_2fa_enabled,
+                    Is2FAEnabled = Convert.ToBoolean(userRow.is_2fa_enabled),
                     PasswordUpdatedAt = userRow.password_updated_at
                 }
             },
             AuthorizationContext = new UserAuthorization
             {
-                Role = Enum.TryParse<SecurityRole>((string)userRow.role, true, out var role) ? role : SecurityRole.None,
-                Permissions = ParsePermissions((string)userRow.permissions)
+                Role = userRow.role == null ? SecurityRole.None : (Enum.TryParse<SecurityRole>(userRow.role.ToString(), true, out SecurityRole role) ? role : SecurityRole.None),
+                Permissions = ParsePermissions(userRow.permissions?.ToString())
             }
         };
 

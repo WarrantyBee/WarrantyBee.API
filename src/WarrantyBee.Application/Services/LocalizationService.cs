@@ -16,7 +16,7 @@ public class LocalizationService : ILocalizationService
     public LocalizationService(IStringLocalizerFactory factory)
     {
         // We use a dummy type to anchor the resource location
-        _localizer = factory.Create("Errors", "WarrantyBee.Application");
+        _localizer = factory.Create("Errors", "WarrantyBee.API.Application");
     }
 
     public string GetString(string key)

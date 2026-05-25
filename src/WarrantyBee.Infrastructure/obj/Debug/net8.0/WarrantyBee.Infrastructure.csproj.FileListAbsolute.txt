@@ -1,10 +1,3 @@
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.csproj.AssemblyReference.cache
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.AssemblyInfoInputs.cache
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.AssemblyInfo.cs
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.csproj.CoreCompileInputs.cache
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.sourcelink.json
-D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\Warranty.DD5FCF0D.Up2Date
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\WarrantyBee.API.Infrastructure.deps.json
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\WarrantyBee.API.Infrastructure.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\WarrantyBee.API.Infrastructure.pdb
@@ -21,6 +14,13 @@ D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\j
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\ko\WarrantyBee.API.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\pt\WarrantyBee.API.Application.resources.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\bin\Debug\net8.0\zh\WarrantyBee.API.Application.resources.dll
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.csproj.AssemblyReference.cache
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.AssemblyInfoInputs.cache
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.AssemblyInfo.cs
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.csproj.CoreCompileInputs.cache
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.Infrastructure.sourcelink.json
+D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\Warranty.DD5FCF0D.Up2Date
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.API.Infrastructure.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\refint\WarrantyBee.API.Infrastructure.dll
 D:\WarrantyBee\WarrantyBee.API\src\WarrantyBee.Infrastructure\obj\Debug\net8.0\WarrantyBee.API.Infrastructure.pdb

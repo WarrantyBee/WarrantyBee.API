@@ -19,6 +19,7 @@ public class AuthServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IOtpRepository> _otpRepositoryMock;
+    private readonly Mock<IRefreshTokenRepository> _refreshTokenRepositoryMock;
     private readonly Mock<IOtpService> _otpServiceMock;
     private readonly Mock<ICaptchaService> _captchaServiceMock;
     private readonly Mock<ITokenService> _tokenServiceMock;
@@ -33,6 +34,7 @@ public class AuthServiceTests
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _otpRepositoryMock = new Mock<IOtpRepository>();
+        _refreshTokenRepositoryMock = new Mock<IRefreshTokenRepository>();
         _otpServiceMock = new Mock<IOtpService>();
         _captchaServiceMock = new Mock<ICaptchaService>();
         _tokenServiceMock = new Mock<ITokenService>();
@@ -54,6 +56,7 @@ public class AuthServiceTests
             _telemetryServiceMock.Object,
             _userRepositoryMock.Object,
             _otpRepositoryMock.Object,
+            _refreshTokenRepositoryMock.Object,
             _jobSchedulerMock.Object,
             _eventPublisherMock.Object);
     }

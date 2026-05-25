@@ -26,7 +26,7 @@ public class AuthControllerTests
     public async Task Login_Simple_Success()
     {
         var request = new SimpleLoginRequest { Email = "test@example.com" };
-        var expectedResponse = new LoginResponse("token", "iat", "exp", new UserResponse());
+        var expectedResponse = new LoginResponse("token", "refresh", "iat", "exp", new UserResponse());
         _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync(expectedResponse);
 
         var result = await _controller.Login(request);
@@ -39,7 +39,7 @@ public class AuthControllerTests
     public async Task MfaLogin_Success()
     {
         var request = new MFALoginRequest { Email = "test@example.com" };
-        var expectedResponse = new LoginResponse("token", "iat", "exp", new UserResponse());
+        var expectedResponse = new LoginResponse("token", "refresh", "iat", "exp", new UserResponse());
         _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync(expectedResponse);
 
         var result = await _controller.MfaLogin(request);

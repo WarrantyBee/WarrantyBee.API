@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using WarrantyBee.Shared.Core.Contracts;
 
 namespace WarrantyBee.Application.Contracts.Identity;
@@ -10,6 +11,7 @@ public abstract class LoginRequest : BaseRequest
     /// <summary>
     /// Gets or sets the email address of the user.
     /// </summary>
+    [JsonPropertyName("email")]
     public string Email { get; set; } = string.Empty;
 }
 
@@ -21,16 +23,19 @@ public class SimpleLoginRequest : LoginRequest
     /// <summary>
     /// Gets or sets the user's password. Required for standard login.
     /// </summary>
+    [JsonPropertyName("password")]
     public string? Password { get; set; }
 
     /// <summary>
     /// Gets or sets the authentication provider (e.g., Google, Facebook).
     /// </summary>
+    [JsonPropertyName("authProvider")]
     public byte? AuthProvider { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier provided by the external authentication provider.
     /// </summary>
+    [JsonPropertyName("authProviderUserId")]
     public string? AuthProviderUserId { get; set; }
 }
 
